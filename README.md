@@ -7,16 +7,16 @@ A side projet to test the Typesense API and Quasar with electron.
 ## Usage
 
 ### Web
-As a web application, only server with --enable-cors will work.
+As a web application, only typesense server started with `--enable-cors` will work.
 
-Use  or build and install on your own server
+Use https://bfritscher.github.io/typesense-dashboard/ or build and install on your own server
 
 ### Desktop
 
 With the desktop application everything except instant search will work without cors.
 To export or import large json or ljson files, desktop version is required, because the browser version times out.
 
-Download from release page or build your own.
+Download from the [release page](https://github.com/bfritscher/typesense-dashboard/releases) or build your own.
 
 ## Screenshots
 
