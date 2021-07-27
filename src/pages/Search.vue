@@ -115,7 +115,6 @@ export default defineComponent({
               },
             });
           this.searchClient = typesenseInstantsearchAdapter.searchClient;
-          console.log(this.searchClient);
         });
       },
       immediate: true,

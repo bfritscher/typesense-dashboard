@@ -227,7 +227,6 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
   ) {
     try {
       context.commit('setError', null);
-      console.log(payload);
       await context.getters.api.upsertOverride(
         context.state.currentCollection?.name,
         payload.id,
