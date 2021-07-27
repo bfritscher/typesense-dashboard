@@ -5,9 +5,7 @@
       :search-client="searchClient"
       :index-name="currentCollection.name"
     >
-    <ais-configure
-    :hits-per-page.camel="12"
-/>
+      <ais-configure :hits-per-page.camel="12" />
       <ais-search-box placeholder="" />
       <ais-stats></ais-stats>
 
@@ -15,21 +13,19 @@
 
       <div class="row q-mt-md">
         <div class="col-3 q-pr-sm">
-          <ais-range-input
-            class="q-mb-sm"
-            :searchable="true"
-            v-for="name in facetNumberFields"
-            :key="name"
-            :attribute="name"
-          />
+          <div class="q-mb-sm" v-for="name in facetNumberFields" :key="name">
+            <div class="text-subtitle2 q-pt-md">{{ name }}</div>
+            <ais-range-input :searchable="true" :attribute="name" />
+          </div>
 
-          <ais-refinement-list
-            class="q-mb-sm"
-            :searchable="true"
-            v-for="name in facetStringFields"
-            :key="name"
-            :attribute="name"
-          />
+          <div class="q-mb-sm" v-for="name in facetStringFields" :key="name">
+            <div class="text-subtitle2 q-pt-md">{{ name }}</div>
+            <ais-refinement-list
+              class="q-mb-sm"
+              :searchable="true"
+              :attribute="name"
+            />
+          </div>
         </div>
         <div class="col-9">
           <ais-pagination class="q-mb-md" />
@@ -123,7 +119,10 @@ export default defineComponent({
 });
 </script>
 <style>
-.ais-Hits-item, .ais-InfiniteHits-item, .ais-InfiniteResults-item, .ais-Results-item {
+.ais-Hits-item,
+.ais-InfiniteHits-item,
+.ais-InfiniteResults-item,
+.ais-Results-item {
   width: calc(33% - 1rem);
   border-radius: 4px;
   padding: none;

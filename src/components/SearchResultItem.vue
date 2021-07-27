@@ -97,6 +97,7 @@ export default defineComponent({
   },
   methods: {
     editDocument() {
+      //eslint-disable-next-line
       const copyItem: any = {};
       if (!this.item) return;
       Object.keys(this.item).forEach((key) => {

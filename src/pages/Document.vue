@@ -14,7 +14,10 @@
         <span v-if="!$q.platform.is.electron"> (only desktop version)</span>
       </q-btn>
     </div>
-    <monaco-editor v-model="documentsJson"></monaco-editor>
+    <monaco-editor
+      v-model="documentsJson"
+      style="min-height: 200px"
+    ></monaco-editor>
     <q-banner inline-actions class="text-white bg-red" v-if="jsonError">
       Invalid Format: {{ jsonError }}
     </q-banner>
@@ -57,8 +60,8 @@
 
     <div>
       <div v-for="(result, index) in results" :key="index">
-        {{ index }} {{ result.success }}
-        <span v-if="!result.success">{{ result.error }}</span>
+        {{ index }}: <span v-if="result.success"> {{ result.success }}</span
+        ><span v-else>{{ result.error }}</span>
       </div>
     </div>
   </q-page>
@@ -104,32 +107,44 @@ export default defineComponent({
       return this.$store.state.node.currentCollection;
     },
     //eslint-disable-next-line
-    documentsToEdit(): any[]|null {
+    documentsToEdit(): any[] | null {
       return this.$store.state.node.documentsToEdit;
-    }
+    },
   },
   methods: {
     async importFile() {
       this.results = [];
       try {
+        this.$q.loading.show({
+          message: 'Uploading. Please wait...',
+          boxClass: 'bg-grey-2 text-grey-9',
+          spinnerColor: 'primary',
+        });
         this.results = await this.$store.getters['node/api'].importFile(
           this.currentCollection?.name,
           this.action
         );
       } catch (error) {
-        this.results = error.importResults;
+        this.results = error.message;
       }
+      this.$q.loading.hide();
     },
     async importDocuments() {
       this.results = [];
       try {
+        this.$q.loading.show({
+          message: 'Uploading. Please wait...',
+          boxClass: 'bg-grey-2 text-grey-9',
+          spinnerColor: 'primary',
+        });
         this.results = await this.$store.dispatch('node/importDocuments', {
           action: this.action,
           documents: JSON.parse(JSON.stringify(this.documents)),
         });
       } catch (error) {
-        this.results = error.importResults;
+        this.results = error.message;
       }
+      this.$q.loading.hide();
     },
     addEmptyDocument() {
       const document = this.currentCollection?.fields.reduce(
@@ -157,10 +172,10 @@ export default defineComponent({
     },
     documentsToEdit: {
       handler() {
-        if(this.documentsToEdit && this.documentsToEdit.length > 0) {
+        if (this.documentsToEdit && this.documentsToEdit.length > 0) {
           this.documents = this.$store.state.node.documentsToEdit || [];
           this.action = 'upsert';
-          this.$store.commit('node/setDocumentsToEdit',[]);
+          this.$store.commit('node/setDocumentsToEdit', []);
         }
       },
       immediate: true,
