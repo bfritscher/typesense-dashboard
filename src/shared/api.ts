@@ -88,8 +88,11 @@ export class Api {
     return this.typesenseClient?.collections(collectionName).documents(id).delete();
   }
 
-  public importDocuments(collectionName: string, documents: unknown[]|string, action:string) {
-    return this.typesenseClient?.collections(collectionName).documents().import(documents,  { action });
+  public importDocuments(collectionName: string, documents: unknown[]|string, action:string){
+    return this.typesenseClient?.collections(collectionName).documents().import(documents,  { action }).catch(error => {
+      //eslint-disable-next-line
+      return error.importResults;
+    });;
   }
 
   public exportDocuments(collectionName: string){
