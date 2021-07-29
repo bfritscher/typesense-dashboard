@@ -5,7 +5,7 @@
         <q-item-section>
           <q-item-label caption> {{ field.name }} </q-item-label>
         </q-item-section>
-        <q-item-section side>
+        <q-item-section side class="q-ml-xl text-body2">
           <q-item-label
             class="overflow-hidden text-no-wrap text-ellipsis"
             :title="item[field.name]"
@@ -28,7 +28,7 @@
         <q-item-section>
           <q-item-label caption> {{ field }} </q-item-label>
         </q-item-section>
-        <q-item-section side>
+        <q-item-section side class="q-ml-xl text-body2">
           <q-item-label
             class="overflow-hidden text-no-wrap text-ellipsis"
             :title="item[field]"

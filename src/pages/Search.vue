@@ -127,4 +127,8 @@ export default defineComponent({
   border-radius: 4px;
   padding: none;
 }
+
+.ais-Hits-item .text-body2 [class^=ais-] {
+  font-size: 0.875rem !important;
+}
 </style>
