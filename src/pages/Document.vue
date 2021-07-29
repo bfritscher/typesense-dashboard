@@ -154,7 +154,7 @@ export default defineComponent({
             ? []
             : field.type.includes('string')
             ? ''
-            : 0;
+            : field.type.includes('bool') ? false : 0;
           return obj;
         },
         {}
