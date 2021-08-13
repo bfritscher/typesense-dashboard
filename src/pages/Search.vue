@@ -105,7 +105,7 @@ export default defineComponent({
               //  queryBy is required.
               additionalSearchParameters: {
                 queryBy: this.currentCollection.fields
-                  .filter((f) => ['string', 'string[]'].includes(f.type))
+                  .filter((f) => f.index && ['string', 'string[]'].includes(f.type))
                   .map((f) => f.name)
                   .join(','),
               },
