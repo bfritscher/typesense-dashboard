@@ -11,6 +11,25 @@ As a web application, only typesense server started with `--enable-cors` will wo
 
 Use https://bfritscher.github.io/typesense-dashboard/ or build and install on your own server
 
+#### Docker
+
+self-host this dashboard with docker* (web version has some limitations import/export size of files)
+
+use environement variable `PUBLIC_PATH` if you need something else than `/`
+
+Example usage:
+```bash
+$ docker build -t typesense-dashboard .
+$ docker run -d -p 80:80 typesense-dashboard
+```
+
+`caddy` is used for serving the actual files.
+One could also copy `/srv` from the final Docker Image into another:
+```Dockerfile
+FROM alpine
+COPY --from=typesense-dashboard /srv /typesense-dashboard
+```
+
 ### Desktop
 
 With the desktop application everything except instant search will work without cors.
