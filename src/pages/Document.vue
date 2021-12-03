@@ -77,9 +77,9 @@ export default defineComponent({
   components: { MonacoEditor },
   data() {
     return {
-      jsonError: null,
+      jsonError: null as string | null,
       documents: [] as unknown[],
-      results: [] as unknown[],
+      results: [] as unknown[] | string,
       action: 'upsert',
       actionOptions: ['create', 'upsert', 'update'],
       actionDesciptions: {
@@ -99,7 +99,7 @@ export default defineComponent({
           this.documents = JSON.parse(json);
           this.jsonError = null;
         } catch (e) {
-          this.jsonError = e.message;
+          this.jsonError = (e as Error).message;
         }
       },
     },
@@ -125,7 +125,7 @@ export default defineComponent({
           this.action
         );
       } catch (error) {
-        this.results = error.message;
+        this.results = (error as Error).message;
       }
       this.$q.loading.hide();
     },
@@ -142,7 +142,7 @@ export default defineComponent({
           documents: JSON.parse(JSON.stringify(this.documents)),
         });
       } catch (error) {
-        this.results = error.message;
+        this.results = (error as Error).message;
       }
       this.$q.loading.hide();
     },

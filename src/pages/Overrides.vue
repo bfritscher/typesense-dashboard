@@ -107,7 +107,7 @@ export default defineComponent({
     return {
       id: nanoid(),
       override: initialData as Override,
-      jsonError: null,
+      jsonError: null as string | null,
       expanded: this.$store.state.node.data.overrides.length === 0,
       filter: '',
       columns: [
@@ -166,7 +166,7 @@ export default defineComponent({
           this.override = JSON.parse(json);
           this.jsonError = null;
         } catch (e) {
-          this.jsonError = e.message;
+          this.jsonError = (e as Error).message;
         }
       },
     },

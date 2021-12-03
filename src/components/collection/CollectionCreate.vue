@@ -190,7 +190,7 @@ export default defineComponent({
           this.schema = JSON.parse(json);
           this.jsonError = null;
         } catch (e) {
-          this.jsonError = e.message;
+          this.jsonError = (e as Error).message;
         }
       },
     },

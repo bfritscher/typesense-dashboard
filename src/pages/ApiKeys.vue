@@ -109,7 +109,7 @@ export default defineComponent({
   components: { MonacoEditor },
   data() {
     return {
-      jsonError: null,
+      jsonError: null as string | null,
       key: JSON.parse(JSON.stringify(adminKeyExample)) as ApiKey,
       expanded: this.$store.state.node.data.apiKeys.length === 0,
       filter: '',
@@ -174,7 +174,7 @@ export default defineComponent({
           this.key = JSON.parse(json);
           this.jsonError = null;
         } catch (e) {
-          this.jsonError = e.message;
+          this.jsonError = (e as Error).message;
         }
       },
     },

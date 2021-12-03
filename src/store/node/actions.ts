@@ -159,7 +159,7 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
       // @ts-ignore
       this.$router.push(`/collection/${collection.name}/schema`);
     } catch (error) {
-      context.commit('setError', error.message);
+      context.commit('setError', (error as Error).message);
     }
   },
   async deleteAlias(context, name: string) {
@@ -172,7 +172,7 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
       await context.getters.api.upsertAlias(alias);
       void context.dispatch('getAliases');
     } catch (error) {
-      context.commit('setError', error.message);
+      context.commit('setError', (error as Error).message);
     }
   },
   async createApiKey(
@@ -187,7 +187,7 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
       void context.dispatch('getApiKeys');
       return key;
     } catch (error) {
-      context.commit('setError', error.message);
+      context.commit('setError', (error as Error).message);
       throw error;
     }
   },
@@ -211,7 +211,7 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
         context.state.currentCollection?.name
       );
     } catch (error) {
-      context.commit('setError', error.message);
+      context.commit('setError', (error as Error).message);
     }
   },
   async deleteSynonym(context, id: string) {
@@ -237,7 +237,7 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
         context.state.currentCollection?.name
       );
     } catch (error) {
-      context.commit('setError', error.message);
+      context.commit('setError', (error as Error).message);
     }
   },
   async deleteOverride(context, id: string) {
