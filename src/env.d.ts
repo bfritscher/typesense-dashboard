@@ -3,6 +3,7 @@ declare module 'typesense' {
     host: string;
     port: string;
     protocol: string;
+    tls: boolean;
   }
   export interface Alias {
     name: string;

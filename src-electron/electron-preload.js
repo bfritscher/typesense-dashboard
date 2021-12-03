@@ -21,6 +21,9 @@ import { Api } from '../src/shared/api';
 const api = {
   importFile: (collectionName, action) => {
     return ipcRenderer.invoke('importFile', collectionName, action);
+  },
+  rejectTLS: (value) => {
+    return ipcRenderer.invoke('rejectTLS', value);
   }
 };
 Object.getOwnPropertyNames(Api.prototype).forEach((f) => {

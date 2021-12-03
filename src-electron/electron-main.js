@@ -56,6 +56,7 @@ app.on('activate', () => {
   }
 })
 
+
 import { Api } from '../src/shared/api'
 const appApi = new Api();
 
@@ -74,6 +75,26 @@ ipcMain.handle('importFile', async (events, collectionName, action) => {
     return appApi.importDocuments(collectionName, documents, action);
   }
 });
+
+function certErrorHandler (event, webContents, url, error, certificate, callback) {
+  // On certificate error we disable default behaviour (stop loading the page)
+  // and we then say "it is all fine - true" to the callback
+  event.preventDefault();
+  callback(true);
+}
+
+let certErrorListenerInstalled = false;
+
+ipcMain.handle('rejectTLS', (event, value) => {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = value;
+  if (value === 0 && !certErrorListenerInstalled) {
+    app.on('certificate-error', certErrorHandler);
+    certErrorListenerInstalled = true;
+  } else if (value === 1 && certErrorListenerInstalled) {
+    app.off('certificate-error', certErrorHandler);
+    certErrorListenerInstalled = false;
+  }
+})
 
 Object.getOwnPropertyNames( Api.prototype ).forEach((f) => {
   ipcMain.handle(f, (event, ...args) => {

@@ -26,6 +26,9 @@
               />
               <q-input filled v-model="node.host" type="text" label="host" />
               <q-input filled v-model="node.port" type="number" label="port" />
+              <div class="text-left">
+                <q-toggle v-if="$q.platform.is.electron && node.protocol === 'https'" label="Check TLS" v-model="node.tls"/>
+              </div>
             </q-form>
           </q-card-section>
           <q-card-section v-if="error">
@@ -58,6 +61,7 @@ export default defineComponent({
         host: 'localhost',
         port: '8108',
         protocol: 'http',
+        tls: true,
       },
       protocolOptions: ['http', 'https'],
     };

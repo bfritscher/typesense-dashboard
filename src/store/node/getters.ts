@@ -11,6 +11,7 @@ const getters: GetterTree<NodeStateInterface, StateInterface> = {
       let api = new Api();
       if (electron) {
         api = electron;
+        (electron as any).rejectTLS(Number(state.loginData.node.tls))
       }
       api.init({
         node: { ...state.loginData.node},
