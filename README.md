@@ -37,6 +37,15 @@ To export or import large json or ljson files, desktop version is required, beca
 
 Download from the [release page](https://github.com/bfritscher/typesense-dashboard/releases) or build your own.
 
+#### *Linux*
+App cannot be started by clicking on it, on Nautilus[*](https://stackoverflow.com/questions/55060402/electron-executable-not-recognized-by-nautilus)
+
+Make it executable and then you can run it from command line.
+```
+./'Typesense-Dashboard'
+```
+
+
 ## Screenshots
 
 ![server status](docs/images/server.png)
