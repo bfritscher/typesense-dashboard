@@ -1,0 +1,105 @@
+name: Quasar Electron Build and Release
+
+on:
+  push:
+    tags:
+      - v*
+jobs:
+  release:
+    name: Create Github Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+      - name: Output Release URL File
+        run: echo "${{ steps.create_release.outputs.upload_url }}" > release_url.txt
+      - name: Save Release URL File for publish
+        uses: actions/upload-artifact@v1
+        with:
+          name: release_url
+          path: release_url.txt
+  build-linux:
+    runs-on: ubuntu-latest
+    needs: [release]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Load Release URL File from release job
+        uses: actions/download-artifact@v1
+        with:
+          name: release_url
+      - name: Setup NodeJS Environment
+        uses: actions/setup-node@v2
+        with:
+            node-version: '16'
+      - run: yarn install && npm -g install @quasar/cli
+      - run: quasar build --mode electron --target darwin --target linux
+      - run: zip -r ./Typesense-Dashboard-linux-x64-${{ github.ref_name }}.zip ./dist/electron/Typesense-Dashboard-linux-x64
+      - run: zip -r ./Typesense-Dashboard-darwin-x64-${{ github.ref_name }}.zip ./dist/electron/Typesense-Dashboard-darwin-x64
+      - name: Get Release File Name & Upload URL
+        id: get_release_info
+        run: |
+          value=`cat release_url/release_url.txt`
+          echo ::set-output name=upload_url::$value
+        env:
+          TAG_REF_NAME: ${{ github.ref }}
+          REPOSITORY_NAME: ${{ github.repository }}
+      - name: Upload a Release Asset linux
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release_info.outputs.upload_url }}
+          asset_path: ./Typesense-Dashboard-linux-x64-${{ github.ref_name }}.zip
+          asset_name: Typesense-Dashboard-linux-x64-${{ github.ref_name }}.zip
+          asset_content_type: appliction/zip
+      - name: Upload a Release Asset darwin
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release_info.outputs.upload_url }}
+          asset_path: ./Typesense-Dashboard-darwin-x64-${{ github.ref_name }}.zip
+          asset_name: Typesense-Dashboard-darwin-x64-${{ github.ref_name }}.zip
+          asset_content_type: appliction/zip
+  build-windows:
+    runs-on: windows-latest
+    needs: [release]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Load Release URL File from release job
+        uses: actions/download-artifact@v1
+        with:
+          name: release_url
+      - name: Setup NodeJS Environment
+        uses: actions/setup-node@v2
+        with:
+            node-version: '16'
+      - run: yarn install && npm -g install @quasar/cli electron-installer-zip
+      - run: quasar build --mode electron --target win32
+      - run: electron-installer-zip ./dist/electron/Typesense-Dashboard-win32-x64 ./Typesense-Dashboard-win32-x64-${{ github.ref_name }}.zip
+      - name: Get Release File Name & Upload URL
+        id: get_release_info
+        shell: bash
+        run: |
+          value=`cat release_url/release_url.txt`
+          echo ::set-output name=upload_url::$value
+        env:
+          TAG_REF_NAME: ${{ github.ref }}
+          REPOSITORY_NAME: ${{ github.repository }}
+      - name: Upload a Release Asset win32
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release_info.outputs.upload_url }}
+          asset_path: ./Typesense-Dashboard-win32-x64-${{ github.ref_name }}.zip
+          asset_name: Typesense-Dashboard-win32-x64-${{ github.ref_name }}.zip
+          asset_content_type: appliction/zip
