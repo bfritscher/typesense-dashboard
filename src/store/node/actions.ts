@@ -287,6 +287,12 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
     // eslint-disable-next-line
     // @ts-ignore
     this.$router.push(`/collection/${context.state.currentCollection?.name || ''}/document`);
+  },
+  exportToJson(context, object: any) {
+    const blob = new Blob([JSON.stringify(object, null, 2)], {
+      type: 'application/json;charset=utf-8',
+    });
+    FileSaver.saveAs(blob, 'export.json');
   }
 };
 

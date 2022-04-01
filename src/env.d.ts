@@ -132,7 +132,7 @@ declare module 'typesense-instantsearch-adapter' {
       nodes: TypesenseNode[];
     };
     additionalSearchParameters: {
-      queryBy: string;
+      query_by: string;
     };
   }
 

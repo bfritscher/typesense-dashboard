@@ -4,17 +4,28 @@
       v-if="searchClient && currentCollection"
       :search-client="searchClient"
       :index-name="currentCollection.name"
+      :middlewares="middlewares"
     >
       <ais-configure :hits-per-page.camel="12" />
       <ais-search-box placeholder="" />
       <ais-stats></ais-stats>
-
       <ais-current-refinements />
 
       <div class="row q-mt-md">
         <div class="col-3 q-pr-sm">
+          <ais-hits-per-page
+            :items="[
+              { label: '12 hits per page', value: 12, default: true },
+              { label: '48 hits per page', value: 48 },
+              { label: '100 hits per page', value: 100 },
+              { label: '1000 hits per page', value: 1000 },
+            ]"
+          />
+          <q-btn flat @click="exportPage()">export current page</q-btn>
+
           <div class="text-subtitle2 q-pt-md">Sort By</div>
           <ais-sort-by :items="sortBy" />
+
           <div class="q-mb-sm" v-for="name in facetNumberFields" :key="name">
             <div class="text-subtitle2 q-pt-md">{{ name }}</div>
             <ais-range-input :searchable="true" :attribute="name" />
@@ -48,13 +59,31 @@ import SearchResultItem from 'src/components/SearchResultItem.vue';
 import { Collection } from 'typesense';
 import TypesenseInstantSearchAdapter from 'typesense-instantsearch-adapter';
 import { defineComponent } from 'vue';
+
 export default defineComponent({
   components: { SearchResultItem },
   name: 'Search',
   data() {
-    return {
+    const data = {
       searchClient: null,
+      instantSearchInstance: null as any,
+      middlewares: [
+        //eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ({ instantSearchInstance }: any) => {
+          return {
+            subscribe() {
+              // Do something when the InstantSearch instance starts.
+              data.instantSearchInstance = instantSearchInstance;
+            },
+            unsubscribe() {
+              // Do something when the InstantSearch instance is disposed.
+              data.instantSearchInstance = null;
+            },
+          };
+        },
+      ],
     };
+    return data;
   },
   computed: {
     currentCollection(): Collection | null {
@@ -83,17 +112,34 @@ export default defineComponent({
         .filter((f) => f.facet && ['string', 'string[]'].includes(f.type))
         .map((f) => f.name);
     },
-    sortBy(): {value:string, label:string}[] {
+    sortBy(): { value: string; label: string }[] {
       if (!this.currentCollection) return [];
-      const sortBy = [{value: this.currentCollection.name, label: 'Default'} ]
+      const sortBy = [{ value: this.currentCollection.name, label: 'Default' }];
       this.currentCollection.fields
         .filter((f) => ['int32', 'float'].includes(f.type))
         .forEach((f) => {
           if (!this.currentCollection) return;
-          sortBy.push({value: `${this.currentCollection.name}/sort/${f.name}:asc`, label: `${f.name} asc`})
-          sortBy.push({value: `${this.currentCollection.name}/sort/${f.name}:desc`, label: `${f.name} desc`})
+          sortBy.push({
+            value: `${this.currentCollection.name}/sort/${f.name}:asc`,
+            label: `${f.name} asc`,
+          });
+          sortBy.push({
+            value: `${this.currentCollection.name}/sort/${f.name}:desc`,
+            label: `${f.name} desc`,
+          });
         });
       return sortBy;
+    },
+  },
+  methods: {
+    async exportPage() {
+      if (this.instantSearchInstance && this.currentCollection) {
+        await this.$store.dispatch(
+          'node/exportToJson',
+          this.instantSearchInstance.renderState[this.currentCollection.name]
+            .hits.results.hits
+        );
+      }
     },
   },
   watch: {
@@ -118,8 +164,10 @@ export default defineComponent({
               //  So you can pass any parameters supported by the search endpoint below.
               //  queryBy is required.
               additionalSearchParameters: {
-                queryBy: this.currentCollection.fields
-                  .filter((f) => f.index && ['string', 'string[]'].includes(f.type))
+                query_by: this.currentCollection.fields
+                  .filter(
+                    (f) => f.index && ['string', 'string[]'].includes(f.type)
+                  )
                   .map((f) => f.name)
                   .join(','),
               },
@@ -142,7 +190,7 @@ export default defineComponent({
   padding: none;
 }
 
-.ais-Hits-item .text-body2 [class^=ais-] {
+.ais-Hits-item .text-body2 [class^='ais-'] {
   font-size: 0.875rem !important;
 }
 </style>
