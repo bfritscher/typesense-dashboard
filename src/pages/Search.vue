@@ -13,6 +13,8 @@
 
       <div class="row q-mt-md">
         <div class="col-3 q-pr-sm">
+          <div class="text-subtitle2 q-pt-md">Sort By</div>
+          <ais-sort-by :items="sortBy" />
           <div class="q-mb-sm" v-for="name in facetNumberFields" :key="name">
             <div class="text-subtitle2 q-pt-md">{{ name }}</div>
             <ais-range-input :searchable="true" :attribute="name" />
@@ -80,6 +82,18 @@ export default defineComponent({
       return this.currentCollection.fields
         .filter((f) => f.facet && ['string', 'string[]'].includes(f.type))
         .map((f) => f.name);
+    },
+    sortBy(): {value:string, label:string}[] {
+      if (!this.currentCollection) return [];
+      const sortBy = [{value: this.currentCollection.name, label: 'Default'} ]
+      this.currentCollection.fields
+        .filter((f) => ['int32', 'float'].includes(f.type))
+        .forEach((f) => {
+          if (!this.currentCollection) return;
+          sortBy.push({value: `${this.currentCollection.name}/sort/${f.name}:asc`, label: `${f.name} asc`})
+          sortBy.push({value: `${this.currentCollection.name}/sort/${f.name}:desc`, label: `${f.name} desc`})
+        });
+      return sortBy;
     },
   },
   watch: {
