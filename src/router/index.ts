@@ -20,7 +20,9 @@ import routes from './routes';
 export default route<StateInterface>(function ({ store }) {
   const createHistory = process.env.SERVER
     ? createMemoryHistory
-    : (process.env.VUE_ROUTER_MODE === 'history' ? createWebHistory : createWebHashHistory);
+    : process.env.VUE_ROUTER_MODE === 'history'
+    ? createWebHistory
+    : createWebHashHistory;
 
   const Router = createRouter({
     scrollBehavior: () => ({ left: 0, top: 0 }),
@@ -36,14 +38,21 @@ export default route<StateInterface>(function ({ store }) {
   void store.dispatch('node/connectionCheck');
 
   Router.beforeEach(async (to, from, next) => {
-    if (to.name !== 'Login' && !store.state.node.isConnected) next({ name: 'Login' })
-    else if (to.params.name) {
-      if (!store.state.node.currentCollection || store.state.node.currentCollection.name !== to.params.name) {
-        await store.dispatch('node/loadCurrentCollectionByName', to.params.name)
+    if (to.name !== 'Login' && !store.state.node.isConnected) {
+      store.commit('node/setPreviousRoute', to);
+      next({ name: 'Login' });
+    } else if (to.params.name) {
+      if (
+        !store.state.node.currentCollection ||
+        store.state.node.currentCollection.name !== to.params.name
+      ) {
+        await store.dispatch(
+          'node/loadCurrentCollectionByName',
+          to.params.name
+        );
       }
-      next()
-    }
-    else next()
+      next();
+    } else next();
   });
 
   return Router;

@@ -69,14 +69,13 @@ Make it executable and then you can run it from command line.
 ![curations](docs/images/curations.png)
 
 
-## Known Issues and limitations
-- deep linking url routing do not always work
+## Known Issues and Limitations
 - API features not yet implemented:
     - create Snapshot
     - custom search (with a custom query)
     - delete by query
     - Scoped Search Key generation
-- Dark mode not completly implemented
+- Dark mode not completely implemented
 
 # Development
 ## Install the dependencies

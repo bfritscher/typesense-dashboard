@@ -7,6 +7,7 @@ import {
   Override,
   Synonym,
 } from 'typesense';
+import { RouteLocationNormalized } from 'vue-router';
 
 export interface NodeDataInterface {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -28,6 +29,7 @@ export interface NodeLoginDataInterface {
 export interface NodeStateInterface {
   loginData: NodeLoginDataInterface | null;
   isConnected: boolean;
+  previousRoute: RouteLocationNormalized | null;
   error: string | null;
   data: NodeDataInterface;
   currentCollection: Collection | null;
@@ -41,6 +43,7 @@ function state(): NodeStateInterface {
   return {
     loginData: LocalStorage.getItem(STORAGE_KEY_LOGIN),
     isConnected: false,
+    previousRoute: null,
     error: null,
     currentCollection: null,
     documentsToEdit: [],

@@ -2,7 +2,7 @@ import { Collection, TypesenseNode } from 'typesense';
 import { MutationTree } from 'vuex';
 import { NodeDataInterface, NodeStateInterface, STORAGE_KEY_LOGIN } from './state';
 import { LocalStorage } from 'quasar'
-import { Router } from 'vue-router'
+import { RouteLocationNormalized, Router } from 'vue-router'
 
 const mutation: MutationTree<NodeStateInterface> & {$router?:Router} = {
   setNodeData(
@@ -15,12 +15,20 @@ const mutation: MutationTree<NodeStateInterface> & {$router?:Router} = {
   setIsConnected(state: NodeStateInterface, status: boolean):void {
     const route = this.$router?.currentRoute.value;
     if (status &&  !state.isConnected) {
-      void this.$router?.push('/');
+      if (state.previousRoute) {
+        void this.$router?.push(state.previousRoute);
+        state.previousRoute = null;
+      } else {
+        void this.$router?.push('/');
+      }
     }
     if(!status && route?.name !== 'Login') {
       void this.$router?.push('/login');
     }
     state.isConnected = status;
+  },
+  setPreviousRoute(state: NodeStateInterface, route: RouteLocationNormalized):void {
+    state.previousRoute = route;
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   setData(state: NodeStateInterface, data: any):void {

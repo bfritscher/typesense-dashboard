@@ -15,15 +15,17 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
     if (context.state.loginData) {
       context.getters.api
         .get('/metrics.json')
-        .then((response: AxiosResponse) => {
+        .then(async (response: AxiosResponse) => {
           context.commit('setData', {
             metrics: response.data,
           });
+          await Promise.all([
+            context.dispatch('getCollections'),
+            context.dispatch('getAliases'),
+            context.dispatch('getApiKeys'),
+          ]);
           context.commit('setIsConnected', true);
           context.commit('setError', null);
-          void context.dispatch('getCollections');
-          void context.dispatch('getAliases');
-          void context.dispatch('getApiKeys');
         })
         .catch((error: AxiosError) => {
           context.commit('setIsConnected', false);
@@ -55,8 +57,8 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
         void context.dispatch('connectionCheck');
       });
   },
-  getCollections(context) {
-    context.getters.api
+  async getCollections(context) {
+    await context.getters.api
       .getCollections()
       .then((response: Typesense.Collection[]) => {
         context.commit('setData', {
@@ -68,8 +70,8 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
         void context.dispatch('connectionCheck');
       });
   },
-  getAliases(context) {
-    context.getters.api
+  async getAliases(context) {
+    await context.getters.api
       .getAliases()
       .then((response: { aliases: Typesense.Alias[] }) => {
         context.commit('setData', {
@@ -81,8 +83,8 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
         void context.dispatch('connectionCheck');
       });
   },
-  getApiKeys(context) {
-    context.getters.api
+  async getApiKeys(context) {
+    await context.getters.api
       .getApiKeys()
       .then((response: { keys: Typesense.ApiKey[] }) => {
         context.commit('setData', {
@@ -286,14 +288,16 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
     context.commit('setDocumentsToEdit', documents);
     // eslint-disable-next-line
     // @ts-ignore
-    this.$router.push(`/collection/${context.state.currentCollection?.name || ''}/document`);
+    this.$router.push(
+      `/collection/${context.state.currentCollection?.name || ''}/document`
+    );
   },
   exportToJson(context, object: any) {
     const blob = new Blob([JSON.stringify(object, null, 2)], {
       type: 'application/json;charset=utf-8',
     });
     FileSaver.saveAs(blob, 'export.json');
-  }
+  },
 };
 
 export default actions;
