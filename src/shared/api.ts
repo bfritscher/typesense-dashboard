@@ -92,13 +92,18 @@ export class Api {
     return this.typesenseClient?.collections(collectionName).documents().import(documents,  { action }).catch(error => {
       //eslint-disable-next-line
       return error.importResults;
-    });;
+    });
   }
 
   public exportDocuments(collectionName: string){
     return this.typesenseClient?.collections(collectionName)
     .documents()
     .export()
+  }
+
+  public search(collectionName: string, searchParameters: Typesense.SearchParameters) {
+    console.log(searchParameters);
+    return this.typesenseClient?.collections(collectionName).documents().search(searchParameters);
   }
 
 

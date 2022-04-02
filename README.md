@@ -62,6 +62,8 @@ Make it executable and then you can run it from command line.
 
 ![search](docs/images/search.png)
 
+![search](docs/images/search_json.png)
+
 ![schema](docs/images/schema.png)
 
 ![synonyms](docs/images/synonyms.png)
@@ -72,7 +74,6 @@ Make it executable and then you can run it from command line.
 ## Known Issues and Limitations
 - API features not yet implemented:
     - create Snapshot
-    - custom search (with a custom query)
     - delete by query
     - Scoped Search Key generation
 - Dark mode not completely implemented

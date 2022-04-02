@@ -259,6 +259,15 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
     ));
     // TODO refresh
   },
+  search(
+    context,
+    payload: Typesense.SearchParameters
+  ): Promise<Typesense.SearchResult> {
+    return context.getters.api.search(
+      context.state.currentCollection?.name,
+      JSON.parse(JSON.stringify(payload)) // remove proxy which is not serializable
+    ) as Promise<Typesense.SearchResult>;
+  },
   importDocuments(
     context,
     payload: { action: string; documents: unknown[] }
