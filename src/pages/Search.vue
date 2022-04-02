@@ -18,7 +18,7 @@
               { label: '12 hits per page', value: 12, default: true },
               { label: '48 hits per page', value: 48 },
               { label: '100 hits per page', value: 100 },
-              { label: '1000 hits per page', value: 1000 },
+              { label: '250 hits per page', value: 250 },
             ]"
           />
           <q-btn flat @click="exportPage()">export current page</q-btn>
