@@ -1,11 +1,9 @@
 <template>
-  <div v-if="currentCollection">
+  <div v-if="currentCollection" class="column no-wrap search-result-item">
     <q-list dense>
       <q-item v-for="field in currentCollection.fields" :key="field.name">
-        <q-item-section>
+        <q-item-section side class="q-mt-sm text-body2">
           <q-item-label caption> {{ field.name }} </q-item-label>
-        </q-item-section>
-        <q-item-section side class="q-ml-xl text-body2">
           <q-item-label
             class="overflow-hidden text-no-wrap text-ellipsis"
             :title="item[field.name]"
@@ -25,10 +23,8 @@
       </q-item>
       <q-separator></q-separator>
       <q-item v-for="field in fieldsNotInSchema" :key="field">
-        <q-item-section>
+        <q-item-section side class="q-mt-sm text-body2">
           <q-item-label caption> {{ field }} </q-item-label>
-        </q-item-section>
-        <q-item-section side class="q-ml-xl text-body2">
           <q-item-label
             class="overflow-hidden text-no-wrap text-ellipsis"
             :title="item[field]"
@@ -37,34 +33,36 @@
           </q-item-label>
         </q-item-section>
       </q-item>
-      <q-item>
-        <q-item-section>
-          <q-item-label>
-            <q-btn
-              flat
-              size="sm"
-              padding="sm"
-              color="primary"
-              @click="editDocument()"
-              icon="edit"
-              title="Edit"
-            ></q-btn>
-          </q-item-label>
-        </q-item-section>
-        <q-item-section side>
-          <q-item-label>
-            <q-btn
-              flat
-              size="sm"
-              padding="sm"
-              @click="deleteDocumentById(item.id)"
-              icon="delete_forever"
-              title="Delete"
-            ></q-btn>
-          </q-item-label>
-        </q-item-section>
-      </q-item>
     </q-list>
+    <q-space />
+    <q-separator></q-separator>
+    <q-item>
+      <q-item-section>
+        <q-item-label>
+          <q-btn
+            flat
+            size="sm"
+            padding="sm"
+            color="primary"
+            @click="editDocument()"
+            icon="edit"
+            title="Edit"
+          ></q-btn>
+        </q-item-label>
+      </q-item-section>
+      <q-item-section side>
+        <q-item-label>
+          <q-btn
+            flat
+            size="sm"
+            padding="sm"
+            @click="deleteDocumentById(item.id)"
+            icon="delete_forever"
+            title="Delete"
+          ></q-btn>
+        </q-item-label>
+      </q-item-section>
+    </q-item>
   </div>
 </template>
 
@@ -128,5 +126,8 @@ export default defineComponent({
 <style>
 .text-ellipsis {
   text-overflow: ellipsis;
+}
+.search-result-item {
+  flex: 1;
 }
 </style>

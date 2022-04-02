@@ -185,12 +185,40 @@ export default defineComponent({
 .ais-InfiniteHits-item,
 .ais-InfiniteResults-item,
 .ais-Results-item {
-  width: calc(33% - 1rem);
   border-radius: 4px;
-  padding: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .ais-Hits-item .text-body2 [class^='ais-'] {
   font-size: 0.875rem !important;
+}
+
+@media (max-width: 1979px) {
+  .ais-Hits-item,
+  .ais-InfiniteHits-item,
+  .ais-InfiniteResults-item,
+  .ais-Results-item {
+    width: calc(33% - 1rem);
+  }
+}
+
+@media (max-width: 1023px) {
+  .ais-Hits-item,
+  .ais-InfiniteHits-item,
+  .ais-InfiniteResults-item,
+  .ais-Results-item {
+    width: calc(50% - 1rem);
+  }
+}
+
+@media (max-width: 599px) {
+  .ais-Hits-item,
+  .ais-InfiniteHits-item,
+  .ais-InfiniteResults-item,
+  .ais-Results-item {
+    width: calc(100% - 1rem);
+  }
 }
 </style>
