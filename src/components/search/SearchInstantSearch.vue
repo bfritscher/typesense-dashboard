@@ -162,6 +162,7 @@ export default defineComponent({
               //  So you can pass any parameters supported by the search endpoint below.
               //  queryBy is required.
               additionalSearchParameters: {
+                exhaustive_search: true,
                 query_by: this.currentCollection.fields
                   .filter(
                     (f) => f.index && ['string', 'string[]'].includes(f.type)

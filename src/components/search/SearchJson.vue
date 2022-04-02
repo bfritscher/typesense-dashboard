@@ -96,6 +96,7 @@ export default defineComponent({
         sort_by: 'num_employees:desc',
         page: 1,
         per_page: 10,
+        exhaustive_search: true,
       } as Typesense.SearchParameters,
       jsonError: null as string | null,
       results: null as any,

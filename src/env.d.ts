@@ -213,15 +213,13 @@ declare namespace NodeJS {
 }
 
 declare module 'typesense-instantsearch-adapter' {
-  import { TypesenseNode } from 'typesense';
+  import { SearchParameters, TypesenseNode } from 'typesense';
   export interface TypesenseInstantSearchAdapterOptions {
     server: {
       apiKey: string;
       nodes: TypesenseNode[];
     };
-    additionalSearchParameters: {
-      query_by: string;
-    };
+    additionalSearchParameters: SearchParameters;
   }
 
   export class TypesenseInstantSearchAdapter {
