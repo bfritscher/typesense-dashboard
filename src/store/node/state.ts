@@ -28,6 +28,7 @@ export interface NodeLoginDataInterface {
 
 export interface NodeStateInterface {
   loginData: NodeLoginDataInterface | null;
+  loginHistory: string[];
   isConnected: boolean;
   previousRoute: RouteLocationNormalized | null;
   error: string | null;
@@ -38,10 +39,12 @@ export interface NodeStateInterface {
 }
 
 export const STORAGE_KEY_LOGIN = 'typesense-logindata';
+export const STORAGE_KEY_LOGIN_HISTORY = 'typesense-loginhistory';
 
 function state(): NodeStateInterface {
   return {
     loginData: LocalStorage.getItem(STORAGE_KEY_LOGIN),
+    loginHistory: LocalStorage.getItem(STORAGE_KEY_LOGIN_HISTORY) || [],
     isConnected: false,
     previousRoute: null,
     error: null,

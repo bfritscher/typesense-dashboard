@@ -27,22 +27,53 @@
               <q-input filled v-model="node.host" type="text" label="host" />
               <q-input filled v-model="node.port" type="number" label="port" />
               <div class="text-left">
-                <q-toggle v-if="$q.platform.is.electron && node.protocol === 'https'" label="Check TLS" v-model="node.tls"/>
+                <q-toggle
+                  v-if="$q.platform.is.electron && node.protocol === 'https'"
+                  label="Check TLS"
+                  v-model="node.tls"
+                />
               </div>
             </q-form>
           </q-card-section>
           <q-card-section v-if="error">
             <p class="text-red">{{ error }}</p>
           </q-card-section>
-          <q-card-actions class="q-px-md">
+          <q-card-actions class="q-px-md row">
             <q-btn
               unelevated
               color="primary"
               size="lg"
-              class="full-width"
+              style="flex: 1"
               label="Login"
               @click="login()"
             />
+            <q-btn color="primary" size="lg" icon="history">
+              <q-menu>
+                <q-list style="min-width: 100px">
+                  <q-item
+                    clickable
+                    v-close-popup
+                    @click="$store.commit('node/clearHistory')"
+                  >
+                    <q-item-section>Clear history</q-item-section>
+                  </q-item>
+                  <q-separator />
+                  <q-item
+                    clickable
+                    v-close-popup
+                    v-for="(h, index) in loginHistory"
+                    :key="index"
+                    @click="loginWithHistory(h)"
+                  >
+                    <q-item-section
+                      >{{ h.node.protocol }}://{{ h.node.host }}:{{
+                        h.node.port
+                      }}</q-item-section
+                    >
+                  </q-item>
+                </q-list>
+              </q-menu>
+            </q-btn>
           </q-card-actions>
         </q-card>
       </div>
@@ -51,6 +82,7 @@
 </template>
 
 <script lang="ts">
+import { NodeLoginDataInterface } from 'src/store/node/state';
 import { defineComponent } from 'vue';
 export default defineComponent({
   name: 'Login',
@@ -67,6 +99,11 @@ export default defineComponent({
     };
   },
   computed: {
+    loginHistory() {
+      return this.$store.state.node.loginHistory.map(
+        (j) => JSON.parse(j) as NodeLoginDataInterface
+      );
+    },
     error() {
       return this.$store.state.node.error;
     },
@@ -77,6 +114,9 @@ export default defineComponent({
         apiKey: this.apiKey,
         node: this.node,
       });
+    },
+    loginWithHistory(h: NodeLoginDataInterface) {
+      void this.$store.dispatch('node/login', h);
     },
   },
 });

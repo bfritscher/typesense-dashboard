@@ -25,6 +25,7 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
             context.dispatch('getApiKeys'),
           ]);
           context.commit('setIsConnected', true);
+          context.commit('saveHistory');
           context.commit('setError', null);
         })
         .catch((error: AxiosError) => {
