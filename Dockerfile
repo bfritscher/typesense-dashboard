@@ -3,7 +3,7 @@ FROM node:16-alpine as builder
 WORKDIR /app
 RUN yarn global add @quasar/cli
 
-COPY package.json package-lock.json yarn.lock ./
+COPY package.json yarn.lock ./
 RUN yarn install
 
 COPY . .
