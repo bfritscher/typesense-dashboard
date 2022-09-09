@@ -51,6 +51,9 @@ declare module 'typesense' {
     facet?: boolean;
     index?: boolean;
     optional?: boolean;
+    sort?: boolean;
+    infix?: boolean;
+    locale?: string;
     num_documents?: number;
     created_at?: number;
   }
@@ -60,6 +63,8 @@ declare module 'typesense' {
     fields: CollectionField[];
     default_sorting_field?: string;
     num_memory_shards?: number;
+    token_separators?: string[];
+    symbols_to_index?: string[];
     num_documents?: number;
   }
 

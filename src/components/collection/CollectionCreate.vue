@@ -89,6 +89,7 @@
                     <q-checkbox v-model="field.optional" label="optional" />
                     <q-checkbox v-model="field.facet" label="facet" />
                     <q-checkbox v-model="field.index" label="index" />
+                    <q-checkbox v-model="field.sort" label="sort" />
                   </div>
 
                   <q-btn
@@ -152,19 +153,23 @@ export default defineComponent({
         name: '',
         fields: [],
         default_sorting_field: '',
+        token_separators: [],
+        symbols_to_index: []
       } as Typesense.Collection,
       types: [
         'string',
-        'int32',
-        'int64',
-        'float',
-        'bool',
         'string[]',
+        'int32',
         'int32[]',
+        'int64',
         'int64[]',
+        'float',
         'float[]',
+        'bool',
         'bool[]',
         'geopoint',
+        'geopoint[]',
+        'string*',
         'auto',
       ],
       jsonError: null as string | null,
@@ -176,7 +181,7 @@ export default defineComponent({
   computed: {
     availableSortFields(): string[] {
       const compatibleFields = this.schema.fields.filter((field) =>
-        ['int32', 'float'].includes(field.type)
+        ['int32', 'float'].includes(field.type) || (field.type === 'string' && field.sort)
       );
       // emtpy option + compatible field names
       return [''].concat(compatibleFields.map((field) => field.name));

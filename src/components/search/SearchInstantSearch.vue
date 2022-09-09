@@ -114,7 +114,7 @@ export default defineComponent({
       if (!this.currentCollection) return [];
       const sortBy = [{ value: this.currentCollection.name, label: 'Default' }];
       this.currentCollection.fields
-        .filter((f) => ['int32', 'float'].includes(f.type))
+        .filter((f) => ['int32', 'float'].includes(f.type) || (f.type === 'string' && f.sort))
         .forEach((f) => {
           if (!this.currentCollection) return;
           sortBy.push({

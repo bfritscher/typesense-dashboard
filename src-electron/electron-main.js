@@ -26,7 +26,9 @@ function createWindow () {
     }
   })
 
-  mainWindow.loadURL(process.env.APP_URL)
+  mainWindow.loadURL(process.env.APP_URL).catch((e) => {
+    console.log(e);
+  })
 
   if (process.env.DEBUGGING) {
     // if on DEV or Production with debug enabled
@@ -99,6 +101,7 @@ ipcMain.handle('rejectTLS', (event, value) => {
 
 Object.getOwnPropertyNames( Api.prototype ).forEach((f) => {
   ipcMain.handle(f, (event, ...args) => {
+    //eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return appApi[f](...args);
   });
 })
