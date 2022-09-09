@@ -230,4 +230,4 @@ declare module 'typesense-instantsearch-adapter' {
   export default TypesenseInstantSearchAdapter;
 }
 
-declare module 'vue-instantsearch/dist/vue3/es';
+declare module 'vue-instantsearch/vue3/es';
