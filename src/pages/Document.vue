@@ -79,7 +79,7 @@ export default defineComponent({
     return {
       jsonError: null as string | null,
       documents: [] as unknown[],
-      results: [] as unknown[] | string,
+      results: [] as unknown[],
       action: 'upsert',
       actionOptions: ['create', 'upsert', 'update'],
       actionDesciptions: {
@@ -120,12 +120,17 @@ export default defineComponent({
           boxClass: 'bg-grey-2 text-grey-9',
           spinnerColor: 'primary',
         });
-        this.results = await this.$store.getters['node/api'].importFile(
+        let results = await this.$store.getters['node/api'].importFile(
           this.currentCollection?.name,
           this.action
         );
+        if (!Array.isArray(results)) {
+          results = [{error: results}];
+        }
+        console.log(results);
+        this.results = results;
       } catch (error) {
-        this.results = (error as Error).message;
+        this.results = [{error: (error as Error).message}];
       }
       this.$q.loading.hide();
     },
@@ -142,7 +147,7 @@ export default defineComponent({
           documents: JSON.parse(JSON.stringify(this.documents)),
         });
       } catch (error) {
-        this.results = (error as Error).message;
+        this.results = [{error:(error as Error).message}];
       }
       this.$q.loading.hide();
     },
