@@ -29,23 +29,49 @@ export default defineComponent({
   },
   computed: {
     schema(): string {
-      const collection = this.$store.state.node.currentCollection;
+      const collection: any = this.$store.state.node.currentCollection;
       if (collection) {
-        return JSON.stringify(
-          {
-            name: collection.name,
-            fields: collection.fields.map((f) => ({
-              name: f.name,
-              type: f.type,
-              facet: f.facet,
-              optional: f.optional,
-              index: f.index,
-            })),
-            default_sorting_field: collection.default_sorting_field,
-          },
-          null,
-          2
+        const schema: any = {
+          name: collection.name,
+          fields: collection.fields.map((f: any) => {
+            const knownKeys = [
+              'name',
+              'type',
+              'facet',
+              'optional',
+              'index',
+              'sort',
+              'infix',
+              'locale',
+            ];
+            const missingKeys = Object.keys(f).filter(
+              (k) => !knownKeys.includes(k)
+            );
+            //eslint-disable-next-line @typescript-eslint/no-unsafe-return
+            return knownKeys.concat(missingKeys).reduce((acc, key: any) => {
+              acc[key] = f[key];
+              //eslint-disable-next-line @typescript-eslint/no-unsafe-return
+              return acc;
+            }, {} as any);
+          }),
+          default_sorting_field: collection.default_sorting_field,
+        };
+
+        const otherKeys = Object.keys(collection).filter(
+          (k) =>
+            ![
+              'name',
+              'fields',
+              'default_sorting_field',
+              'created_at',
+              'num_documents',
+            ].includes(k)
         );
+        otherKeys.forEach((k: any) => {
+          schema[k] = collection[k];
+        });
+
+        return JSON.stringify(schema, null, 2);
       }
       return '';
     },
