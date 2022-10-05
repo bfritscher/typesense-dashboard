@@ -7,7 +7,7 @@ COPY package.json yarn.lock ./
 RUN yarn install
 
 COPY . .
-ENV PUBLIC_PATH /
+ARG PUBLIC_PATH /
 RUN quasar build
 
 
