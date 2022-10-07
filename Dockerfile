@@ -1,5 +1,6 @@
+ARG PUBLIC_PATH=/
 FROM node:18-alpine as builder
-
+ARG PUBLIC_PATH
 WORKDIR /app
 RUN yarn global add @quasar/cli
 
@@ -7,14 +8,14 @@ COPY package.json yarn.lock ./
 RUN yarn install
 
 COPY . .
-ARG PUBLIC_PATH /
+
 RUN quasar build
 
 
 FROM caddy:2-alpine
-
+ARG PUBLIC_PATH
 WORKDIR /srv
-COPY --from=builder /app/dist/spa/ ./
+COPY --from=builder /app/dist/spa/ .${PUBLIC_PATH}
 
 EXPOSE 80
 CMD ["caddy", "file-server"]
