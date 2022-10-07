@@ -30,6 +30,12 @@ FROM alpine
 COPY --from=typesense-dashboard /srv /typesense-dashboard
 ```
 
+To build and serve from a subfolder `/example` (must start with /)
+
+```bash
+docker build --build-arg=PUBLIC_PATH=/example -t typesense-dashboard .
+```
+
 ### Desktop
 
 With the desktop application everything except instant search will work without cors.
