@@ -1,0 +1,25 @@
+name: Build and Deploy Docker Image
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+  # build and deploy automatically once a month
+  schedule:
+    - cron: "4 0 1 * *"
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    # https://github.com/marketplace/actions/push-to-ghcr
+    - name: Build and publish a Docker image for ${{ github.repository }}
+      uses: macbre/push-to-ghcr@master
+      with:
+        image_name: ${{ github.repository }}
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+    -
+      name: Image digest
+      run: echo ${{ steps.docker_build.outputs.digest }}
