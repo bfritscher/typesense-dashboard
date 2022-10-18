@@ -36,6 +36,11 @@ To build and serve from a subfolder `/example` (must start with /)
 docker build --build-arg=PUBLIC_PATH=/example -t typesense-dashboard .
 ```
 
+You can also use the pre-built docker image for example like this:
+```bash
+docker run -d -p 80:80 ghcr.io/bfritscher/typesense-dashboard:latest
+```
+
 ### Desktop
 
 With the desktop application everything except instant search will work without cors.
