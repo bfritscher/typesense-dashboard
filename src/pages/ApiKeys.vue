@@ -16,7 +16,7 @@
             icon="help"
             color="info"
             flat
-            href="https://typesense.org/docs/0.21.0/api/api-keys.html#sample-actions"
+            href="https://typesense.org/docs/0.23.1/api/api-keys.html#create-an-api-key"
             target="_blank"
             >Documentation</q-btn
           >
@@ -88,17 +88,17 @@
 </template>
 
 <script lang="ts">
-import { ApiKey } from 'typesense';
 import MonacoEditor from '../components/MonacoEditor.vue';
 import { defineComponent } from 'vue';
+import { KeyCreateSchema } from 'typesense/lib/Typesense/Key';
 
-const adminKeyExample: ApiKey = {
+const adminKeyExample: KeyCreateSchema = {
   description: 'Admin key.',
   actions: ['*'],
   collections: ['*'],
 };
 
-const searchKeyExample: ApiKey = {
+const searchKeyExample: KeyCreateSchema = {
   description: 'Search-only companies key.',
   actions: ['documents:search'],
   collections: ['companies'],
@@ -110,7 +110,7 @@ export default defineComponent({
   data() {
     return {
       jsonError: null as string | null,
-      key: JSON.parse(JSON.stringify(adminKeyExample)) as ApiKey,
+      key: JSON.parse(JSON.stringify(adminKeyExample)) as KeyCreateSchema,
       expanded: this.$store.state.node.data.apiKeys.length === 0,
       filter: '',
       columns: [
@@ -135,21 +135,21 @@ export default defineComponent({
         {
           label: 'Key Actions',
           name: 'actions',
-          field: (row: ApiKey) => JSON.stringify(row.actions),
+          field: (row: KeyCreateSchema) => JSON.stringify(row.actions),
           sortable: true,
           align: 'left',
         },
         {
           label: 'Collections',
           name: 'collections',
-          field: (row: ApiKey) => JSON.stringify(row.collections),
+          field: (row: KeyCreateSchema) => JSON.stringify(row.collections),
           sortable: true,
           align: 'left',
         },
         {
           label: 'Expires at',
           name: 'expires_at',
-          field: (row: ApiKey) =>
+          field: (row: KeyCreateSchema) =>
             row.expires_at
               ? row.expires_at === 64723363199
                 ? 'never'
@@ -190,7 +190,7 @@ export default defineComponent({
       const key = (await this.$store.dispatch(
         'node/createApiKey',
         JSON.parse(JSON.stringify(this.key))
-      )) as ApiKey;
+      )) as KeyCreateSchema;
       this.$q.dialog({
         title: 'Your API key',
         message: `This is your API key copy it! It will not be displayed again!\n\n${

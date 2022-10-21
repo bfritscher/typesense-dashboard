@@ -67,8 +67,8 @@
 </template>
 
 <script lang="ts">
+import { CollectionSchema } from 'typesense/lib/Typesense/Collection';
 import { defineComponent } from 'vue';
-import { Collection } from 'typesense';
 
 export default defineComponent({
   name: 'SearchResultItem',
@@ -78,7 +78,7 @@ export default defineComponent({
     },
   },
   computed: {
-    currentCollection(): Collection | null {
+    currentCollection(): CollectionSchema | null {
       return this.$store.state.node.currentCollection;
     },
     fieldsNotInSchema(): string[] {

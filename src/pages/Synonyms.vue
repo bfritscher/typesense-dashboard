@@ -112,9 +112,10 @@
 </template>
 
 <script lang="ts">
-import { Synonym } from 'typesense';
 import { defineComponent } from 'vue';
 import { nanoid } from 'nanoid';
+import { SynonymCreateSchema } from 'typesense/lib/Typesense/Synonyms';
+import { SynonymSchema } from 'typesense/lib/Typesense/Synonym';
 
 enum RootTypes {
   ONE_WAY = 'one-way',
@@ -142,7 +143,7 @@ export default defineComponent({
       synonym: {
         root: '',
         synonyms: [],
-      } as Synonym,
+      } as SynonymCreateSchema,
       id: nanoid(),
       columns: [
         {
@@ -155,7 +156,7 @@ export default defineComponent({
           label: 'Type',
           name: 'type',
           align: 'left',
-          field: (row: Synonym) =>
+          field: (row: SynonymSchema) =>
             row.root ? RootTypes.ONE_WAY : RootTypes.MULTI_WAY,
           sortable: true,
         },
@@ -169,7 +170,7 @@ export default defineComponent({
         {
           label: 'Synonyms',
           name: 'synonyms',
-          field: (row: Synonym) => JSON.stringify(row.synonyms),
+          field: (row: SynonymSchema) => JSON.stringify(row.synonyms),
           align: 'left',
           sortable: true,
         },
@@ -193,7 +194,7 @@ export default defineComponent({
   },
   methods: {
     async createSynonym() {
-      const synonym: Synonym = {
+      const synonym: SynonymCreateSchema = {
         synonyms: JSON.parse(JSON.stringify(this.synonym.synonyms)),
       };
       if (this.type === this.types.ONE_WAY) {
@@ -210,7 +211,7 @@ export default defineComponent({
       };
       this.expanded = false;
     },
-    editSynonym(synonym: Synonym) {
+    editSynonym(synonym: SynonymSchema) {
       this.id = synonym.id || nanoid();
       this.synonym = JSON.parse(JSON.stringify(synonym));
       this.type = this.synonym.root ? RootTypes.ONE_WAY : RootTypes.MULTI_WAY;

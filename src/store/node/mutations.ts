@@ -1,13 +1,13 @@
-import { Collection, TypesenseNode } from 'typesense';
 import { MutationTree } from 'vuex';
-import { NodeDataInterface, NodeStateInterface, STORAGE_KEY_LOGIN, STORAGE_KEY_LOGIN_HISTORY } from './state';
+import { CustomNodeConfiguration, NodeDataInterface, NodeStateInterface, STORAGE_KEY_LOGIN, STORAGE_KEY_LOGIN_HISTORY } from './state';
 import { LocalStorage } from 'quasar'
 import { RouteLocationNormalized, Router } from 'vue-router'
+import { CollectionSchema } from 'typesense/lib/Typesense/Collection';
 
 const mutation: MutationTree<NodeStateInterface> & {$router?:Router} = {
   setNodeData(
     state: NodeStateInterface,
-    payload: { apiKey: string; node: TypesenseNode }
+    payload: { apiKey: string; node: CustomNodeConfiguration }
   ) {
     state.loginData = payload;
     LocalStorage.set(STORAGE_KEY_LOGIN, payload)
@@ -53,7 +53,7 @@ const mutation: MutationTree<NodeStateInterface> & {$router?:Router} = {
   setError(state: NodeStateInterface, error: string):void {
     state.error = error;
   },
-  setCurrentCollection(state: NodeStateInterface, collection: Collection):void {
+  setCurrentCollection(state: NodeStateInterface, collection: CollectionSchema):void {
     state.currentCollection = collection;
     if(!collection) {
       void this.$router?.push('/');

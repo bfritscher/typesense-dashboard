@@ -85,10 +85,11 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { nanoid } from 'nanoid';
-import { Override } from 'typesense';
 import MonacoEditor from 'src/components/MonacoEditor.vue';
+import { OverrideSchema } from 'typesense/lib/Typesense/Override';
+import { OverrideCreateSchema } from 'typesense/lib/Typesense/Overrides';
 
-const initialData = {
+const initialData: OverrideCreateSchema = {
   rule: {
     query: 'apple',
     match: 'exact',
@@ -106,7 +107,7 @@ export default defineComponent({
   data() {
     return {
       id: nanoid(),
-      override: initialData as Override,
+      override: initialData as (OverrideSchema | OverrideCreateSchema ),
       jsonError: null as string | null,
       expanded: this.$store.state.node.data.overrides.length === 0,
       filter: '',
@@ -119,26 +120,26 @@ export default defineComponent({
         {
           label: 'Query',
           name: 'query',
-          field: (row: Override) => row.rule.query,
+          field: (row: OverrideSchema) => row.rule.query,
           sortable: true,
           align: 'left',
         },
         {
           label: 'Match',
           name: 'match',
-          field: (row: Override) => row.rule.match,
+          field: (row: OverrideSchema) => row.rule.match,
           sortable: true,
           align: 'left',
         },
         {
           label: 'Includes',
           name: 'includes',
-          field: (row: Override) => row.includes?.length,
+          field: (row: OverrideSchema) => row.includes?.length,
         },
         {
           label: 'Excludes',
           name: 'excludes',
-          field: (row: Override) => row.excludes?.length,
+          field: (row: OverrideSchema) => row.excludes?.length,
         },
         {
           label: 'Actions',
@@ -181,7 +182,7 @@ export default defineComponent({
       this.override = initialData;
       this.expanded = false;
     },
-    editOverride(override: Override) {
+    editOverride(override: OverrideSchema) {
       this.override = JSON.parse(JSON.stringify(override));
       this.id = override.id || nanoid();
       this.expanded = true;

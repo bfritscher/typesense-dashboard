@@ -69,7 +69,7 @@
 
 <script lang="ts">
 import MonacoEditor from 'src/components/MonacoEditor.vue';
-import { Collection } from 'typesense';
+import { CollectionSchema } from 'typesense/lib/Typesense/Collection';
 import { defineComponent } from 'vue';
 
 export default defineComponent({
@@ -103,7 +103,7 @@ export default defineComponent({
         }
       },
     },
-    currentCollection(): Collection | null {
+    currentCollection(): CollectionSchema | null {
       return this.$store.state.node.currentCollection;
     },
     //eslint-disable-next-line

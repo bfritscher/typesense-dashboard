@@ -1,15 +1,21 @@
 import axios, { AxiosInstance } from 'axios';
-import { TypesenseNode } from 'typesense';
 import * as Typesense from 'typesense';
+import { CollectionAliasSchema } from 'typesense/lib/Typesense/Aliases';
+import { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections';
+import { NodeConfiguration } from 'typesense/lib/Typesense/Configuration';
+import { SearchParams } from 'typesense/lib/Typesense/Documents';
+import { KeyCreateSchema } from 'typesense/lib/Typesense/Key';
+import { OverrideSchema } from 'typesense/lib/Typesense/Override';
+import { SynonymSchema } from 'typesense/lib/Typesense/Synonym';
 
 export class Api {
   public axiosClient?: AxiosInstance;
   private typesenseClient?: Typesense.Client;
 
 
-  public init({node, apiKey}: {node:TypesenseNode, apiKey:string}):void {
+  public init({node, apiKey}: {node:NodeConfiguration, apiKey:string}):void {
     this.axiosClient = axios.create({
-      baseURL: `${node.protocol}://${node.host}:${node.port}/`,
+      baseURL: `${node.protocol}://${node.host}:${node.port}${node.path || ''}`,
       headers: {'x-typesense-api-key': apiKey }
     });
     this.typesenseClient = new Typesense.Client({
@@ -25,7 +31,7 @@ export class Api {
     return this.typesenseClient?.collections().retrieve();
   }
 
-  public createCollection(schema: Typesense.Collection) {
+  public createCollection(schema: CollectionCreateSchema) {
     return this.typesenseClient?.collections().create(schema);
   }
 
@@ -37,7 +43,7 @@ export class Api {
     return this.typesenseClient?.aliases().retrieve();
   }
 
-  public upsertAlias(alias: Typesense.Alias) {
+  public upsertAlias(alias: CollectionAliasSchema) {
     return this.typesenseClient?.aliases().upsert(alias.name, { collection_name: alias.collection_name });
   }
 
@@ -49,12 +55,14 @@ export class Api {
     return this.typesenseClient?.keys().retrieve();
   }
 
-  public createApiKey(apiKey: Typesense.ApiKey){
+  public createApiKey(apiKey: KeyCreateSchema){
     return this.typesenseClient?.keys().create(apiKey);
   }
 
-  public deleteApiKey(id: string){
-    return this.typesenseClient?.keys(id).delete();
+  public async deleteApiKey(id: string){
+    if(this.typesenseClient) {
+      await this.typesenseClient.keys(parseInt(id, 10)).delete();
+    }
   }
 
   public getSynonyms(collectionName: string) {
@@ -63,7 +71,7 @@ export class Api {
     .retrieve();
   }
 
-  public upsertSynonym(collectionName: string, id:string, synonym:Typesense.Synonym){
+  public upsertSynonym(collectionName: string, id:string, synonym:SynonymSchema){
     return this.typesenseClient?.collections(collectionName).synonyms().upsert(id, synonym);
   }
 
@@ -76,7 +84,7 @@ export class Api {
     .retrieve();
   }
 
-  public upsertOverride(collectionName: string, id:string, override: Typesense.Override){
+  public upsertOverride(collectionName: string, id:string, override: OverrideSchema){
     return this.typesenseClient?.collections(collectionName).overrides().upsert(id, override);
   }
 
@@ -89,7 +97,9 @@ export class Api {
   }
 
   public importDocuments(collectionName: string, documents: unknown[]|string, action:string){
-    return this.typesenseClient?.collections(collectionName).documents().import(documents,  { action }).catch(error => {
+    if (!this.typesenseClient) return;
+    //eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return (this.typesenseClient.collections(collectionName)?.documents() as any).import(documents,  { action }).catch((error: any) => {
       //eslint-disable-next-line
       return error.importResults;
     });
@@ -101,8 +111,7 @@ export class Api {
     .export()
   }
 
-  public search(collectionName: string, searchParameters: Typesense.SearchParameters) {
-    console.log(searchParameters);
+  public search(collectionName: string, searchParameters: SearchParams) {
     return this.typesenseClient?.collections(collectionName).documents().search(searchParameters);
   }
 

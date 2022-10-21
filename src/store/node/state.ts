@@ -1,12 +1,10 @@
 import { LocalStorage } from 'quasar';
-import {
-  TypesenseNode,
-  Alias,
-  ApiKey,
-  Collection,
-  Override,
-  Synonym,
-} from 'typesense';
+import { CollectionAliasSchema } from 'typesense/lib/Typesense/Aliases';
+import { CollectionSchema } from 'typesense/lib/Typesense/Collection';
+import { NodeConfiguration } from 'typesense/lib/Typesense/Configuration';
+import { KeySchema } from 'typesense/lib/Typesense/Key';
+import { OverrideSchema } from 'typesense/lib/Typesense/Override';
+import { SynonymSchema } from 'typesense/lib/Typesense/Synonym';
 import { RouteLocationNormalized } from 'vue-router';
 
 export interface NodeDataInterface {
@@ -14,15 +12,19 @@ export interface NodeDataInterface {
   metrics: any;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   stats: any;
-  collections: Collection[];
-  aliases: Alias[];
-  apiKeys: ApiKey[];
-  overrides: Override[];
-  synonyms: Synonym[];
+  collections: CollectionSchema[];
+  aliases: CollectionAliasSchema[];
+  apiKeys: KeySchema[];
+  overrides: OverrideSchema[];
+  synonyms: SynonymSchema[];
+}
+
+export interface CustomNodeConfiguration extends NodeConfiguration {
+  tls: string;
 }
 
 export interface NodeLoginDataInterface {
-  node: TypesenseNode;
+  node: CustomNodeConfiguration;
   apiKey: string;
 }
 
@@ -33,7 +35,7 @@ export interface NodeStateInterface {
   previousRoute: RouteLocationNormalized | null;
   error: string | null;
   data: NodeDataInterface;
-  currentCollection: Collection | null;
+  currentCollection: CollectionSchema | null;
   // eslint-disable-next-line
   documentsToEdit: any[] | null;
 }

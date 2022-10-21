@@ -33,8 +33,8 @@
 <script lang="ts">
 import CollectionListItem from 'src/components/collection/CollectionListItem.vue';
 import CollectionCreate from 'src/components/collection/CollectionCreate.vue';
-import { defineComponent } from 'vue';
-import { Collection } from 'typesense';
+import { defineComponent } from 'vue';;
+import { CollectionSchema } from 'typesense/lib/Typesense/Collection';
 export default defineComponent({
   components: { CollectionListItem, CollectionCreate },
   name: 'Collections',
@@ -60,7 +60,7 @@ export default defineComponent({
           name: 'schema_fields',
           required: true,
           label: 'Schema fields',
-          field: (row: Collection) => row.fields.length || 0,
+          field: (row: CollectionSchema) => row.fields.length || 0,
           sortable: true,
         },
         {
