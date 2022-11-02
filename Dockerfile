@@ -2,6 +2,10 @@ ARG PUBLIC_PATH=/
 FROM node:18-alpine as builder
 ARG PUBLIC_PATH
 WORKDIR /app
+
+RUN apk add --no-cache --virtual .gyp \
+        g++ make py3-pip
+
 RUN yarn global add @quasar/cli
 
 COPY package.json yarn.lock ./
@@ -11,6 +15,7 @@ COPY . .
 
 RUN quasar build
 
+RUN apk del .gyp
 
 FROM caddy:2-alpine
 ARG PUBLIC_PATH
