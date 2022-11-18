@@ -6,14 +6,36 @@
           flat
           dense
           round
-          icon="menu"
+          :icon="leftDrawerOpen ? 'sym_s_menu_open' : 'sym_s_menu'"
           aria-label="Menu"
           @click="toggleLeftDrawer"
         />
 
-        <q-toolbar-title> Typesense Dashboard</q-toolbar-title>
-        <q-btn @click="$q.dark.toggle()" flat dense icon="dark_mode" title="Toggle Dark Mode Test Only"></q-btn>
-        <q-btn @click="logout" flat dense>logout</q-btn>
+        <q-toolbar-title>
+            <img src="typesense_logo_white.svg" class="logo" height="24" alt="Typesense" />
+            Dashboard
+        </q-toolbar-title>
+
+        <q-btn
+          padding="xs md"
+          flat
+          dense
+          no-caps
+        >
+          {{ $store.state.node.loginData?.node.host }}
+          <q-icon right name="sym_s_switch_account" />
+          <q-menu>
+            <server-history v-bind:show-logout="true"></server-history>
+          </q-menu>
+        </q-btn>
+        <q-separator dark vertical spaced inset />
+        <q-btn
+          @click="$q.dark.toggle()"
+          flat
+          dense
+          :icon="$q.dark.isActive ? 'sym_s_light_mode' : 'sym_s_dark_mode'"
+          title="Toggle Dark Mode Test Only"
+        />
       </q-toolbar>
     </q-header>
 
@@ -47,18 +69,31 @@
 import NavMenu from 'components/NavMenu.vue';
 
 import { defineComponent } from 'vue';
+import ServerHistory from 'components/ServerHistory.vue';
 
 export default defineComponent({
   name: 'MainLayout',
 
   components: {
     NavMenu,
+    ServerHistory,
   },
 
   data() {
     return {
       leftDrawerOpen: false,
     };
+  },
+
+  computed: {
+    loginHistory(): any[] {
+      return this.$store.state.node.loginHistory.map(
+        (j): any => JSON.parse(j)
+      );
+    },
+    error() {
+      return this.$store.state.node.error;
+    },
   },
 
   methods: {
@@ -70,6 +105,9 @@ export default defineComponent({
     },
     dismiss() {
       void this.$store.commit('node/setError', null);
+    },
+    loginWithHistory(h: any): any {
+      void this.$store.dispatch('node/login', h);
     },
   },
 });

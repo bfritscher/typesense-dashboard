@@ -26,9 +26,14 @@ export interface NodeLoginDataInterface {
   apiKey: string;
 }
 
+export interface NodeLoginPayloadInterface extends NodeLoginDataInterface {
+  forceHomeRedirect?: boolean;
+}
+
 export interface NodeStateInterface {
   loginData: NodeLoginDataInterface | null;
   loginHistory: string[];
+  forceHomeRedirect: boolean;
   isConnected: boolean;
   previousRoute: RouteLocationNormalized | null;
   error: string | null;
@@ -45,6 +50,7 @@ function state(): NodeStateInterface {
   return {
     loginData: LocalStorage.getItem(STORAGE_KEY_LOGIN),
     loginHistory: LocalStorage.getItem(STORAGE_KEY_LOGIN_HISTORY) || [],
+    forceHomeRedirect: false,
     isConnected: false,
     previousRoute: null,
     error: null,

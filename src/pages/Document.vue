@@ -2,7 +2,7 @@
   <q-page padding class="column">
     <div class="row justify-between q-mb-md">
       <div class="text-h5">
-        Add Documents to {{ $store.state.node.currentCollection?.name }}
+        <q-icon size="md" name="sym_s_library_add" />  Add Documents to {{ $store.state.node.currentCollection?.name }}
       </div>
       <q-btn
         unelevated

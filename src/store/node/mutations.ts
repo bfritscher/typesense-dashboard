@@ -3,6 +3,7 @@ import { MutationTree } from 'vuex';
 import { NodeDataInterface, NodeStateInterface, STORAGE_KEY_LOGIN, STORAGE_KEY_LOGIN_HISTORY } from './state';
 import { LocalStorage } from 'quasar'
 import { RouteLocationNormalized, Router } from 'vue-router'
+import { Notify } from 'quasar'
 
 const mutation: MutationTree<NodeStateInterface> & {$router?:Router} = {
   setNodeData(
@@ -25,6 +26,19 @@ const mutation: MutationTree<NodeStateInterface> & {$router?:Router} = {
     if(!status && route?.name !== 'Login') {
       void this.$router?.push('/login');
     }
+    if(status && state.forceHomeRedirect) {
+      void this.$router?.push('/');
+      Notify.create({
+        position: 'top',
+        progress: true,
+        group: false,
+        timeout: 1000,
+        color: 'positive',
+        message: 'Server changed'
+      });
+      state.forceHomeRedirect = false;
+      state.currentCollection = null;
+    }
     state.isConnected = status;
   },
   saveHistory(state: NodeStateInterface):void {
@@ -41,6 +55,9 @@ const mutation: MutationTree<NodeStateInterface> & {$router?:Router} = {
     state.loginHistory = [];
     LocalStorage.set(STORAGE_KEY_LOGIN_HISTORY, []);
   },
+  setForceRedirect(state: NodeStateInterface, value: boolean):void {
+    state.forceHomeRedirect = value;
+  },
   setPreviousRoute(state: NodeStateInterface, route: RouteLocationNormalized):void {
     state.previousRoute = route;
   },
@@ -56,7 +73,7 @@ const mutation: MutationTree<NodeStateInterface> & {$router?:Router} = {
   setCurrentCollection(state: NodeStateInterface, collection: Collection):void {
     state.currentCollection = collection;
     if(!collection) {
-      void this.$router?.push('/');
+      void this.$router?.push('/collections');
     }
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -2,7 +2,7 @@
   <q-page padding class="column">
     <div class="row justify-between q-mb-md">
       <div class="text-h5">
-        Schema for {{ $store.state.node.currentCollection?.name }}
+        <q-icon size="md" name="sym_s_data_object" /> Schema for {{ $store.state.node.currentCollection?.name }}
       </div>
       <q-btn
         unelevated

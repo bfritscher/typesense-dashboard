@@ -2,7 +2,7 @@
   <q-list>
     <q-item clickable v-ripple to="/" exact>
       <q-item-section avatar>
-        <q-icon name="dns" />
+        <q-icon name="sym_s_dns"  />
       </q-item-section>
 
       <q-item-section> Server Status </q-item-section>
@@ -10,7 +10,7 @@
 
     <q-item clickable v-ripple to="/collections" exact>
       <q-item-section avatar>
-        <q-icon name="library_books" />
+        <q-icon name="sym_s_grid_view" />
       </q-item-section>
 
       <q-item-section>
@@ -20,7 +20,7 @@
 
     <q-item clickable v-ripple to="/aliases" exact>
       <q-item-section avatar>
-        <q-icon name="link" />
+        <q-icon name="sym_s_call_split" />
       </q-item-section>
 
       <q-item-section> Aliases </q-item-section>
@@ -28,10 +28,10 @@
 
     <q-item clickable v-ripple to="/apikeys" exact>
       <q-item-section avatar>
-        <q-icon name="vpn_key" />
+        <q-icon name="sym_s_key" />
       </q-item-section>
 
-      <q-item-section> Api Keys </q-item-section>
+      <q-item-section> API Keys </q-item-section>
     </q-item>
 
     <q-separator spaced />
@@ -54,43 +54,15 @@
     <q-item
       clickable
       v-ripple
-      :to="`/collection/${currentCollection?.name}/document`"
-      exact
-      :disable="!currentCollection"
-    >
-      <q-item-section avatar>
-        <q-icon name="description" />
-      </q-item-section>
-
-      <q-item-section> Document </q-item-section>
-    </q-item>
-
-    <q-item
-      clickable
-      v-ripple
       :to="`/collection/${currentCollection?.name}/search`"
       exact
       :disable="!currentCollection"
     >
       <q-item-section avatar>
-        <q-icon name="search" />
+        <q-icon name="sym_s_search" />
       </q-item-section>
 
       <q-item-section> Search </q-item-section>
-    </q-item>
-
-    <q-item
-      clickable
-      v-ripple
-      :to="`/collection/${currentCollection?.name}/schema`"
-      exact
-      :disable="!currentCollection"
-    >
-      <q-item-section avatar>
-        <q-icon name="rule" />
-      </q-item-section>
-
-      <q-item-section> Schema </q-item-section>
     </q-item>
 
     <q-item
@@ -101,7 +73,7 @@
       :disable="!currentCollection"
     >
       <q-item-section avatar>
-        <q-icon name="sync_alt" />
+        <q-icon name="sym_s_dataset_linked" />
       </q-item-section>
 
       <q-item-section> Synonyms </q-item-section>
@@ -115,10 +87,38 @@
       :disable="!currentCollection"
     >
       <q-item-section avatar>
-        <q-icon name="low_priority" />
+        <q-icon name="sym_s_low_priority" />
       </q-item-section>
 
       <q-item-section> Curations </q-item-section>
+    </q-item>
+
+    <q-item
+      clickable
+      v-ripple
+      :to="`/collection/${currentCollection?.name}/schema`"
+      exact
+      :disable="!currentCollection"
+    >
+      <q-item-section avatar>
+        <q-icon name="sym_s_data_object" />
+      </q-item-section>
+
+      <q-item-section> Schema </q-item-section>
+    </q-item>
+
+    <q-item
+      clickable
+      v-ripple
+      :to="`/collection/${currentCollection?.name}/document`"
+      exact
+      :disable="!currentCollection"
+    >
+      <q-item-section avatar>
+        <q-icon name="sym_s_library_add" />
+      </q-item-section>
+
+      <q-item-section> Add Document </q-item-section>
     </q-item>
   </q-list>
 </template>

@@ -1,7 +1,7 @@
 import { ActionTree } from 'vuex';
 import { StateInterface } from '../index';
 import {
-  NodeLoginDataInterface,
+  NodeLoginPayloadInterface,
   NodeStateInterface,
   STORAGE_KEY_LOGIN,
 } from './state';
@@ -123,8 +123,14 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
         void context.dispatch('connectionCheck');
       });
   },
-  login(context, loginData: NodeLoginDataInterface) {
-    context.commit('setNodeData', loginData);
+  login(context, loginData: NodeLoginPayloadInterface) {
+    const {
+      apiKey,
+      node,
+      forceHomeRedirect = false
+    } = loginData;
+    context.commit('setForceRedirect', forceHomeRedirect);
+    context.commit('setNodeData', { apiKey, node });
     void context.dispatch('connectionCheck');
   },
   logout(context) {

@@ -2,8 +2,10 @@
   <q-page padding>
     <q-expansion-item
       expand-separator
-      icon="vpn_key"
-      label="Create Api Key"
+      icon="sym_s_add_circle"
+      expand-icon="sym_s_unfold_more"
+      expanded-icon="sym_s_unfold_less"
+      label="Create API Key"
       header-class="bg-primary text-white"
       v-model="expanded"
     >
@@ -13,9 +15,11 @@
           <q-btn flat @click="loadSearchKey()">Search Key Example</q-btn>
           <q-btn
             type="a"
-            icon="help"
+            icon="sym_s_help"
+            no-caps
             color="info"
             flat
+            dense
             href="https://typesense.org/docs/0.21.0/api/api-keys.html#sample-actions"
             target="_blank"
             >Documentation</q-btn
@@ -42,7 +46,7 @@
 
     <q-table
       class="q-mt-md"
-      title="Curations"
+      title="API Keys"
       flat
       bordered
       :filter="filter"
@@ -59,6 +63,9 @@
         'actions_op',
       ]"
     >
+      <template v-slot:top-left>
+        <div class="text-h6"><q-icon size="md" name="sym_s_key" /> API Keys</div>
+      </template>
       <template v-slot:top-right>
         <q-input
           borderless
@@ -68,7 +75,7 @@
           placeholder="Search"
         >
           <template v-slot:append>
-            <q-icon name="search" />
+            <q-icon name="sym_s_search" />
           </template>
         </q-input>
       </template>

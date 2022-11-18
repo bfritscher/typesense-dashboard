@@ -2,8 +2,10 @@
   <q-page padding>
     <q-expansion-item
       expand-separator
-      icon="low_priority"
-      :label="`${isUpdate ? 'Update' : 'Add'} Curration`"
+      icon="sym_s_add_circle"
+      expand-icon="sym_s_unfold_more"
+      expanded-icon="sym_s_unfold_less"
+      :label="`${isUpdate ? 'Update' : 'Add'} Curation`"
       header-class="bg-primary text-white"
       v-model="expanded"
     >
@@ -47,6 +49,9 @@
       row-key="id"
       :visible-columns="['query', 'match', 'includes', 'excludes', 'actions']"
     >
+      <template v-slot:top-left>
+        <div class="text-h6"><q-icon size="md" name="sym_s_low_priority" /> Curations</div>
+      </template>
       <template v-slot:top-right>
         <q-input
           borderless
@@ -56,7 +61,7 @@
           placeholder="Search"
         >
           <template v-slot:append>
-            <q-icon name="search" />
+            <q-icon name="sym_s_search" />
           </template>
         </q-input>
       </template>
