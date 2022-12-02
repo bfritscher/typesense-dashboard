@@ -127,7 +127,6 @@ export default defineComponent({
         if (!Array.isArray(results)) {
           results = [{error: results}];
         }
-        console.log(results);
         this.results = results;
       } catch (error) {
         this.results = [{error: (error as Error).message}];
