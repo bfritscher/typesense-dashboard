@@ -7,8 +7,16 @@ import {
 } from './state';
 import { LocalStorage } from 'quasar';
 import { AxiosError, AxiosResponse } from 'axios';
-import * as Typesense from 'typesense';
 import FileSaver from 'file-saver';
+import { CollectionSchema } from 'typesense/lib/Typesense/Collection';
+import { CollectionAliasCreateSchema, CollectionAliasSchema } from 'typesense/lib/Typesense/Aliases';
+import { KeySchema } from 'typesense/lib/Typesense/Key';
+import { SynonymSchema } from 'typesense/lib/Typesense/Synonym';
+import { OverrideSchema } from 'typesense/lib/Typesense/Override';
+import { SynonymCreateSchema } from 'typesense/lib/Typesense/Synonyms';
+import { OverrideCreateSchema } from 'typesense/lib/Typesense/Overrides';
+import { SearchParams } from 'typesense/lib/Typesense/Documents';
+import { Api } from 'src/shared/api';
 
 const actions: ActionTree<NodeStateInterface, StateInterface> = {
   connectionCheck(context) {
@@ -61,7 +69,7 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
   async getCollections(context) {
     await context.getters.api
       .getCollections()
-      .then((response: Typesense.Collection[]) => {
+      .then((response: CollectionSchema[]) => {
         context.commit('setData', {
           collections: response,
         });
@@ -74,7 +82,7 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
   async getAliases(context) {
     await context.getters.api
       .getAliases()
-      .then((response: { aliases: Typesense.Alias[] }) => {
+      .then((response: { aliases: CollectionAliasSchema[] }) => {
         context.commit('setData', {
           aliases: response.aliases,
         });
@@ -87,7 +95,7 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
   async getApiKeys(context) {
     await context.getters.api
       .getApiKeys()
-      .then((response: { keys: Typesense.ApiKey[] }) => {
+      .then((response: { keys: KeySchema[] }) => {
         context.commit('setData', {
           apiKeys: response.keys,
         });
@@ -100,7 +108,7 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
   getSynonyms(context, collectionName: string) {
     context.getters.api
       .getSynonyms(collectionName)
-      .then((response: { synonyms: Typesense.Synonym[] }) => {
+      .then((response: { synonyms: SynonymSchema[] }) => {
         context.commit('setData', {
           synonyms: response.synonyms,
         });
@@ -113,7 +121,7 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
   getOverrides(context, collectionName: string) {
     context.getters.api
       .getOverrides(collectionName)
-      .then((response: { overrides: Typesense.Override[] }) => {
+      .then((response: { overrides: OverrideSchema[] }) => {
         context.commit('setData', {
           overrides: response.overrides,
         });
@@ -137,7 +145,7 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
     LocalStorage.remove(STORAGE_KEY_LOGIN);
     context.commit('setIsConnected', false);
   },
-  loadCurrentCollection(context, collection: Typesense.Collection) {
+  loadCurrentCollection(context, collection: CollectionSchema) {
     context.commit('setCurrentCollection', collection);
     void context.dispatch('getSynonyms', collection.name);
     void context.dispatch('getOverrides', collection.name);
@@ -153,10 +161,10 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
     await context.getters.api.dropCollection(name);
     void context.dispatch('getCollections');
   },
-  async createCollection(context, schema: Typesense.Collection) {
+  async createCollection(context, schema: CollectionSchema) {
     try {
       context.commit('setError', null);
-      const collection: Typesense.Collection =
+      const collection: CollectionSchema =
         await context.getters.api.createCollection(
           JSON.parse(JSON.stringify(schema))
         );
@@ -175,7 +183,7 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
     await context.getters.api.deleteAlias(name);
     void context.dispatch('getAliases');
   },
-  async createAlias(context, alias: Typesense.Alias) {
+  async createAlias(context, alias: CollectionAliasCreateSchema) {
     try {
       context.commit('setError', null);
       await context.getters.api.upsertAlias(alias);
@@ -186,13 +194,13 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
   },
   async createApiKey(
     context,
-    apiKey: Typesense.ApiKey
-  ): Promise<Typesense.ApiKey> {
+    apiKey: KeySchema
+  ): Promise<KeySchema> {
     try {
       context.commit('setError', null);
       const key = (await context.getters.api.createApiKey(
         apiKey
-      )) as Typesense.ApiKey;
+      )) as KeySchema;
       void context.dispatch('getApiKeys');
       return key;
     } catch (error) {
@@ -206,7 +214,7 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
   },
   async createSynonym(
     context,
-    payload: { id: string; synonym: Typesense.Synonym }
+    payload: { id: string; synonym: SynonymCreateSchema }
   ) {
     try {
       context.commit('setError', null);
@@ -232,7 +240,7 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
   },
   async createOverride(
     context,
-    payload: { id: string; override: Typesense.Override }
+    payload: { id: string; override: OverrideCreateSchema }
   ) {
     try {
       context.commit('setError', null);
@@ -268,12 +276,12 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
   },
   search(
     context,
-    payload: Typesense.SearchParameters
-  ): Promise<Typesense.SearchResult> {
-    return context.getters.api.search(
-      context.state.currentCollection?.name,
+    payload: SearchParams
+  ) {
+    return (context.getters.api as Api).search(
+      context.state.currentCollection?.name || '',
       JSON.parse(JSON.stringify(payload)) // remove proxy which is not serializable
-    ) as Promise<Typesense.SearchResult>;
+    );
   },
   importDocuments(
     context,

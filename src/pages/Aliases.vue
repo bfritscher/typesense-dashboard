@@ -95,7 +95,7 @@
 </template>
 
 <script lang="ts">
-import { Alias } from 'typesense';
+import { CollectionAliasSchema } from 'typesense/lib/Typesense/Aliases';
 import { defineComponent } from 'vue';
 export default defineComponent({
   name: 'Aliases',
@@ -148,7 +148,7 @@ export default defineComponent({
       this.alias = { name: '', collection_name: '' };
       this.expanded = false;
     },
-    editAlias(alias: Alias) {
+    editAlias(alias: CollectionAliasSchema) {
       this.alias = JSON.parse(JSON.stringify(alias));
       this.expanded = true;
     },

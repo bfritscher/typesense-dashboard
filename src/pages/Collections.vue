@@ -71,7 +71,8 @@
 
 <script lang="ts">
 import CollectionCreate from 'src/components/collection/CollectionCreate.vue';
-import { defineComponent } from 'vue';
+import { defineComponent } from 'vue';;
+import { CollectionSchema } from 'typesense/lib/Typesense/Collection';
 export default defineComponent({
   components: { CollectionCreate },
   name: 'Collections',

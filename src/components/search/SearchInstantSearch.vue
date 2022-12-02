@@ -54,8 +54,8 @@
 
 <script lang="ts">
 import SearchResultItem from 'src/components/SearchResultItem.vue';
-import { Collection } from 'typesense';
 import TypesenseInstantSearchAdapter from 'typesense-instantsearch-adapter';
+import { CollectionSchema } from 'typesense/lib/Typesense/Collection';
 import { defineComponent } from 'vue';
 
 export default defineComponent({
@@ -84,7 +84,7 @@ export default defineComponent({
     return data;
   },
   computed: {
-    currentCollection(): Collection | null {
+    currentCollection(): CollectionSchema | null {
       return this.$store.state.node.currentCollection;
     },
     facetNumberFields(): string[] {

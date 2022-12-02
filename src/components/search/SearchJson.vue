@@ -73,12 +73,12 @@
 </template>
 
 <script lang="ts">
-import * as Typesense from 'typesense';
-import { Collection } from 'typesense';
 import MonacoEditor from 'src/components/MonacoEditor.vue';
 import SearchResultItem from 'src/components/SearchResultItem.vue';
 import { defineComponent } from 'vue';
 import { LocalStorage } from 'quasar';
+import { SearchParams } from 'typesense/lib/Typesense/Documents';
+import { CollectionSchema } from 'typesense/lib/Typesense/Collection';
 
 const STORAGE_KEY_SEARCH_HISTORY = 'typesense-search-history';
 
@@ -97,13 +97,13 @@ export default defineComponent({
         page: 1,
         per_page: 10,
         exhaustive_search: true,
-      } as Typesense.SearchParameters,
+      } as SearchParams,
       jsonError: null as string | null,
       results: null as any,
     };
   },
   computed: {
-    currentCollection(): Collection | null {
+    currentCollection(): CollectionSchema | null {
       return this.$store.state.node.currentCollection;
     },
     searchParametersJson: {

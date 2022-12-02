@@ -124,7 +124,7 @@
 </template>
 
 <script lang="ts">
-import { Collection } from 'typesense';
+import { CollectionSchema } from 'typesense/lib/Typesense/Collection';
 import { defineComponent } from 'vue';
 
 export default defineComponent({
@@ -137,10 +137,10 @@ export default defineComponent({
   },
   computed: {
     currentCollection: {
-      get(): Collection | null {
+      get(){
         return this.$store.state.node.currentCollection;
       },
-      set(value) {
+      set(value: CollectionSchema | null) {
         void this.$store.dispatch('node/loadCurrentCollection', value);
       },
     },

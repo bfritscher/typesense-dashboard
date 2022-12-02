@@ -141,7 +141,8 @@
 </template>
 
 <script lang="ts">
-import * as Typesense from 'typesense';
+import { CollectionFieldSchema } from 'typesense/lib/Typesense/Collection';
+import { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections';
 import { defineComponent } from 'vue';
 import MonacoEditor from '../MonacoEditor.vue';
 
@@ -157,7 +158,7 @@ export default defineComponent({
         default_sorting_field: '',
         token_separators: [],
         symbols_to_index: []
-      } as Typesense.Collection,
+      } as CollectionCreateSchema,
       types: [
         'string',
         'string[]',
@@ -212,7 +213,7 @@ export default defineComponent({
         index: true,
       });
     },
-    removeField(field: Typesense.CollectionField) {
+    removeField(field: CollectionFieldSchema) {
       this.schema.fields.splice(this.schema.fields.indexOf(field), 1);
     },
     createCollection() {

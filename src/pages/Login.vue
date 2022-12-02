@@ -26,6 +26,7 @@
               />
               <q-input filled v-model="node.host" type="text" label="host" />
               <q-input filled v-model="node.port" type="number" label="port" />
+              <q-input filled v-model="node.path" type="text" label="path" hint="optional: leave blank or start with / and end without /"/>
               <div class="text-left">
                 <q-toggle
                   v-if="$q.platform.is.electron && node.protocol === 'https'"
@@ -76,6 +77,7 @@ export default defineComponent({
         host: 'localhost',
         port: '8108',
         protocol: 'http',
+        path: '',
         tls: true,
       },
       protocolOptions: ['http', 'https'],
