@@ -45,7 +45,7 @@
             padding="sm"
             color="primary"
             @click="editDocument()"
-            icon="edit"
+            icon="sym_s_edit"
             title="Edit"
           ></q-btn>
         </q-item-label>
@@ -57,7 +57,7 @@
             size="sm"
             padding="sm"
             @click="deleteDocumentById(item.id)"
-            icon="delete_forever"
+            icon="sym_s_delete_forever"
             title="Delete"
           ></q-btn>
         </q-item-label>

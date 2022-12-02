@@ -85,7 +85,7 @@
             flat
             color="negative"
             @click="deleteApiKey(props.row.id)"
-            icon="delete_forever"
+            icon="sym_s_delete_forever"
             title="Delete"
           ></q-btn>
         </q-td>

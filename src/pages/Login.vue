@@ -48,7 +48,7 @@
               label="Login"
               @click="login()"
             />
-            <q-btn color="primary" size="lg" icon="history">
+            <q-btn color="primary" size="lg" icon="sym_s_history">
               <q-menu>
                 <server-history></server-history>
               </q-menu>

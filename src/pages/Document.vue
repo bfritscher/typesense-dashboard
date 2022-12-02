@@ -8,7 +8,7 @@
         unelevated
         @click="importFile()"
         :disable="!$q.platform.is.electron"
-        icon="attach_file"
+        icon="sym_s_attach_file"
       >
         Import from file
         <span v-if="!$q.platform.is.electron"> (only desktop version)</span>

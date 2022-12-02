@@ -100,14 +100,14 @@
             flat
             color="primary"
             @click="editSynonym(props.row)"
-            icon="edit"
+            icon="sym_s_edit"
             title="Edit"
           ></q-btn>
           <q-btn
             flat
             color="negative"
             @click="deleteSynonym(props.row.id)"
-            icon="delete_forever"
+            icon="sym_s_delete_forever"
             title="Delete"
           ></q-btn>
         </q-td>

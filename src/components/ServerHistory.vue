@@ -28,13 +28,13 @@
     <q-item
       clickable
       v-close-popup
-      v-for="(h, index) in loginHistory"
+      v-for="(history, index) in loginHistory"
       :key="index"
-      @click="loginWithHistory(h)"
+      @click="loginWithHistory(history)"
     >
       <q-item-section
-        >{{ h.node.protocol }}://{{ h.node.host }}:{{
-          h.node.port
+        >{{ history.node.protocol }}://{{ history.node.host }}:{{
+          history.node.port
         }}</q-item-section>
     </q-item>
   </q-list>
@@ -51,22 +51,10 @@ export default defineComponent({
       default: false,
     },
   },
-  data() {
-    return {
-      apiKey: '',
-      node: {
-        host: 'localhost',
-        port: '8108',
-        protocol: 'http',
-        tls: true,
-      },
-      protocolOptions: ['http', 'https'],
-    };
-  },
   computed: {
     loginHistory() {
       return this.$store.state.node.loginHistory.map(
-        (j) => JSON.parse(j) as NodeLoginDataInterface
+        (history) => JSON.parse(history) as NodeLoginDataInterface
       );
     },
     error() {
@@ -77,10 +65,10 @@ export default defineComponent({
     logout() {
         void this.$store.dispatch('node/logout');
     },
-    loginWithHistory(h: NodeLoginDataInterface) {
+    loginWithHistory(history: NodeLoginDataInterface) {
       // Force redirection used the MainLayout Menu
       const forceHomeRedirect = this.$props.showLogout;
-      void this.$store.dispatch('node/login', {...h, forceHomeRedirect});
+      void this.$store.dispatch('node/login', {...history, forceHomeRedirect});
     },
   },
 });
