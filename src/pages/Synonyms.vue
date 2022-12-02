@@ -2,7 +2,9 @@
   <q-page padding>
     <q-expansion-item
       expand-separator
-      icon="sync_alt"
+      icon="sym_s_add_circle"
+      expand-icon="sym_s_unfold_more"
+      expanded-icon="sym_s_unfold_less"
       :label="`${isUpdate ? 'Update' : 'Add'} Synonym`"
       header-class="bg-primary text-white"
       v-model="expanded"
@@ -76,6 +78,9 @@
       :visible-columns="['id', 'type', 'root', 'synonyms', 'actions']"
       :pagination="{ rowsPerPage: 50, sortBy: 'name' }"
     >
+      <template v-slot:top-left>
+        <div class="text-h6"><q-icon size="md" name="sym_s_dataset_linked" /> Synonyms</div>
+      </template>
       <template v-slot:top-right>
         <q-input
           borderless
@@ -85,7 +90,7 @@
           placeholder="Search"
         >
           <template v-slot:append>
-            <q-icon name="search" />
+            <q-icon name="sym_s_search" />
           </template>
         </q-input>
       </template>
@@ -95,14 +100,14 @@
             flat
             color="primary"
             @click="editSynonym(props.row)"
-            icon="edit"
+            icon="sym_s_edit"
             title="Edit"
           ></q-btn>
           <q-btn
             flat
             color="negative"
             @click="deleteSynonym(props.row.id)"
-            icon="delete_forever"
+            icon="sym_s_delete_forever"
             title="Delete"
           ></q-btn>
         </q-td>

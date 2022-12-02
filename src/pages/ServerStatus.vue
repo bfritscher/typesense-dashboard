@@ -146,9 +146,10 @@
           <div>Protocole: {{ $store.state.node.loginData?.node.protocol }}</div>
           <div>Host: {{ $store.state.node.loginData?.node.host }}</div>
           <div>Port: {{ $store.state.node.loginData?.node.port }}</div>
+          <div>Version: {{ $store.state.node.data.debug.version }}</div>
+          <div v-if="Object.hasOwnProperty.call($store.state.node.data.debug, 'state')">Role: {{ $store.state.node.data.debug.state === 1 ? 'Leader' : 'Follower' }}</div>
 
           <div class="text-subtitle1 q-pt-md">Memory</div>
-
           <div
             v-for="metric in Object.keys($store.state.node.data.metrics).filter(
               (m) => m.includes('typesense')

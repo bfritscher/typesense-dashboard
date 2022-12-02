@@ -27,6 +27,10 @@ export class Api {
     });
   }
 
+  public getDebug() {
+    return this.typesenseClient?.debug.retrieve();
+  }
+
   public getCollections(){
     return this.typesenseClient?.collections().retrieve();
   }

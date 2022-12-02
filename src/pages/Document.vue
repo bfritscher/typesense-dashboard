@@ -2,13 +2,13 @@
   <q-page padding class="column">
     <div class="row justify-between q-mb-md">
       <div class="text-h5">
-        Add Documents to {{ $store.state.node.currentCollection?.name }}
+        <q-icon size="md" name="sym_s_library_add" />  Add Documents to {{ $store.state.node.currentCollection?.name }}
       </div>
       <q-btn
         unelevated
         @click="importFile()"
         :disable="!$q.platform.is.electron"
-        icon="attach_file"
+        icon="sym_s_attach_file"
       >
         Import from file
         <span v-if="!$q.platform.is.electron"> (only desktop version)</span>
@@ -127,7 +127,6 @@ export default defineComponent({
         if (!Array.isArray(results)) {
           results = [{error: results}];
         }
-        console.log(results);
         this.results = results;
       } catch (error) {
         this.results = [{error: (error as Error).message}];

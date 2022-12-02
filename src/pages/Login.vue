@@ -48,31 +48,9 @@
               label="Login"
               @click="login()"
             />
-            <q-btn color="primary" size="lg" icon="history">
+            <q-btn color="primary" size="lg" icon="sym_s_history">
               <q-menu>
-                <q-list style="min-width: 100px">
-                  <q-item
-                    clickable
-                    v-close-popup
-                    @click="$store.commit('node/clearHistory')"
-                  >
-                    <q-item-section>Clear history</q-item-section>
-                  </q-item>
-                  <q-separator />
-                  <q-item
-                    clickable
-                    v-close-popup
-                    v-for="(h, index) in loginHistory"
-                    :key="index"
-                    @click="loginWithHistory(h)"
-                  >
-                    <q-item-section
-                      >{{ h.node.protocol }}://{{ h.node.host }}:{{
-                        h.node.port
-                      }}</q-item-section
-                    >
-                  </q-item>
-                </q-list>
+                <server-history></server-history>
               </q-menu>
             </q-btn>
           </q-card-actions>
@@ -85,8 +63,13 @@
 <script lang="ts">
 import { NodeLoginDataInterface } from 'src/store/node/state';
 import { defineComponent } from 'vue';
+import ServerHistory from 'components/ServerHistory.vue';
+
 export default defineComponent({
   name: 'Login',
+  components: {
+    ServerHistory,
+  },
   data() {
     return {
       apiKey: '',

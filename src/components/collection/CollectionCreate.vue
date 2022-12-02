@@ -2,7 +2,9 @@
   <q-list bordered class="rounded-borders">
     <q-expansion-item
       expand-separator
-      icon="post_add"
+      icon="sym_s_library_add"
+      expand-icon="sym_s_unfold_more"
+      expanded-icon="sym_s_unfold_less"
       label="Add Collection"
       header-class="bg-primary text-white"
     >
