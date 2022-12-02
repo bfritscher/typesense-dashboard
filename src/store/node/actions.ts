@@ -17,6 +17,7 @@ import { SynonymCreateSchema } from 'typesense/lib/Typesense/Synonyms';
 import { OverrideCreateSchema } from 'typesense/lib/Typesense/Overrides';
 import { SearchParams } from 'typesense/lib/Typesense/Documents';
 import { Api } from 'src/shared/api';
+import { DebugResponseSchema } from 'typesense/lib/Typesense/Debug';
 
 const actions: ActionTree<NodeStateInterface, StateInterface> = {
   connectionCheck(context) {
@@ -31,6 +32,7 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
             context.dispatch('getCollections'),
             context.dispatch('getAliases'),
             context.dispatch('getApiKeys'),
+            context.dispatch('getDebug'),
           ]);
           context.commit('setIsConnected', true);
           context.commit('saveHistory');
@@ -63,6 +65,19 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
         });
       })
       .catch(() => {
+        void context.dispatch('connectionCheck');
+      });
+  },
+  async getDebug(context) {
+    await context.getters.api
+      .getDebug()
+      .then((response: DebugResponseSchema) => {
+        context.commit('setData', {
+          debug: response,
+        });
+      })
+      .catch((err: Error) => {
+        console.log(err);
         void context.dispatch('connectionCheck');
       });
   },

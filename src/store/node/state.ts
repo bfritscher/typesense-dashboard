@@ -9,6 +9,8 @@ import { RouteLocationNormalized } from 'vue-router';
 
 export interface NodeDataInterface {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  debug: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   metrics: any;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   stats: any;
@@ -59,6 +61,7 @@ function state(): NodeStateInterface {
     currentCollection: null,
     documentsToEdit: [],
     data: {
+      debug: {},
       metrics: {},
       stats: {},
       collections: [],
