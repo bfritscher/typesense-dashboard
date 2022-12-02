@@ -12,8 +12,7 @@
         />
 
         <q-toolbar-title>
-            <img src="typesense_logo_white.svg" class="logo" height="24" alt="Typesense" />
-            Dashboard
+          Typesense Dashboard
         </q-toolbar-title>
 
         <q-btn
