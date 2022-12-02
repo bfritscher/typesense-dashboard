@@ -12,17 +12,11 @@
      <template v-slot:body="props">
         <q-tr :props="props">
           <q-td key="name" :props="props">
-            <q-btn no-caps flat :to="`/collection/${props.row.name}/search`">{{ props.row.name }}</q-btn>
+            <q-btn no-caps flat :to="`/collection/${props.row.name}/search`" size="1.2em" class="text-bold">{{ props.row.name }}</q-btn>
           </q-td>
           <q-td key="actions" :props="props">
             <q-btn flat round color="primary" icon="sym_s_more_horiz">
               <q-menu>
-                <q-item dense clickable :to="`/collection/${props.row.name}/schema`">
-                  <q-item-section>Schema</q-item-section>
-                  <q-item-section avatar>
-                    <q-avatar icon="sym_s_data_object" />
-                  </q-item-section>
-                </q-item>
                 <q-item dense clickable :to="`/collection/${props.row.name}/document`">
                   <q-item-section>Import</q-item-section>
                   <q-item-section avatar>
@@ -45,10 +39,10 @@
             </q-btn>
           </q-td>
           <q-td key="num_documents" :props="props">
-            {{ props.row.num_documents }}
+            <q-btn no-caps flat :to="`/collection/${props.row.name}/search`">{{ props.row.num_documents }} <q-icon name="sym_s_search"  size="1em" right /></q-btn>
           </q-td>
           <q-td key="schema_fields" :props="props">
-            {{ props.row.fields.length || 0 }}
+            <q-btn no-caps flat :to="`/collection/${props.row.name}/schema`" >{{ props.row.fields.length || 0 }} <q-icon  name="sym_s_data_object" size="1em" right /></q-btn>
           </q-td>
           <q-td key="created_at" :props="props">
             {{
