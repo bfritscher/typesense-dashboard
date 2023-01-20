@@ -17,7 +17,17 @@
                 :key="index"
               ></div>
             </div>
-            <ais-highlight v-else :attribute="field.name" :hit="item" />
+            <div v-else>
+              <div v-if="field.name.includes('.*')">
+                <div v-if="item && Array.isArray(item[field.name])">
+                  <div v-for="(value, index) in item[field.name]" :key="index">
+                    {{ value }}
+                  </div>
+                </div>
+                <div v-else>{{ item && item[field.name] }}</div>
+              </div>
+              <ais-highlight v-else :attribute="field.name" :hit="item" />
+            </div>
           </q-item-label>
         </q-item-section>
       </q-item>

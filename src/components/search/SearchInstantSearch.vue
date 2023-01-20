@@ -101,13 +101,14 @@ export default defineComponent({
               'int64[]',
               'float[]',
             ].includes(f.type)
+            && !f.name.includes('.*')
         )
         .map((f) => f.name);
     },
     facetStringFields(): string[] {
       if (!this.currentCollection) return [];
       return this.currentCollection.fields
-        .filter((f) => f.facet && ['string', 'string[]'].includes(f.type))
+        .filter((f) => f.facet && ['string', 'string[]'].includes(f.type) && !f.name.includes('.*'))
         .map((f) => f.name);
     },
     sortBy(): { value: string; label: string }[] {
@@ -165,7 +166,7 @@ export default defineComponent({
                 exhaustive_search: true,
                 query_by: this.currentCollection.fields
                   .filter(
-                    (f) => f.index && ['string', 'string[]'].includes(f.type)
+                    (f) => f.index && ['string', 'string[]'].includes(f.type) && !f.name.includes('.*')
                   )
                   .map((f) => f.name)
                   .join(','),
