@@ -110,7 +110,7 @@ export default defineComponent({
       get(): string {
         return JSON.stringify(this.searchParameters, null, 2);
       },
-      set(json) {
+      set(json: string) {
         try {
           this.searchParameters = JSON.parse(json);
           this.jsonError = null;

@@ -125,14 +125,14 @@ export default defineComponent({
         {
           label: 'Query',
           name: 'query',
-          field: (row: OverrideSchema) => row.rule.query,
+          field: (row: any) => row.rule.query,
           sortable: true,
           align: 'left',
         },
         {
           label: 'Match',
           name: 'match',
-          field: (row: OverrideSchema) => row.rule.match,
+          field: (row: any) => row.rule.match,
           sortable: true,
           align: 'left',
         },
@@ -167,7 +167,7 @@ export default defineComponent({
       get(): string {
         return JSON.stringify(this.override, null, 2);
       },
-      set(json) {
+      set(json:string) {
         try {
           this.override = JSON.parse(json);
           this.jsonError = null;

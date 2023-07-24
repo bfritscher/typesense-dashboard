@@ -88,7 +88,7 @@ export default defineComponent({
       return this.$store.state.node.currentCollection;
     },
     facetNumberFields(): string[] {
-      if (!this.currentCollection) return [];
+      if (!this.currentCollection || !this.currentCollection.fields) return [];
       return this.currentCollection.fields
         .filter(
           (f) =>
@@ -106,13 +106,13 @@ export default defineComponent({
         .map((f) => f.name);
     },
     facetStringFields(): string[] {
-      if (!this.currentCollection) return [];
+      if (!this.currentCollection || !this.currentCollection.fields) return [];
       return this.currentCollection.fields
         .filter((f) => f.facet && ['string', 'string[]'].includes(f.type) && !f.name.includes('.*'))
         .map((f) => f.name);
     },
     sortBy(): { value: string; label: string }[] {
-      if (!this.currentCollection) return [];
+      if (!this.currentCollection || !this.currentCollection.fields) return [];
       const sortBy = [{ value: this.currentCollection.name, label: 'Default' }];
       this.currentCollection.fields
         .filter((f) => ['int32', 'float'].includes(f.type) || (f.type === 'string' && f.sort))
@@ -164,7 +164,7 @@ export default defineComponent({
               //  queryBy is required.
               additionalSearchParameters: {
                 exhaustive_search: true,
-                query_by: this.currentCollection.fields
+                query_by: (this.currentCollection?.fields || [])
                   .filter(
                     (f) => f.index && ['string', 'string[]'].includes(f.type) && !f.name.includes('.*')
                   )

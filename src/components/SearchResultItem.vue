@@ -92,14 +92,14 @@ export default defineComponent({
       return this.$store.state.node.currentCollection;
     },
     fieldsNotInSchema(): string[] {
-      if (!this.item || !this.currentCollection) return [];
+      if (!this.item || !this.currentCollection || !this.currentCollection.fields) return [];
+      const lookup = this.currentCollection.fields
+            .map((f) => f.name)
+            .concat(['objectID', 'text_match'])
       return Object.keys(this.item).filter(
         (k) =>
           !k.startsWith('_') &&
-          !this.currentCollection?.fields
-            .map((f) => f.name)
-            .concat(['objectID', 'text_match'])
-            .includes(k)
+          !lookup.includes(k)
       );
     },
   },

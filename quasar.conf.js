@@ -78,7 +78,7 @@ module.exports = configure(function (ctx) {
       chainWebpack (/* chain */) {
         //
       },
-      extendWebpack (cfg) {
+      extendWebpack (cfg, { isClient }) {
         cfg.plugins.push(
           new MonacoEditorPlugin({
             // https://github.com/Microsoft/monaco-editor-webpack-plugin#options
@@ -89,6 +89,15 @@ module.exports = configure(function (ctx) {
             languages: ['javascript', 'json'],
           }),
         )
+        // fix for devtools in electon based on https://github.com/quasarframework/quasar/issues/13535#issuecomment-1544028712
+        if (!isClient) { return; }
+        cfg.externals = [({ request }, callback) => {
+          if (/\.\/build-node\/(hook|backend)\.js/.test(request)) {
+            return callback(null, `commonjs ${request}`);
+          }
+
+          return callback();
+        }];
       }
     },
 

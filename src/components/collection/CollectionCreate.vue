@@ -157,7 +157,7 @@ export default defineComponent({
         fields: [],
         default_sorting_field: '',
         token_separators: [],
-        symbols_to_index: []
+        symbols_to_index: [],
       } as CollectionCreateSchema,
       types: [
         'string',
@@ -183,8 +183,10 @@ export default defineComponent({
   },
   computed: {
     availableSortFields(): string[] {
-      const compatibleFields = this.schema.fields.filter((field) =>
-        ['int32', 'float'].includes(field.type) || (field.type === 'string' && field.sort)
+      const compatibleFields = (this.schema.fields || []).filter(
+        (field) =>
+          ['int32', 'float'].includes(field.type) ||
+          (field.type === 'string' && field.sort)
       );
       // emtpy option + compatible field names
       return [''].concat(compatibleFields.map((field) => field.name));
@@ -193,7 +195,7 @@ export default defineComponent({
       get(): string {
         return JSON.stringify(this.schema, null, 2);
       },
-      set(json) {
+      set(json: string) {
         try {
           this.schema = JSON.parse(json);
           this.jsonError = null;
@@ -205,16 +207,23 @@ export default defineComponent({
   },
   methods: {
     addField() {
-      this.schema.fields.push({
-        name: '',
-        type: 'string',
-        optional: false,
-        facet: false,
-        index: true,
-      });
+      if (this.schema.fields) {
+        this.schema.fields.push({
+          name: '',
+          type: 'string',
+          optional: false,
+          facet: false,
+          index: true,
+        });
+      }
     },
     removeField(field: CollectionFieldSchema) {
-      this.schema.fields.splice(this.schema.fields.indexOf(field), 1);
+      if (this.schema.fields) {
+        const index = this.schema.fields.indexOf(field);
+        if (index > -1) {
+          this.schema.fields.splice(index, 1);
+        }
+      }
     },
     createCollection() {
       void this.$store.dispatch('node/createCollection', this.schema);

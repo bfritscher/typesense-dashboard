@@ -2,7 +2,8 @@
   <q-page padding class="column">
     <div class="row justify-between q-mb-md">
       <div class="text-h5">
-        <q-icon size="md" name="sym_s_library_add" />  Add Documents to {{ $store.state.node.currentCollection?.name }}
+        <q-icon size="md" name="sym_s_library_add" /> Add Documents to
+        {{ $store.state.node.currentCollection?.name }}
       </div>
       <q-btn
         unelevated
@@ -125,11 +126,11 @@ export default defineComponent({
           this.action
         );
         if (!Array.isArray(results)) {
-          results = [{error: results}];
+          results = [{ error: results }];
         }
         this.results = results;
       } catch (error) {
-        this.results = [{error: (error as Error).message}];
+        this.results = [{ error: (error as Error).message }];
       }
       this.$q.loading.hide();
     },
@@ -146,23 +147,28 @@ export default defineComponent({
           documents: JSON.parse(JSON.stringify(this.documents)),
         });
       } catch (error) {
-        this.results = [{error:(error as Error).message}];
+        this.results = [{ error: (error as Error).message }];
       }
       this.$q.loading.hide();
     },
     addEmptyDocument() {
-      const document = this.currentCollection?.fields.reduce(
-        //eslint-disable-next-line
-        (obj: any, field): any => {
-          obj[field.name] = field.type.includes('[]')
-            ? []
-            : field.type.includes('string')
-            ? ''
-            : field.type.includes('bool') ? false : 0;
-          return obj;
-        },
-        {}
-      );
+      let document = {};
+      if (this.currentCollection && this.currentCollection.fields) {
+        document = this.currentCollection.fields.reduce(
+          //eslint-disable-next-line
+          (obj: any, field): any => {
+            obj[field.name] = field.type.includes('[]')
+              ? []
+              : field.type.includes('string')
+              ? ''
+              : field.type.includes('bool')
+              ? false
+              : 0;
+            return obj;
+          },
+          {}
+        );
+      }
       this.documents.push(document);
     },
   },
