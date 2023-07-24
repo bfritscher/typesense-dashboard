@@ -11,17 +11,18 @@ jobs:
     steps:
       - name: Create Release
         id: create_release
-        uses: softprops/action-gh-release@v1
+        uses: actions/create-release@v1.0.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          name: Release ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
       - name: Output Release URL File
         run: echo "${{ steps.create_release.outputs.upload_url }}" > release_url.txt
       - name: Save Release URL File for publish
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v1
         with:
           name: release_url
           path: release_url.txt
@@ -31,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Load Release URL File from release job
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v1
         with:
           name: release_url
       - name: Setup NodeJS Environment
@@ -74,7 +75,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: Load Release URL File from release job
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v1
         with:
           name: release_url
       - name: Setup NodeJS Environment
