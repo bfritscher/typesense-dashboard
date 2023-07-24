@@ -140,4 +140,5 @@ export default defineComponent({
 .search-result-item {
   flex: 1;
 }
+
 </style>

@@ -28,7 +28,7 @@
           v-model="tab"
           animated
           style="height: 60vh"
-          class="bg-grey-3"
+          class="bg-surface"
         >
           <q-tab-panel name="form">
             <q-card-section>
@@ -36,7 +36,6 @@
                 <q-input
                   class="col"
                   filled
-                  bg-color="white"
                   dense
                   v-model="schema.name"
                   label="Collection Name"
@@ -45,7 +44,6 @@
                 />
                 <q-select
                   filled
-                  bg-color="white"
                   class="col"
                   dense
                   v-model="schema.default_sorting_field"
@@ -60,14 +58,13 @@
                 bordered
                 v-for="(field, index) in schema.fields"
                 :key="index"
-                class="bg-grey-1 q-mb-md"
+                class="q-mb-md"
               >
                 <q-card-section class="row q-gutter-md">
                   <q-input
                     class="col"
                     dense
-                    filled
-                    bg-color="white"
+                    outlined
                     v-model="field.name"
                     label="Field Name"
                     placeholder="title"
@@ -77,8 +74,7 @@
                   <q-select
                     class="col"
                     dense
-                    filled
-                    bg-color="white"
+                    outlined
                     v-model="field.type"
                     label="type"
                     :options="types"

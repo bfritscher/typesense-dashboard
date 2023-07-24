@@ -91,7 +91,6 @@ Make it executable and then you can run it from command line.
     - create Snapshot
     - delete by query
     - Scoped Search Key generation
-- Dark mode not completely implemented
 
 # Development
 ## Install the dependencies

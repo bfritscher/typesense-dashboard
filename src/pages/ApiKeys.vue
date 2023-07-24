@@ -9,7 +9,7 @@
       header-class="bg-primary text-white"
       v-model="expanded"
     >
-      <q-card style="height: 60vh" class="bg-grey-3 column">
+      <q-card style="height: 60vh" class="bg-surface column">
         <q-card-section class="q-gutter-md">
           <q-btn flat @click="loadAdminKey()">Admin Key Example</q-btn>
           <q-btn flat @click="loadSearchKey()">Search Key Example</q-btn>

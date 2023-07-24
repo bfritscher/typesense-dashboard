@@ -33,7 +33,7 @@
           flat
           dense
           :icon="$q.dark.isActive ? 'sym_s_light_mode' : 'sym_s_dark_mode'"
-          title="Toggle Dark Mode Test Only"
+          title="Toggle Dark Mode"
         />
       </q-toolbar>
     </q-header>

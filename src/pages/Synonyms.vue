@@ -9,18 +9,16 @@
       header-class="bg-primary text-white"
       v-model="expanded"
     >
-      <q-card class="bg-grey-3 column">
+      <q-card class="bg-surface column">
         <q-card-section>
           <q-input
             label="ID"
             v-model="id"
             filled
-            bg-color="white"
             class="q-mb-md"
           ></q-input>
           <q-option-group
             filled
-            bg-color="white"
             v-model="type"
             :options="typeOptions"
             color="primary"
@@ -30,7 +28,7 @@
 
           <q-input
             filled
-            bg-color="white"
+            stack-label
             label="Root"
             v-model="synonym.root"
             v-if="type === types.ONE_WAY"
@@ -39,7 +37,6 @@
 
           <q-select
             filled
-            bg-color="white"
             v-model="synonym.synonyms"
             multiple
             use-chips

@@ -22,3 +22,12 @@ $positive  : #10b981;
 $negative  : #e11d48;
 $info      : #2361ce;
 $warning   : #fba918;
+
+.body--light {
+  .bg-surface {
+    background-color: #eeeeee !important;
+    .q-field__control {
+      background-color: #ffffff !important;
+    }
+  }
+}

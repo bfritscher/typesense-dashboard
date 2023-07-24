@@ -9,13 +9,12 @@
       header-class="bg-primary text-white"
       v-model="expanded"
     >
-      <q-card class="bg-grey-3 column">
+      <q-card class="bg-surface column">
         <q-card-section>
           <q-input
             v-model="alias.name"
             label="Alias name"
             filled
-            bg-color="white"
             :rules="[
               (name) =>
                 !collectionNames.includes(name) ||
@@ -26,7 +25,6 @@
             v-model="alias.collection_name"
             label="Target Collection"
             filled
-            bg-color="white"
             :options="collectionNames"
           ></q-select>
         </q-card-section>

@@ -1,55 +1,55 @@
 <template>
-    <ais-instant-search
-      v-if="searchClient && currentCollection"
-      :search-client="searchClient"
-      :index-name="currentCollection.name"
-      :middlewares="middlewares"
-    >
-      <ais-configure :hits-per-page.camel="12" />
-      <ais-search-box placeholder="" />
-      <ais-stats></ais-stats>
-      <ais-current-refinements />
+  <ais-instant-search
+    v-if="searchClient && currentCollection"
+    :search-client="searchClient"
+    :index-name="currentCollection.name"
+    :middlewares="middlewares"
+  >
+    <ais-configure :hits-per-page.camel="12" />
+    <ais-search-box placeholder="" />
+    <ais-stats></ais-stats>
+    <ais-current-refinements />
 
-      <div class="row q-mt-md">
-        <div class="col-3 q-pr-sm">
-          <ais-hits-per-page
-            :items="[
-              { label: '12 hits per page', value: 12, default: true },
-              { label: '48 hits per page', value: 48 },
-              { label: '100 hits per page', value: 100 },
-              { label: '250 hits per page', value: 250 },
-            ]"
-          />
-          <q-btn flat @click="exportPage()">export current page</q-btn>
+    <div class="row q-mt-md">
+      <div class="col-3 q-pr-sm">
+        <ais-hits-per-page
+          :items="[
+            { label: '12 hits per page', value: 12, default: true },
+            { label: '48 hits per page', value: 48 },
+            { label: '100 hits per page', value: 100 },
+            { label: '250 hits per page', value: 250 },
+          ]"
+        />
+        <q-btn flat @click="exportPage()">export current page</q-btn>
 
-          <div class="text-subtitle2 q-pt-md">Sort By</div>
-          <ais-sort-by :items="sortBy" />
+        <div class="text-subtitle2 q-pt-md">Sort By</div>
+        <ais-sort-by :items="sortBy" />
 
-          <div class="q-mb-sm" v-for="name in facetNumberFields" :key="name">
-            <div class="text-subtitle2 q-pt-md">{{ name }}</div>
-            <ais-range-input :searchable="true" :attribute="name" />
-          </div>
-
-          <div class="q-mb-sm" v-for="name in facetStringFields" :key="name">
-            <div class="text-subtitle2 q-pt-md">{{ name }}</div>
-            <ais-refinement-list
-              class="q-mb-sm"
-              :searchable="true"
-              :attribute="name"
-            />
-          </div>
+        <div class="q-mb-sm" v-for="name in facetNumberFields" :key="name">
+          <div class="text-subtitle2 q-pt-md">{{ name }}</div>
+          <ais-range-input :searchable="true" :attribute="name" />
         </div>
-        <div class="col-9">
-          <ais-pagination class="q-mb-md" />
-          <ais-hits>
-            <template v-slot:item="{ item }" v-if="currentCollection">
-              <search-result-item :item="item"></search-result-item>
-            </template>
-          </ais-hits>
-          <ais-pagination class="q-my-md" />
+
+        <div class="q-mb-sm" v-for="name in facetStringFields" :key="name">
+          <div class="text-subtitle2 q-pt-md">{{ name }}</div>
+          <ais-refinement-list
+            class="q-mb-sm"
+            :searchable="true"
+            :attribute="name"
+          />
         </div>
       </div>
-    </ais-instant-search>
+      <div class="col-9">
+        <ais-pagination class="q-mb-md" />
+        <ais-hits>
+          <template v-slot:item="{ item }" v-if="currentCollection">
+            <search-result-item :item="item"></search-result-item>
+          </template>
+        </ais-hits>
+        <ais-pagination class="q-my-md" />
+      </div>
+    </div>
+  </ais-instant-search>
 </template>
 
 <script lang="ts">
@@ -100,22 +100,31 @@ export default defineComponent({
               'int32[]',
               'int64[]',
               'float[]',
-            ].includes(f.type)
-            && !f.name.includes('.*')
+            ].includes(f.type) &&
+            !f.name.includes('.*')
         )
         .map((f) => f.name);
     },
     facetStringFields(): string[] {
       if (!this.currentCollection || !this.currentCollection.fields) return [];
       return this.currentCollection.fields
-        .filter((f) => f.facet && ['string', 'string[]'].includes(f.type) && !f.name.includes('.*'))
+        .filter(
+          (f) =>
+            f.facet &&
+            ['string', 'string[]'].includes(f.type) &&
+            !f.name.includes('.*')
+        )
         .map((f) => f.name);
     },
     sortBy(): { value: string; label: string }[] {
       if (!this.currentCollection || !this.currentCollection.fields) return [];
       const sortBy = [{ value: this.currentCollection.name, label: 'Default' }];
       this.currentCollection.fields
-        .filter((f) => ['int32', 'float'].includes(f.type) || (f.type === 'string' && f.sort))
+        .filter(
+          (f) =>
+            ['int32', 'float'].includes(f.type) ||
+            (f.type === 'string' && f.sort)
+        )
         .forEach((f) => {
           if (!this.currentCollection) return;
           sortBy.push({
@@ -166,7 +175,10 @@ export default defineComponent({
                 exhaustive_search: true,
                 query_by: (this.currentCollection?.fields || [])
                   .filter(
-                    (f) => f.index && ['string', 'string[]'].includes(f.type) && !f.name.includes('.*')
+                    (f) =>
+                      f.index &&
+                      ['string', 'string[]'].includes(f.type) &&
+                      !f.name.includes('.*')
                   )
                   .map((f) => f.name)
                   .join(','),
@@ -180,3 +192,25 @@ export default defineComponent({
   },
 });
 </script>
+<style>
+.body--dark .ais-SearchBox-input,
+.body--dark .ais-MenuSelect-select,
+.body--dark .ais-NumericSelector-select,
+.body--dark .ais-HitsPerPage-select,
+.body--dark .ais-ResultsPerPage-select,
+.body--dark .ais-SortBy-select {
+  background-color: rgba(255, 255, 255, 0.07);
+  color: #fff;
+}
+.body--dark .ais-InstantSearch option {
+  background-color: #1f2937;
+  color: #fff;
+}
+
+.ais-InfiniteHits-item,
+.ais-InfiniteResults-item,
+.ais-Hits-item,
+.ais-Results-item {
+  box-shadow: none;
+}
+</style>

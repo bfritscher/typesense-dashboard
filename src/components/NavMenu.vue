@@ -152,4 +152,10 @@ export default defineComponent({
 .q-item--active {
   background-color: #fff;
 }
+.body--dark .q-item.q-router-link--active,
+.body--dark .q-item--active {
+  background-color: #111827;
+  color: #fff;
+}
+
 </style>

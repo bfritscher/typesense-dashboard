@@ -9,12 +9,11 @@
       header-class="bg-primary text-white"
       v-model="expanded"
     >
-      <q-card style="height: 60vh" class="bg-grey-3 column">
+      <q-card style="height: 60vh" class="bg-surface column">
         <q-card-section>
           <q-input
             dense
             filled
-            bg-color="white"
             label="ID"
             v-model="id"
           ></q-input>
