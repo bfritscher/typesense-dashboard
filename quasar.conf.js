@@ -30,7 +30,7 @@ module.exports = configure(function (ctx) {
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli/boot-files
     boot: [
-      'axios', 'instantsearch', 'darkmode'
+      'axios', 'instantsearch', 'darkmode', 'checkAutoLoginConfig'
     ],
 
     // https://v2.quasar.dev/quasar-cli/quasar-conf-js#Property%3A-css

@@ -1,0 +1,10 @@
+{
+  "apiKey": "xyz",
+  "node": {
+    "host":"somehost",
+    "port":"443",
+    "protocol":"https",
+    "path":"",
+    "tls":true
+  }
+}

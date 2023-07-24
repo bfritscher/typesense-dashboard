@@ -45,6 +45,27 @@ You can also use the pre-built docker image for example like this:
 docker run -d -p 80:80 ghcr.io/bfritscher/typesense-dashboard:latest
 ```
 
+You can enable auto-login by mapping a config.json file to `/srv/config.json` in the container.
+
+```bash
+docker run -d -p 80:80 -v /path/to/config.json:/srv/config.json typesense-dashboard
+```
+
+Sample config.json (same data as saved in localStorage of the browser).
+```json
+{
+  "apiKey": "xyz",
+  "node": {
+    "host":"somehost",
+    "port":"443",
+    "protocol":"https",
+    "path":"",
+    "tls":true
+  }
+}
+````
+
+
 ### Desktop
 
 With the desktop application everything except instant search will work without cors.
