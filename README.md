@@ -12,7 +12,7 @@ As a web application, only typesense server started with `--enable-cors` will wo
 Use https://bfritscher.github.io/typesense-dashboard/ or build and install on your own server
 
 #### Limitation
-When using in your browser from an https adresse your server must also be behind SSL. Or you will get a MixedContent Network Error. (You might allow mix content in your browser, but this is not recommended).
+When using in your browser from an https address your server must also be behind SSL. Or you will get a MixedContent Network Error. (You might allow mix content in your browser, but this is not recommended).
 
 
 #### Docker
@@ -63,7 +63,38 @@ Sample config.json (same data as saved in localStorage of the browser).
     "tls":true
   }
 }
-````
+```
+
+#### Kustomize
+
+To use along [Kustomize deployment for Typesense](https://github.com/typesense/typesense-kubernetes)
+
+Example usage [here](kustomize/overlays/dev)
+
+Create `config.json` file with your configuration and API key.
+
+Create kustomization file.
+```yml
+resources:
+- github.com/typesense/typesense-kubernetes/base
+- github.com/bfritscher/typesense-dashboard/kustomize/base
+
+namespace: typesense
+
+images:
+- name: typesense-dashboard
+  newName: typesense-dashboard
+  newTag: latest
+
+secretGenerator:
+- files:
+  - config.json
+  name: typesense-dashboard-config
+  behavior: replace
+  options:
+    disableNameSuffixHash: true
+  type: Opaque
+```
 
 
 ### Desktop
