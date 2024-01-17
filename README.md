@@ -2,7 +2,7 @@
 
 A Typesense Dashboard to manage and browse collections.
 
-A side projet to test the Typesense API and Quasar with electron.
+A side project to test the Typesense API and Quasar with electron.
 
 ## Usage
 
@@ -12,7 +12,7 @@ As a web application, only typesense server started with `--enable-cors` will wo
 Use https://bfritscher.github.io/typesense-dashboard/ or build and install on your own server
 
 #### Limitation
-When using in your browser from an https adresse your server must also be behind SSL. Or you will get a MixedContent Network Error. (You might allow mix content in your browser, but this is not recommended).
+When using in your browser from an https address your server must also be behind SSL. Or you will get a MixedContent Network Error. (You might allow mix content in your browser, but this is not recommended).
 
 
 #### Docker
