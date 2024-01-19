@@ -53,7 +53,7 @@
 </template>
 
 <script lang="ts">
-import SearchResultItem from 'src/components/SearchResultItem.vue';
+import SearchResultItem from 'src/components/search/SearchResultItem.vue';
 import TypesenseInstantSearchAdapter from 'typesense-instantsearch-adapter';
 import { CollectionSchema } from 'typesense/lib/Typesense/Collection';
 import { defineComponent } from 'vue';

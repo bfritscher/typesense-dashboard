@@ -74,7 +74,7 @@
 
 <script lang="ts">
 import MonacoEditor from 'src/components/MonacoEditor.vue';
-import SearchResultItem from 'src/components/SearchResultItem.vue';
+import SearchResultItem from 'src/components/search/SearchResultItem.vue';
 import { defineComponent } from 'vue';
 import { LocalStorage } from 'quasar';
 import { SearchParams } from 'typesense/lib/Typesense/Documents';
