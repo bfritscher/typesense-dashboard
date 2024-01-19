@@ -60,10 +60,11 @@
     </div>
 
     <div>
-      <div v-for="(result, index) in results" :key="index">
+      <q-banner v-for="(result, index) in results" :key="index" class="text-white"
+      :class="{'bg-green': result.success, 'bg-red': result.error}">
         {{ index }}: <span v-if="result.success"> {{ result.success }}</span
-        ><span v-else>{{ result.error }}</span>
-      </div>
+        ><span v-else >{{ result.error }}</span>
+      </q-banner>
     </div>
   </q-page>
 </template>
