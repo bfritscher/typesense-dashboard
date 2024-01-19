@@ -3,13 +3,19 @@
     <q-list dense>
       <q-item v-for="field in currentCollection.fields" :key="field.name">
         <q-item-section side class="q-mt-sm text-body2">
-          <q-item-label caption> {{ field.name }} </q-item-label>
+          <q-item-label caption>
+            {{ field.name }}
+            <span v-if="item && Array.isArray(item[field.name])"
+              >[{{ item[field.name].length }}]</span
+            ></q-item-label
+          >
           <q-item-label
             class="overflow-hidden text-no-wrap text-ellipsis"
             :title="item[field.name]"
           >
             <div
               v-if="item && Array.isArray(item._highlightResult[field.name])"
+              class="array-field"
             >
               <div
                 v-for="(result, index) in item._highlightResult[field.name]"
@@ -29,7 +35,11 @@
               <ais-highlight v-else :attribute="field.name" :hit="item" />
             </div>
           </q-item-label>
-          <q-item-label v-if="item && isImage(item[field.name])" caption class="img-preview">
+          <q-item-label
+            v-if="item && isImage(item[field.name])"
+            caption
+            class="img-preview"
+          >
             <q-img :src="item[field.name]" fit="contain" class="img-preview" />
           </q-item-label>
         </q-item-section>
@@ -123,14 +133,17 @@ export default defineComponent({
       return this.$store.state.node.currentCollection;
     },
     fieldsNotInSchema(): string[] {
-      if (!this.item || !this.currentCollection || !this.currentCollection.fields) return [];
+      if (
+        !this.item ||
+        !this.currentCollection ||
+        !this.currentCollection.fields
+      )
+        return [];
       const lookup = this.currentCollection.fields
-            .map((f) => f.name)
-            .concat(['objectID', 'text_match'])
+        .map((f) => f.name)
+        .concat(['objectID', 'text_match']);
       return Object.keys(this.item).filter(
-        (k) =>
-          !k.startsWith('_') &&
-          !lookup.includes(k)
+        (k) => !k.startsWith('_') && !lookup.includes(k)
       );
     },
   },
@@ -139,14 +152,22 @@ export default defineComponent({
       if (!str) return false;
       str = String(str);
       return str.startsWith('http://') || str.startsWith('https://');
-    },    
+    },
     isImage(filename: string) {
       if (!filename) return false;
       filename = String(filename);
-      const validImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp'];
+      const validImageExtensions = [
+        'jpg',
+        'jpeg',
+        'png',
+        'gif',
+        'bmp',
+        'svg',
+        'webp',
+      ];
       const extension = filename.split('.').pop()?.toLowerCase() || '';
       return validImageExtensions.includes(extension);
-    },    
+    },
     editDocument() {
       //eslint-disable-next-line
       const copyItem: any = {};
@@ -186,5 +207,10 @@ export default defineComponent({
 .img-preview {
   width: 100%;
   height: 150px;
+}
+.array-field {
+  max-height: 150px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 </style>
