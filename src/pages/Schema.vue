@@ -2,7 +2,8 @@
   <q-page padding class="column">
     <div class="row justify-between q-mb-md">
       <div class="text-h5">
-        <q-icon size="md" name="sym_s_data_object" /> Schema for {{ $store.state.node.currentCollection?.name }}
+        <q-icon size="md" name="sym_s_data_object" /> Schema for
+        {{ $store.state.node.currentCollection?.name }}
       </div>
       <q-btn
         unelevated
@@ -11,24 +12,31 @@
         >Drop Collection</q-btn
       >
     </div>
-    <monaco-editor
-      :model-value="schema"
-      :options="{ readOnly: true }"
-    ></monaco-editor>
+    <collection-ui
+      :initial-schema="schema"
+      primary-action-label="Update Schema"
+      @submit="update"
+    />
   </q-page>
 </template>
 
 <script lang="ts">
-import MonacoEditor from 'src/components/MonacoEditor.vue';
+import CollectionUi from 'components/collection/CollectionUi.vue';
+import { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections';
+import {
+  CollectionDropFieldSchema,
+  CollectionSchema,
+  CollectionUpdateSchema,
+} from 'typesense/lib/Typesense/Collection';
 import { defineComponent } from 'vue';
 
 export default defineComponent({
   name: 'Schema',
   components: {
-    MonacoEditor,
+    CollectionUi,
   },
   computed: {
-    schema(): string {
+    schema(): CollectionSchema | CollectionCreateSchema {
       const collection: any = this.$store.state.node.currentCollection;
       if (collection) {
         const schema: any = {
@@ -71,9 +79,16 @@ export default defineComponent({
           schema[k] = collection[k];
         });
 
-        return JSON.stringify(schema, null, 2);
+        return schema;
       }
-      return '';
+      return {
+        name: '',
+        fields: [],
+        default_sorting_field: '',
+        token_separators: [],
+        symbols_to_index: [],
+        enable_nested_fields: false,
+      };
     },
   },
   methods: {
@@ -88,6 +103,26 @@ export default defineComponent({
         .onOk(() => {
           void this.$store.dispatch('node/dropCollection', name);
         });
+    },
+    update(updatedSchema: CollectionUpdateSchema) {
+      if (!this.schema || !this.schema.name || !this.schema.fields) {
+        return;
+      }
+      const update = {
+        fields: this.schema.fields
+          .map((f: any) => {
+            return {
+              name: f.name,
+              drop: true,
+            } as CollectionDropFieldSchema;
+          })
+          .concat(updatedSchema.fields as any),
+      } as CollectionUpdateSchema;
+
+      void this.$store.dispatch('node/updateCollection', {
+        collectionName: this.schema.name,
+        schema: update,
+      });
     },
   },
 });

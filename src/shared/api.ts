@@ -2,6 +2,7 @@ import axios, { AxiosInstance } from 'axios';
 import * as Typesense from 'typesense';
 import { CollectionAliasSchema } from 'typesense/lib/Typesense/Aliases';
 import { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections';
+import { CollectionUpdateSchema } from 'typesense/lib/Typesense/Collection';
 import { NodeConfiguration } from 'typesense/lib/Typesense/Configuration';
 import { SearchParams } from 'typesense/lib/Typesense/Documents';
 import { KeyCreateSchema } from 'typesense/lib/Typesense/Key';
@@ -39,8 +40,16 @@ export class Api {
     return this.typesenseClient?.collections().create(schema);
   }
 
+  public getCollection(collectionName:string){
+    return this.typesenseClient?.collections(collectionName).retrieve();
+  }
+
   public dropCollection(collectionName:string){
     return this.typesenseClient?.collections(collectionName).delete();
+  }
+
+  public updateCollection(collectionName:string, schema: CollectionUpdateSchema ) {
+    return this.typesenseClient?.collections(collectionName).update(schema)
   }
 
   public getAliases() {

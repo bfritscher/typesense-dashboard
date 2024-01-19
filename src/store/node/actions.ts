@@ -8,7 +8,7 @@ import {
 import { LocalStorage } from 'quasar';
 import { AxiosError, AxiosResponse } from 'axios';
 import FileSaver from 'file-saver';
-import { CollectionSchema } from 'typesense/lib/Typesense/Collection';
+import { CollectionSchema, CollectionUpdateSchema } from 'typesense/lib/Typesense/Collection';
 import { CollectionAliasCreateSchema, CollectionAliasSchema } from 'typesense/lib/Typesense/Aliases';
 import { KeySchema } from 'typesense/lib/Typesense/Key';
 import { SynonymSchema } from 'typesense/lib/Typesense/Synonym';
@@ -194,6 +194,25 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
       context.commit('setError', (error as Error).message);
     }
   },
+  async updateCollection(context, payload: { collectionName: string, schema: CollectionUpdateSchema}) {
+    try {
+      context.commit('setError', null);
+      await context.getters.api.updateCollection(payload.collectionName, payload.schema);
+      const collection = await context.getters.api.getCollection(payload.collectionName);
+      context.commit('setData', {
+        collections: context.state.data.collections.map((c) => {
+          if (c.name === payload.collectionName) {
+            return collection;
+          }
+          return c;
+        }),
+      });
+      context.commit('setCurrentCollection', collection);
+    } catch (error) {
+      context.commit('setError', (error as Error).message);
+    }
+  },
+
   async deleteAlias(context, name: string) {
     await context.getters.api.deleteAlias(name);
     void context.dispatch('getAliases');
