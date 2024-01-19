@@ -15,7 +15,7 @@
             <q-btn no-caps flat :to="`/collection/${props.row.name}/search`" size="1.2em" class="text-bold">{{ props.row.name }}</q-btn>
           </q-td>
           <q-td key="actions" :props="props">
-            <q-btn flat round color="primary" icon="sym_s_more_horiz">
+            <q-btn flat round icon="sym_s_more_vert">
               <q-menu>
                 <q-item dense clickable :to="`/collection/${props.row.name}/document`">
                   <q-item-section>Import</q-item-section>
@@ -89,7 +89,7 @@ export default defineComponent({
         {
           name: 'actions',
           required: false,
-          label: '',
+          label: 'Actions',
           field: 'actions',
           sortable: false,
         },
