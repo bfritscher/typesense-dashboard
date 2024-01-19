@@ -60,9 +60,9 @@
                 :key="index"
                 class="q-mb-md"
               >
-                <q-card-section class="row q-gutter-md">
+                <q-card-section class="row q-col-gutter-md">
                   <q-input
-                    class="col"
+                    class="col-12 col-sm-6"
                     dense
                     outlined
                     v-model="field.name"
@@ -72,13 +72,32 @@
                   />
 
                   <q-select
-                    class="col"
+                    class="col-12 col-sm-4"
                     dense
                     outlined
                     v-model="field.type"
                     label="type"
                     :options="types"
                     :rules="[(val) => !!val || 'Field is required']"
+                  />
+                  <q-input
+                    v-if="field.type === 'float[]'"
+                    class="col-12 col-sm-2"
+                    dense
+                    outlined
+                    type="number"
+                    v-model.number="field.num_dim"
+                    label="num_dim"
+                    placeholder=""
+                  />
+                  <q-input
+                    v-if="field.type.startsWith('string')"
+                    class="col-12 col-sm-2"
+                    dense
+                    outlined
+                    v-model="field.locale"
+                    label="locale"
+                    placeholder=""
                   />
                 </q-card-section>
                 <q-separator></q-separator>
@@ -88,6 +107,7 @@
                     <q-checkbox v-model="field.facet" label="facet" />
                     <q-checkbox v-model="field.index" label="index" />
                     <q-checkbox v-model="field.sort" label="sort" />
+                    <q-checkbox v-model="field.infix" label="infix" />
                   </div>
 
                   <q-btn
@@ -207,9 +227,13 @@ export default defineComponent({
         this.schema.fields.push({
           name: '',
           type: 'string',
-          optional: false,
           facet: false,
+          optional: false,
           index: true,
+          sort: false,
+          infix: false,
+          locale: '',
+          num_dim: undefined,
         });
       }
     },
@@ -222,6 +246,12 @@ export default defineComponent({
       }
     },
     createCollection() {
+      const schema = JSON.parse(JSON.stringify(this.schema));
+      for (const field of schema.fields) {
+        if (field.type !== 'float[]' || !field.num_dim) {
+          delete field.num_dim;
+        }
+      }
       void this.$store.dispatch('node/createCollection', this.schema);
     },
   },
