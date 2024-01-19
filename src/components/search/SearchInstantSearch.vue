@@ -50,6 +50,11 @@
       </div>
     </div>
   </ais-instant-search>
+  <div v-else-if="searchClientError">
+    <q-banner inline-actions class="text-white bg-red">
+      {{ searchClientError }}
+    </q-banner>
+  </div>
 </template>
 
 <script lang="ts">
@@ -65,6 +70,7 @@ export default defineComponent({
     const data = {
       searchClient: null,
       instantSearchInstance: null as any,
+      searchClientError: null as string | null,
       middlewares: [
         //eslint-disable-next-line @typescript-eslint/no-explicit-any
         ({ instantSearchInstance }: any) => {
@@ -154,37 +160,46 @@ export default defineComponent({
     currentCollection: {
       handler() {
         this.searchClient = null;
+        this.searchClientError = null;
         // set first to null to reset instantClient DOM
         window.setTimeout(() => {
           if (!this.$store.state.node.loginData || !this.currentCollection)
             return;
-          const typesenseInstantsearchAdapter =
-            new TypesenseInstantSearchAdapter({
-              server: {
-                nodes: [
-                  {
-                    ...this.$store.state.node.loginData.node,
-                  },
-                ],
-                apiKey: this.$store.state.node.loginData.apiKey,
-              },
-              // The following parameters are directly passed to Typesense's search API endpoint.
-              //  So you can pass any parameters supported by the search endpoint below.
-              //  queryBy is required.
-              additionalSearchParameters: {
-                exhaustive_search: true,
-                query_by: (this.currentCollection?.fields || [])
-                  .filter(
-                    (f) =>
-                      f.index &&
-                      ['string', 'string[]'].includes(f.type) &&
-                      !f.name.includes('.*')
-                  )
-                  .map((f) => f.name)
-                  .join(','),
-              },
-            });
-          this.searchClient = typesenseInstantsearchAdapter.searchClient;
+          const query_by = (this.currentCollection?.fields || [])
+            .filter(
+              (f) =>
+                f.index &&
+                ['string', 'string[]'].includes(f.type) &&
+                !f.name.includes('.*')
+            )
+            .map((f) => f.name)
+            .join(',');
+          try {
+            const typesenseInstantsearchAdapter =
+              new TypesenseInstantSearchAdapter({
+                server: {
+                  nodes: [
+                    {
+                      ...this.$store.state.node.loginData.node,
+                    },
+                  ],
+                  apiKey: this.$store.state.node.loginData.apiKey,
+                },
+                // The following parameters are directly passed to Typesense's search API endpoint.
+                //  So you can pass any parameters supported by the search endpoint below.
+                //  queryBy is required.
+                additionalSearchParameters: {
+                  exhaustive_search: true,
+                  query_by,
+                },
+              });
+            this.searchClient = typesenseInstantsearchAdapter.searchClient;
+          } catch (error) {
+            this.searchClientError =
+              (error as Error).message + 'Using query_by: ' + query_by;
+
+            console.error(error);
+          }
         });
       },
       immediate: true,
