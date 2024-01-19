@@ -33,6 +33,19 @@
             <q-img :src="item[field.name]" fit="contain" class="img-preview" />
           </q-item-label>
         </q-item-section>
+        <q-item-section v-if="item && isUrl(item[field.name])" side top>
+          <q-item-label>
+            <q-btn
+              flat
+              :href="item[field.name]"
+              target="_blank"
+              size="sm"
+              padding="sm"
+              icon="sym_s_open_in_new"
+              title="open"
+            ></q-btn>
+          </q-item-label>
+        </q-item-section>
       </q-item>
       <q-separator></q-separator>
       <q-item v-for="field in fieldsNotInSchema" :key="field">
@@ -40,12 +53,25 @@
           <q-item-label caption> {{ field }} </q-item-label>
           <q-item-label
             class="overflow-hidden text-no-wrap text-ellipsis"
-            :title="item[field]"
+            :title="JSON.stringify(item[field], null, 2)"
           >
             {{ item[field] }}
           </q-item-label>
           <q-item-label v-if="isImage(item[field])" caption class="img-preview">
             <q-img :src="item[field]" fit="contain" class="img-preview" />
+          </q-item-label>
+        </q-item-section>
+        <q-item-section v-if="isUrl(item[field])" side top>
+          <q-item-label>
+            <q-btn
+              flat
+              :href="item[field]"
+              target="_blank"
+              size="sm"
+              padding="sm"
+              icon="sym_s_open_in_new"
+              title="open"
+            ></q-btn>
           </q-item-label>
         </q-item-section>
       </q-item>
@@ -59,7 +85,6 @@
             flat
             size="sm"
             padding="sm"
-            color="primary"
             @click="editDocument()"
             icon="sym_s_edit"
             title="Edit"
@@ -110,6 +135,11 @@ export default defineComponent({
     },
   },
   methods: {
+    isUrl(str: string) {
+      if (!str) return false;
+      str = String(str);
+      return str.startsWith('http://') || str.startsWith('https://');
+    },    
     isImage(filename: string) {
       if (!filename) return false;
       filename = String(filename);
