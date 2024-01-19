@@ -29,6 +29,12 @@
                     <q-avatar icon="sym_s_file_download" />
                   </q-item-section>
                 </q-item>
+                <q-item dense clickable :to="`/collection/${props.row.name}/schema`">
+                  <q-item-section>Edit</q-item-section>
+                  <q-item-section avatar>
+                    <q-avatar icon="sym_s_data_object" />
+                  </q-item-section>
+                </q-item>
                 <q-item dense clickable flat style="color: #DE3B39" @click="drop(props.row.name)">
                   <q-item-section>Delete</q-item-section>
                   <q-item-section avatar>
