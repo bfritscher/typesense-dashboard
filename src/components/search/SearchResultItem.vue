@@ -29,6 +29,9 @@
               <ais-highlight v-else :attribute="field.name" :hit="item" />
             </div>
           </q-item-label>
+          <q-item-label v-if="item && isImage(item[field.name])" caption class="img-preview">
+            <q-img :src="item[field.name]" fit="contain" class="img-preview" />
+          </q-item-label>
         </q-item-section>
       </q-item>
       <q-separator></q-separator>
@@ -40,6 +43,9 @@
             :title="item[field]"
           >
             {{ item[field] }}
+          </q-item-label>
+          <q-item-label v-if="isImage(item[field])" caption class="img-preview">
+            <q-img :src="item[field]" fit="contain" class="img-preview" />
           </q-item-label>
         </q-item-section>
       </q-item>
@@ -104,6 +110,13 @@ export default defineComponent({
     },
   },
   methods: {
+    isImage(filename: string) {
+      if (!filename) return false;
+      filename = String(filename);
+      const validImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp'];
+      const extension = filename.split('.').pop()?.toLowerCase() || '';
+      return validImageExtensions.includes(extension);
+    },    
     editDocument() {
       //eslint-disable-next-line
       const copyItem: any = {};
@@ -140,5 +153,8 @@ export default defineComponent({
 .search-result-item {
   flex: 1;
 }
-
+.img-preview {
+  width: 100%;
+  height: 150px;
+}
 </style>
