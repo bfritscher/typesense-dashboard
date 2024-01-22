@@ -2,40 +2,74 @@
   <q-page padding>
     <collection-create></collection-create>
     <q-table
-
       :filter="filter"
       :columns="columns"
       :rows="$store.state.node.data.collections"
       row-key="name"
       :pagination="{ rowsPerPage: 0, sortBy: 'name' }"
     >
-     <template v-slot:body="props">
+      <template v-slot:body="props">
         <q-tr :props="props">
           <q-td key="name" :props="props">
-            <q-btn no-caps flat :to="`/collection/${props.row.name}/search`" size="1.2em" class="text-bold">{{ props.row.name }}</q-btn>
+            <q-btn
+              no-caps
+              flat
+              :to="`/collection/${props.row.name}/search`"
+              size="1.2em"
+              class="text-bold"
+              >{{ props.row.name }}</q-btn
+            >
           </q-td>
           <q-td key="actions" :props="props">
             <q-btn flat round icon="sym_s_more_vert">
               <q-menu>
-                <q-item dense clickable :to="`/collection/${props.row.name}/document`">
+                <q-item
+                  dense
+                  clickable
+                  :to="`/collection/${props.row.name}/document`"
+                >
                   <q-item-section>Import</q-item-section>
                   <q-item-section avatar>
                     <q-avatar icon="sym_s_file_upload" />
                   </q-item-section>
                 </q-item>
-                <q-item dense clickable @click="exportCollection(props.row.name)">
+                <q-item
+                  dense
+                  clickable
+                  @click="exportCollection(props.row.name)"
+                >
                   <q-item-section>Export</q-item-section>
                   <q-item-section avatar>
                     <q-avatar icon="sym_s_file_download" />
                   </q-item-section>
                 </q-item>
-                <q-item dense clickable :to="`/collection/${props.row.name}/schema`">
+                <q-item
+                  dense
+                  clickable
+                  :to="`/collection/${props.row.name}/schema`"
+                >
                   <q-item-section>Edit</q-item-section>
                   <q-item-section avatar>
                     <q-avatar icon="sym_s_data_object" />
                   </q-item-section>
                 </q-item>
-                <q-item dense clickable flat style="color: #DE3B39" @click="drop(props.row.name)">
+                <q-item
+                  dense
+                  clickable
+                  @click="cloneCollection(props.row.name)"
+                >
+                  <q-item-section>Clone Schema</q-item-section>
+                  <q-item-section avatar>
+                    <q-avatar icon="sym_s_content_copy" />
+                  </q-item-section>
+                </q-item>
+                <q-item
+                  dense
+                  clickable
+                  flat
+                  style="color: #de3b39"
+                  @click="drop(props.row.name)"
+                >
                   <q-item-section>Delete</q-item-section>
                   <q-item-section avatar>
                     <q-avatar icon="sym_s_delete" />
@@ -45,15 +79,19 @@
             </q-btn>
           </q-td>
           <q-td key="num_documents" :props="props">
-            <q-btn no-caps flat :to="`/collection/${props.row.name}/search`">{{ props.row.num_documents }} <q-icon name="sym_s_search"  size="1em" right /></q-btn>
+            <q-btn no-caps flat :to="`/collection/${props.row.name}/search`"
+              >{{ props.row.num_documents }}
+              <q-icon name="sym_s_search" size="1em" right
+            /></q-btn>
           </q-td>
           <q-td key="schema_fields" :props="props">
-            <q-btn no-caps flat :to="`/collection/${props.row.name}/schema`" >{{ props.row.fields.length || 0 }} <q-icon  name="sym_s_data_object" size="1em" right /></q-btn>
+            <q-btn no-caps flat :to="`/collection/${props.row.name}/schema`"
+              >{{ props.row.fields.length || 0 }}
+              <q-icon name="sym_s_data_object" size="1em" right
+            /></q-btn>
           </q-td>
           <q-td key="created_at" :props="props">
-            {{
-              new Date(props.row.created_at * 1000).toLocaleString()
-            }}
+            {{ new Date(props.row.created_at * 1000).toLocaleString() }}
           </q-td>
         </q-tr>
       </template>
@@ -77,7 +115,7 @@
 
 <script lang="ts">
 import CollectionCreate from 'src/components/collection/CollectionCreate.vue';
-import { defineComponent } from 'vue';;
+import { defineComponent } from 'vue';
 export default defineComponent({
   components: { CollectionCreate },
   name: 'Collections',
@@ -156,6 +194,25 @@ export default defineComponent({
           void this.$store.dispatch('node/dropCollection', name);
         });
     },
-  }
+    cloneCollection(collectionName: string) {
+      this.$q
+        .dialog({
+          title: 'Clone Schema',
+          message: 'Provide name for new collection? (documents are not copied!, only schema, currations and synonyms)',
+          prompt: {
+            model: '',
+            type: 'text',
+          },
+          cancel: true,
+          persistent: true,
+        })
+        .onOk((destinationName) => {
+          void this.$store.dispatch('node/cloneCollectionSchema', {
+            collectionName,
+            destinationName,
+          });
+        });
+    },
+  },
 });
 </script>

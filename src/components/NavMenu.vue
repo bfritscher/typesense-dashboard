@@ -42,6 +42,13 @@
       <q-item-section> Analytics Rules </q-item-section>
     </q-item>
 
+    <q-item clickable v-ripple to="/searchpresets" exact>
+      <q-item-section avatar>
+        <q-icon name="sym_s_manage_search" />
+      </q-item-section>
+
+      <q-item-section> Search Presets </q-item-section>
+    </q-item>
 
     <q-separator spaced />
 

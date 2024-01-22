@@ -8,6 +8,7 @@ import { SearchParams } from 'typesense/lib/Typesense/Documents';
 import { KeyCreateSchema } from 'typesense/lib/Typesense/Key';
 import { OverrideSchema } from 'typesense/lib/Typesense/Override';
 import { SynonymSchema } from 'typesense/lib/Typesense/Synonym';
+import { PresetCreateSchema } from 'typesense/lib/Typesense/Presets';
 import AnalyticsRule, { AnalyticsRuleCreateSchema } from 'typesense/lib/Typesense/AnalyticsRule';
 import AnalyticsRules from 'typesense/lib/Typesense/AnalyticsRules';
 
@@ -92,6 +93,18 @@ export class Api {
     return (this.typesenseClient?.analytics.rules(name) as AnalyticsRule).delete();
   }
 
+  public getSearchPresets() {
+    return this.typesenseClient?.presets().retrieve();
+  }
+
+  public upsertSearchPreset(name: string, preset: PresetCreateSchema) {
+    return this.typesenseClient?.presets().upsert(name, preset);
+  }
+
+  public deleteSearchPreset(name: string) {
+    return this.typesenseClient?.presets(name).delete();
+  }
+
   public getSynonyms(collectionName: string) {
     return this.typesenseClient?.collections(collectionName)
     .synonyms()
@@ -151,4 +164,14 @@ export class Api {
       throw Error(err.response?.data?.message || err.message)
     });
   }
+
+  //eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public post(url:string, body?:any):Promise<any>|void {
+    return this.axiosClient?.post(url, body).then(r => {
+      return {data: r.data};
+      }).catch(err => {
+      throw Error(err.response?.data?.message || err.message)
+    });
+  }
+
 }
