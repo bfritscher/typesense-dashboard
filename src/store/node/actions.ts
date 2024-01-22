@@ -191,6 +191,16 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
     context.commit('setCurrentCollection', collection);
     void context.dispatch('getSynonyms', collection.name);
     void context.dispatch('getOverrides', collection.name);
+    // eslint-disable-next-line
+    // @ts-ignore
+    if (this.$router.currentRoute.value.params?.name) {
+      // eslint-disable-next-line
+      // @ts-ignore
+      const params = { ...this.$router.currentRoute.value.params, name: collection.name };
+      // eslint-disable-next-line
+      // @ts-ignore
+      this.$router.push({ name: this.$router.currentRoute.value.name, params});
+    }
   },
   loadCurrentCollectionByName(context, collectionName: string) {
     return context.dispatch(
