@@ -45,8 +45,37 @@
             stack-label
             hide-dropdown-icon
             label="Synonyms"
+            hint="Enter a synonym and press enter"
           >
           </q-select>
+
+        </q-card-section>
+        <q-separator />
+        <q-card-section>
+          <div class="text-overline">Optional</div>
+          <q-select
+            filled
+            v-model="synonym.symbols_to_index"
+            multiple
+            use-chips
+            use-input
+            new-value-mode="add"
+            stack-label
+            hide-dropdown-icon
+            label="Symbols to Index"
+            hint="Enter a symbol (eg: +, - ) and press enter"
+          >
+          </q-select>
+          
+          <q-input
+            filled
+            stack-label
+            label="Locale"
+            v-model="synonym.locale"
+            class="q-mb-md"
+            hint="Leave blank to auto-detect"
+          ></q-input>
+
         </q-card-section>
 
         <q-card-actions align="right" class="bg-primary">
@@ -72,7 +101,6 @@
       :rows="$store.state.node.data.synonyms"
       :columns="columns"
       row-key="id"
-      :visible-columns="['id', 'type', 'root', 'synonyms', 'actions']"
       :pagination="{ rowsPerPage: 50, sortBy: 'name' }"
     >
       <template v-slot:top-left>
@@ -145,6 +173,8 @@ export default defineComponent({
       synonym: {
         root: '',
         synonyms: [],
+        locale: '',
+        symbols_to_index: []
       } as SynonymCreateSchema,
       id: nanoid(),
       columns: [
@@ -172,7 +202,21 @@ export default defineComponent({
         {
           label: 'Synonyms',
           name: 'synonyms',
-          field: (row: SynonymSchema) => JSON.stringify(row.synonyms),
+          field: (row: SynonymSchema) => row.synonyms.join(', '),
+          align: 'left',
+          sortable: true,
+        },
+        {
+          label: 'Symbols to Index',
+          name: 'symbols_to_index',
+          field: (row: SynonymSchema) => row.symbols_to_index?.join(', '),
+          align: 'left',
+          sortable: true,
+        },
+        {
+          label: 'Locale',
+          name: 'locale',
+          field: 'locale',
           align: 'left',
           sortable: true,
         },
@@ -202,6 +246,12 @@ export default defineComponent({
       if (this.type === this.types.ONE_WAY) {
         synonym.root = this.synonym.root;
       }
+      if (this.synonym.locale) {
+        synonym.locale = this.synonym.locale;
+      }
+      if (this.synonym.symbols_to_index && this.synonym.symbols_to_index.length > 0) {
+        synonym.symbols_to_index = this.synonym.symbols_to_index;
+      }
       await this.$store.dispatch('node/createSynonym', {
         id: this.id,
         synonym: synonym,
@@ -210,6 +260,8 @@ export default defineComponent({
       this.synonym = {
         root: '',
         synonyms: [],
+        locale: '',
+        symbols_to_index: []
       };
       this.expanded = false;
     },
@@ -217,6 +269,8 @@ export default defineComponent({
       this.id = synonym.id || nanoid();
       this.synonym = JSON.parse(JSON.stringify(synonym));
       this.type = this.synonym.root ? RootTypes.ONE_WAY : RootTypes.MULTI_WAY;
+      this.synonym.locale = this.synonym.locale || '';
+      this.synonym.symbols_to_index = this.synonym.symbols_to_index || [];
       this.expanded = true;
     },
     deleteSynonym(id: string) {
