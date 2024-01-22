@@ -1,5 +1,6 @@
 import { LocalStorage } from 'quasar';
 import { CollectionAliasSchema } from 'typesense/lib/Typesense/Aliases';
+import { AnalyticsRuleSchema } from 'typesense/lib/Typesense/AnalyticsRule';
 import { CollectionSchema } from 'typesense/lib/Typesense/Collection';
 import { NodeConfiguration } from 'typesense/lib/Typesense/Configuration';
 import { KeySchema } from 'typesense/lib/Typesense/Key';
@@ -17,6 +18,7 @@ export interface NodeDataInterface {
   collections: CollectionSchema[];
   aliases: CollectionAliasSchema[];
   apiKeys: KeySchema[];
+  analyticsRules: AnalyticsRuleSchema[];
   overrides: OverrideSchema[];
   synonyms: SynonymSchema[];
 }
@@ -67,6 +69,7 @@ function state(): NodeStateInterface {
       collections: [],
       aliases: [],
       apiKeys: [],
+      analyticsRules: [],
       overrides: [],
       synonyms: [],
     },

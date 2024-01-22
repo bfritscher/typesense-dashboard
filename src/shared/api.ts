@@ -8,6 +8,8 @@ import { SearchParams } from 'typesense/lib/Typesense/Documents';
 import { KeyCreateSchema } from 'typesense/lib/Typesense/Key';
 import { OverrideSchema } from 'typesense/lib/Typesense/Override';
 import { SynonymSchema } from 'typesense/lib/Typesense/Synonym';
+import AnalyticsRule, { AnalyticsRuleCreateSchema } from 'typesense/lib/Typesense/AnalyticsRule';
+import AnalyticsRules from 'typesense/lib/Typesense/AnalyticsRules';
 
 export class Api {
   public axiosClient?: AxiosInstance;
@@ -76,6 +78,18 @@ export class Api {
     if(this.typesenseClient) {
       await this.typesenseClient.keys(parseInt(id, 10)).delete();
     }
+  }
+
+  public getAnalyticsRules() {
+    return this.typesenseClient?.analytics.rules().retrieve();
+  }
+
+  public upsertAnalyticsRule(name: string, rule: AnalyticsRuleCreateSchema) {
+    return (this.typesenseClient?.analytics.rules() as AnalyticsRules).upsert(name, rule);
+  }
+
+  public deleteAnalyticsRule(name: string) {
+    return (this.typesenseClient?.analytics.rules(name) as AnalyticsRule).delete();
   }
 
   public getSynonyms(collectionName: string) {
