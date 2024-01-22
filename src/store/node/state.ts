@@ -5,6 +5,7 @@ import { CollectionSchema } from 'typesense/lib/Typesense/Collection';
 import { NodeConfiguration } from 'typesense/lib/Typesense/Configuration';
 import { KeySchema } from 'typesense/lib/Typesense/Key';
 import { OverrideSchema } from 'typesense/lib/Typesense/Override';
+import { PresetSchema } from 'typesense/lib/Typesense/Preset';
 import { SynonymSchema } from 'typesense/lib/Typesense/Synonym';
 import { RouteLocationNormalized } from 'vue-router';
 
@@ -19,6 +20,7 @@ export interface NodeDataInterface {
   aliases: CollectionAliasSchema[];
   apiKeys: KeySchema[];
   analyticsRules: AnalyticsRuleSchema[];
+  searchPresets: PresetSchema[];
   overrides: OverrideSchema[];
   synonyms: SynonymSchema[];
 }
@@ -70,6 +72,7 @@ function state(): NodeStateInterface {
       aliases: [],
       apiKeys: [],
       analyticsRules: [],
+      searchPresets: [],
       overrides: [],
       synonyms: [],
     },

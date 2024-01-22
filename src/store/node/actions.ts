@@ -19,6 +19,7 @@ import { SearchParams } from 'typesense/lib/Typesense/Documents';
 import { Api } from 'src/shared/api';
 import { DebugResponseSchema } from 'typesense/lib/Typesense/Debug';
 import { AnalyticsRuleSchema } from 'typesense/lib/Typesense/AnalyticsRule';
+import { PresetSchema } from 'typesense/lib/Typesense/Preset';
 
 const actions: ActionTree<NodeStateInterface, StateInterface> = {
   connectionCheck(context) {
@@ -143,6 +144,32 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
       context.commit('setError', null);
       await context.getters.api.upsertAnalyticsRule(rule.name, rule);
       void context.dispatch('getAnalyticsRules');
+    } catch (error) {
+      context.commit('setError', (error as Error).message);
+    }
+  },
+  async getSearchPresets(context) {
+    await context.getters.api
+      .getSearchPresets()
+      .then((response: { presets: PresetSchema[] }) => {
+        context.commit('setData', {
+          searchPresets: response.presets,
+        });
+      })
+      .catch((err: Error) => {
+        console.log(err);
+        void context.dispatch('connectionCheck');
+      });
+  },
+  async deleteSearchPreset(context, name: string) {
+    await context.getters.api.deleteSearchPreset(name);
+    void context.dispatch('getSearchPresets');
+  },
+  async upsertSearchPreset(context, preset: any) {
+    try {
+      context.commit('setError', null);
+      await context.getters.api.upsertSearchPreset(preset.name, preset);
+      void context.dispatch('getSearchPresets');
     } catch (error) {
       context.commit('setError', (error as Error).message);
     }

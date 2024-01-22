@@ -8,6 +8,7 @@ import { SearchParams } from 'typesense/lib/Typesense/Documents';
 import { KeyCreateSchema } from 'typesense/lib/Typesense/Key';
 import { OverrideSchema } from 'typesense/lib/Typesense/Override';
 import { SynonymSchema } from 'typesense/lib/Typesense/Synonym';
+import { PresetCreateSchema } from 'typesense/lib/Typesense/Presets';
 import AnalyticsRule, { AnalyticsRuleCreateSchema } from 'typesense/lib/Typesense/AnalyticsRule';
 import AnalyticsRules from 'typesense/lib/Typesense/AnalyticsRules';
 
@@ -90,6 +91,18 @@ export class Api {
 
   public deleteAnalyticsRule(name: string) {
     return (this.typesenseClient?.analytics.rules(name) as AnalyticsRule).delete();
+  }
+
+  public getSearchPresets() {
+    return this.typesenseClient?.presets().retrieve();
+  }
+
+  public upsertSearchPreset(name: string, preset: PresetCreateSchema) {
+    return this.typesenseClient?.presets().upsert(name, preset);
+  }
+
+  public deleteSearchPreset(name: string) {
+    return this.typesenseClient?.presets(name).delete();
   }
 
   public getSynonyms(collectionName: string) {
