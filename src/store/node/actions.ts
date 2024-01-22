@@ -18,6 +18,7 @@ import { OverrideCreateSchema } from 'typesense/lib/Typesense/Overrides';
 import { SearchParams } from 'typesense/lib/Typesense/Documents';
 import { Api } from 'src/shared/api';
 import { DebugResponseSchema } from 'typesense/lib/Typesense/Debug';
+import { AnalyticsRuleSchema } from 'typesense/lib/Typesense/AnalyticsRule';
 
 const actions: ActionTree<NodeStateInterface, StateInterface> = {
   connectionCheck(context) {
@@ -119,6 +120,32 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
         console.log(err);
         void context.dispatch('connectionCheck');
       });
+  },
+  async getAnalyticsRules(context) {
+    await context.getters.api
+      .getAnalyticsRules()
+      .then((response: { rules: AnalyticsRuleSchema[] }) => {
+        context.commit('setData', {
+          analyticsRules: response.rules,
+        });
+      })
+      .catch((err: Error) => {
+        console.log(err);
+        void context.dispatch('connectionCheck');
+      });
+  },
+  async deleteAnalyticsRule(context, name: string) {
+    await context.getters.api.deleteAnalyticsRule(name);
+    void context.dispatch('getAnalyticsRules');
+  },
+  async createAnalyticsRule(context, rule: AnalyticsRuleSchema) {
+    try {
+      context.commit('setError', null);
+      await context.getters.api.upsertAnalyticsRule(rule.name, rule);
+      void context.dispatch('getAnalyticsRules');
+    } catch (error) {
+      context.commit('setError', (error as Error).message);
+    }
   },
   getSynonyms(context, collectionName: string) {
     context.getters.api

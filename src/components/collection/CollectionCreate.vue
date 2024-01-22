@@ -32,6 +32,9 @@ export default defineComponent({
         if (field.type !== 'float[]' || !field.num_dim) {
           delete field.num_dim;
         }
+        if (field.type.startsWith('object')) {
+          schema.enable_nested_fields = true;
+        }
       }
       void this.$store.dispatch('node/createCollection', schema);
     },

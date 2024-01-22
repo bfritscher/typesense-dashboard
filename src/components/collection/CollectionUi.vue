@@ -215,6 +215,8 @@ export default defineComponent({
         'bool[]',
         'geopoint',
         'geopoint[]',
+        'object',
+        'object[]',
         'string*',
         'auto',
       ],

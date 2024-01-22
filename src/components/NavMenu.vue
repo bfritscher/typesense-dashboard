@@ -34,6 +34,15 @@
       <q-item-section> API Keys </q-item-section>
     </q-item>
 
+    <q-item clickable v-ripple to="/analyticsrules" exact>
+      <q-item-section avatar>
+        <q-icon name="sym_s_query_stats" />
+      </q-item-section>
+
+      <q-item-section> Analytics Rules </q-item-section>
+    </q-item>
+
+
     <q-separator spaced />
 
     <q-item>
