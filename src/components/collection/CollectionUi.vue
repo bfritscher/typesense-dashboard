@@ -159,7 +159,6 @@ export default defineComponent({
   props: {
     initialSchema: {
       type: Object as () => CollectionCreateSchema | CollectionSchema | CollectionUpdateSchema,
-      required: true,
       default: () =>
         ({
           name: '',

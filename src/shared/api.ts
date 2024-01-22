@@ -151,4 +151,14 @@ export class Api {
       throw Error(err.response?.data?.message || err.message)
     });
   }
+
+  //eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public post(url:string, body?:any):Promise<any>|void {
+    return this.axiosClient?.post(url, body).then(r => {
+      return {data: r.data};
+      }).catch(err => {
+      throw Error(err.response?.data?.message || err.message)
+    });
+  }
+
 }

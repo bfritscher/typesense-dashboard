@@ -239,7 +239,22 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
       context.commit('setError', (error as Error).message);
     }
   },
-
+  async cloneCollectionSchema(context, payload: { collectionName: string, destinationName: string}) {
+    try {
+      context.commit('setError', null);
+      await context.getters.api.post(`/collections?src_name=${payload.collectionName}`, {name: payload.destinationName})
+      const collection = await context.getters.api.getCollection(payload.destinationName);
+      context.commit('setData', {
+        collections: context.state.data.collections.concat([collection]),
+      });
+      context.commit('setCurrentCollection', collection);
+      // eslint-disable-next-line
+      // @ts-ignore
+      this.$router.push(`/collection/${payload.destinationName}/schema`);
+    } catch (error) {
+      context.commit('setError', (error as Error).message);
+    }
+  },
   async deleteAlias(context, name: string) {
     await context.getters.api.deleteAlias(name);
     void context.dispatch('getAliases');
