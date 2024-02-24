@@ -1,31 +1,51 @@
 name: Build and Deploy Docker Image
 on:
-  release:
-    types:
-      - created
-      - published
   push:
     branches:
       - main
+    tags:
+      - "v*.*.*"
   workflow_dispatch:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v3
-    # https://github.com/marketplace/actions/push-to-ghcr
-    - name: Build and publish a Docker image for ${{ github.repository }}
-      uses: macbre/push-to-ghcr@master
+    - uses: actions/checkout@v4
+    - name: Docker meta
+      id: meta
+      uses: docker/metadata-action@v5
       with:
-        image_name: ${{ github.repository }}
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        # optionally push to the Docker Hub (docker.io)
-        docker_io_token: ${{ secrets.DOCKER_IO_ACCESS_TOKEN }}  # see https://hub.docker.com/settings/security
-        # customize the username to be used when pushing to the Docker Hub
-        docker_io_user: bfritscher  # see https://github.com/macbre/push-to-ghcr/issues/14
-    -
-      name: Image digest
-      run: echo ${{ steps.docker_build.outputs.digest }}
+        # list of Docker images to use as base name for tags
+        images: |
+          bfritscher/typesense-dashboard
+          ghcr.io/bfritscher/typesense-dashboard
+        # generate Docker tags based on the following events/attributes
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: bfritscher
+        password: ${{ secrets.DOCKER_IO_ACCESS_TOKEN }}
+    - name: Login to GHCR
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Build and push
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        platforms: linux/amd64,linux/arm64
+        push: ${{ github.event_name != 'pull_request' }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}

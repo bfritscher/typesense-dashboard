@@ -1,5 +1,5 @@
 ARG PUBLIC_PATH=/
-FROM node:18-alpine as builder
+FROM --platform=linux/amd64 node:18-alpine as builder
 ARG PUBLIC_PATH
 WORKDIR /app
 
