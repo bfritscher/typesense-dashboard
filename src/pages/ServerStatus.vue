@@ -1,142 +1,197 @@
 <template>
   <q-page padding>
     <div class="row">
-      <q-card flat bordered class="col-12 col-md-8 q-mb-md">
-        <q-card-section>
-          <div class="text-h5">System</div>
-          <div class="text-subtitle1 q-pt-md">CPU</div>
-          <div class="row">
-            <div
-              class="column flex-center flex-wrap q-ma-md"
-              v-for="metric in Object.keys(
-                $store.state.node.data.metrics
-              ).filter((m) => m.includes('cpu'))"
-              :key="metric"
+      <div class="col col-12 col-md-8">
+        <q-card flat bordered class="q-mb-md">
+          <q-card-section>
+            <div class="text-h5">System</div>
+            <div class="text-subtitle1 q-pt-md">CPU</div>
+            <div class="row">
+              <div
+                class="column flex-center flex-wrap q-ma-md"
+                v-for="metric in Object.keys(
+                  $store.state.node.data.metrics
+                ).filter((m) => m.includes('cpu'))"
+                :key="metric"
+              >
+                <span class="text-overline">{{ metric.split('_')[1] }}</span>
+                <q-circular-progress
+                  show-value
+                  class="text-accent"
+                  :value="parseFloat($store.state.node.data.metrics[metric])"
+                  size="50px"
+                  color="accent"
+                  track-color="grey-3"
+                />
+              </div>
+            </div>
+            <div class="text-subtitle1 q-pt-md">Memory</div>
+            <q-linear-progress
+              size="25px"
+              :value="
+                parseInt(
+                  $store.state.node.data.metrics.system_memory_used_bytes,
+                  10
+                ) /
+                parseInt(
+                  $store.state.node.data.metrics.system_memory_total_bytes,
+                  10
+                )
+              "
+              color="accent"
             >
-              <span class="text-overline">{{ metric.split('_')[1] }}</span>
-              <q-circular-progress
-                show-value
-                class="text-accent"
-                :value="parseFloat($store.state.node.data.metrics[metric])"
-                size="50px"
-                color="accent"
-                track-color="grey-3"
-              />
-            </div>
-          </div>
-          <div class="text-subtitle1 q-pt-md">Memory</div>
-          <q-linear-progress
-            size="25px"
-            :value="
-              parseInt(
-                $store.state.node.data.metrics.system_memory_used_bytes,
-                10
-              ) /
-              parseInt(
-                $store.state.node.data.metrics.system_memory_total_bytes,
-                10
-              )
-            "
-            color="accent"
-          >
-            <div class="absolute-full flex flex-center">
-              <q-badge
-                color="white"
-                text-color="accent"
-                :label="
-                  prettyBytes(
-                    parseInt(
-                      $store.state.node.data.metrics.system_memory_used_bytes,
-                      10
+              <div class="absolute-full flex flex-center">
+                <q-badge
+                  color="white"
+                  text-color="accent"
+                  :label="
+                    prettyBytes(
+                      parseInt(
+                        $store.state.node.data.metrics.system_memory_used_bytes,
+                        10
+                      )
                     )
-                  )
-                "
-              />
-            </div>
-            <div class="absolute-full flex justify-end">
-              <q-badge
-                color="white"
-                text-color="accent"
-                :label="
-                  prettyBytes(
-                    parseInt(
-                      $store.state.node.data.metrics.system_memory_total_bytes,
-                      10
+                  "
+                />
+              </div>
+              <div class="absolute-full flex justify-end">
+                <q-badge
+                  color="white"
+                  text-color="accent"
+                  :label="
+                    prettyBytes(
+                      parseInt(
+                        $store.state.node.data.metrics
+                          .system_memory_total_bytes,
+                        10
+                      )
                     )
-                  )
-                "
-              />
-            </div>
-          </q-linear-progress>
+                  "
+                />
+              </div>
+            </q-linear-progress>
 
-          <div class="text-subtitle1 q-pt-md">Disk</div>
+            <div class="text-subtitle1 q-pt-md">Disk</div>
 
-          <q-linear-progress
-            size="25px"
-            :value="
-              parseInt(
-                $store.state.node.data.metrics.system_disk_used_bytes,
-                10
-              ) /
-              parseInt(
-                $store.state.node.data.metrics.system_disk_total_bytes,
-                10
-              )
-            "
-            color="accent"
-          >
-            <div class="absolute-full flex flex-center">
-              <q-badge
-                color="white"
-                text-color="accent"
-                :label="
-                  prettyBytes(
-                    parseInt(
-                      $store.state.node.data.metrics.system_disk_used_bytes,
-                      10
-                    )
-                  )
-                "
-              />
-            </div>
-            <div class="absolute-full flex justify-end">
-              <q-badge
-                color="white"
-                text-color="accent"
-                :label="
-                  prettyBytes(
-                    parseInt(
-                      $store.state.node.data.metrics.system_disk_total_bytes,
-                      10
-                    )
-                  )
-                "
-              />
-            </div>
-          </q-linear-progress>
-          <div class="text-subtitle1 q-pt-md">System Network</div>
-          <div>
-            Received:
-            {{
-              prettyBytes(
+            <q-linear-progress
+              size="25px"
+              :value="
                 parseInt(
-                  $store.state.node.data.metrics.system_network_received_bytes,
+                  $store.state.node.data.metrics.system_disk_used_bytes,
+                  10
+                ) /
+                parseInt(
+                  $store.state.node.data.metrics.system_disk_total_bytes,
                   10
                 )
-              )
-            }}
-            Sent:
-            {{
-              prettyBytes(
-                parseInt(
-                  $store.state.node.data.metrics.system_network_sent_bytes,
-                  10
+              "
+              color="accent"
+            >
+              <div class="absolute-full flex flex-center">
+                <q-badge
+                  color="white"
+                  text-color="accent"
+                  :label="
+                    prettyBytes(
+                      parseInt(
+                        $store.state.node.data.metrics.system_disk_used_bytes,
+                        10
+                      )
+                    )
+                  "
+                />
+              </div>
+              <div class="absolute-full flex justify-end">
+                <q-badge
+                  color="white"
+                  text-color="accent"
+                  :label="
+                    prettyBytes(
+                      parseInt(
+                        $store.state.node.data.metrics.system_disk_total_bytes,
+                        10
+                      )
+                    )
+                  "
+                />
+              </div>
+            </q-linear-progress>
+            <div class="text-subtitle1 q-pt-md">System Network</div>
+            <div>
+              Received:
+              {{
+                prettyBytes(
+                  parseInt(
+                    $store.state.node.data.metrics
+                      .system_network_received_bytes,
+                    10
+                  )
                 )
-              )
-            }}
-          </div>
-        </q-card-section>
-      </q-card>
+              }}
+              Sent:
+              {{
+                prettyBytes(
+                  parseInt(
+                    $store.state.node.data.metrics.system_network_sent_bytes,
+                    10
+                  )
+                )
+              }}
+            </div>
+          </q-card-section>
+        </q-card>
+        <q-card flat bordered class="q-mb-md">
+          <q-card-section>
+            <div class="text-h5 q-mb-md">Operations</div>
+            <div class="text-subtitle1 q-pt-md">Cache</div>
+            <p>
+              Responses of search requests that are sent with use_cache
+              parameter are cached in a LRU cache.
+            </p>
+            <q-btn
+              label="Clear Search Cache"
+              color="accent"
+              unelevated
+              size="md"
+              padding="sm lg"
+              @click="$store.dispatch('node/clearCache')"
+            />
+            <div class="text-subtitle1 q-pt-md">Slow Request Log</div>
+            <p>
+              Slow requests are logged to the primary log file, with the prefix
+              SLOW REQUEST
+            </p>
+            <q-input
+              outlined
+              label="Threshold (ms)"
+              type="number"
+              v-model.number="slowQueryThreshold"
+              hint="Enable logging of requests that take over a defined threshold of time. (-1 to disable)"
+            >
+              <template v-slot:after>
+                <q-btn
+                  unelevated
+                  label="set"
+                  color="accent"
+                  size="md"
+                  padding="sm lg"
+                  @click="$store.dispatch('node/slowQueryThreshold', slowQueryThreshold)"
+                />
+              </template>
+            </q-input>
+            <div class="text-subtitle1 q-pt-md">Compacting the on-disk database</div>
+            <p>Recommended to run it during off-peak hours.</p>
+            <q-btn
+              label="Compact Database"
+              color="accent"
+              unelevated
+              size="md"
+              padding="sm lg"
+              @click="$store.dispatch('node/operationCompactDB')"
+            />
+          </q-card-section>
+        </q-card>
+      </div>
       <q-card flat bordered class="col-12 col-md-3 offset-md-1 q-mb-md">
         <q-card-section>
           <div class="text-h5">Typesense</div>
@@ -147,7 +202,16 @@
           <div>Host: {{ $store.state.node.loginData?.node.host }}</div>
           <div>Port: {{ $store.state.node.loginData?.node.port }}</div>
           <div>Version: {{ $store.state.node.data.debug.version }}</div>
-          <div v-if="Object.hasOwnProperty.call($store.state.node.data.debug, 'state')">Role: {{ $store.state.node.data.debug.state === 1 ? 'Leader' : 'Follower' }}</div>
+          <div
+            v-if="
+              Object.hasOwnProperty.call($store.state.node.data.debug, 'state')
+            "
+          >
+            Role:
+            {{
+              $store.state.node.data.debug.state === 1 ? 'Leader' : 'Follower'
+            }}
+          </div>
 
           <div class="text-subtitle1 q-pt-md">Memory</div>
           <div
@@ -193,6 +257,7 @@ export default defineComponent({
   data() {
     return {
       refreshInterval: undefined as number | undefined,
+      slowQueryThreshold: -1 as number,
     };
   },
   mounted() {
