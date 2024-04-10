@@ -7,6 +7,7 @@ import { KeySchema } from 'typesense/lib/Typesense/Key';
 import { OverrideSchema } from 'typesense/lib/Typesense/Override';
 import { PresetSchema } from 'typesense/lib/Typesense/Preset';
 import { SynonymSchema } from 'typesense/lib/Typesense/Synonym';
+import { StopwordSchema } from 'typesense/lib/Typesense/Stopword';
 import { RouteLocationNormalized } from 'vue-router';
 
 export interface NodeDataInterface {
@@ -21,6 +22,7 @@ export interface NodeDataInterface {
   apiKeys: KeySchema[];
   analyticsRules: AnalyticsRuleSchema[];
   searchPresets: PresetSchema[];
+  stopwords: StopwordSchema[];
   overrides: OverrideSchema[];
   synonyms: SynonymSchema[];
 }
@@ -73,6 +75,7 @@ function state(): NodeStateInterface {
       apiKeys: [],
       analyticsRules: [],
       searchPresets: [],
+      stopwords: [],
       overrides: [],
       synonyms: [],
     },

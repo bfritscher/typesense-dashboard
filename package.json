@@ -22,7 +22,7 @@
     "pretty-bytes": "6.1.1",
     "quasar": "2.15.2",
     "stream": "0.0.2",
-    "typesense": "1.8.1",
+    "typesense": "1.8.2",
     "typesense-instantsearch-adapter": "2.8.0",
     "vue": "3.4.21",
     "vue-instantsearch": "4.15.0",
