@@ -78,7 +78,6 @@
         <q-td class="text-right">
           <q-btn
             flat
-            color="primary"
             @click="editSearchPreset(props.row)"
             icon="sym_s_edit"
             title="Edit"
@@ -158,7 +157,7 @@ export default defineComponent({
       return this.$store.state.node.data.searchPresets
         .map((p:any) => p.name)
         .includes(this.preset.name);
-    },    
+    },
   },
   mounted() {
     void this.$store.dispatch('node/getSearchPresets');

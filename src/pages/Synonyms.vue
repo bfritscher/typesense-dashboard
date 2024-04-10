@@ -66,7 +66,7 @@
             hint="Enter a symbol (eg: +, - ) and press enter"
           >
           </q-select>
-          
+
           <q-input
             filled
             stack-label
@@ -123,7 +123,6 @@
         <q-td class="text-right">
           <q-btn
             flat
-            color="primary"
             @click="editSynonym(props.row)"
             icon="sym_s_edit"
             title="Edit"

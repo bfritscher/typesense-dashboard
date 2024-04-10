@@ -74,7 +74,6 @@
         <q-td class="text-right">
           <q-btn
             flat
-            color="primary"
             @click="editAlias(props.row)"
             icon="sym_s_edit"
             title="Edit"

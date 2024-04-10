@@ -109,7 +109,6 @@
         <q-td class="text-right text-no-wrap">
           <q-btn
             flat
-            color="primary"
             @click="editStopwordsSet(props.row)"
             icon="sym_s_edit"
             title="Edit"
