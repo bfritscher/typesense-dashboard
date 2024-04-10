@@ -145,7 +145,7 @@ export default defineComponent({
   data() {
     return {
       rule: initialData(),
-      expanded: this.$store.state.node.data.aliases.length === 0,
+      expanded: this.$store.state.node.data.analyticsRules.length === 0,
       filter: '',
       columns: [
         {
