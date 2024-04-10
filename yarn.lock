@@ -7973,7 +7973,15 @@ typesense-instantsearch-adapter@2.8.0:
   dependencies:
     typesense "^1.7.2"
 
-typesense@1.8.1, typesense@^1.7.2:
+typesense@1.8.2:
+  version "1.8.2"
+  resolved "https://registry.yarnpkg.com/typesense/-/typesense-1.8.2.tgz#16341fdd4edab02b33facc14e1d27a6d58dbe0e5"
+  integrity sha512-aBpePjA99Qvo+OP2pJwMpvga4Jrm1Y2oV5NsrWXBxlqUDNEUCPZBIksPv2Hq0jxQxHhLLyJVbjXjByXsvpCDVA==
+  dependencies:
+    axios "^1.6.0"
+    loglevel "^1.8.1"
+
+typesense@^1.7.2:
   version "1.8.1"
   resolved "https://registry.yarnpkg.com/typesense/-/typesense-1.8.1.tgz#d196b0f07d1efc89ddd9a68631155a2fcd5ea9d0"
   integrity sha512-EbkUB8I3xPyve1QTmWeuVh7q5ZhVSQqbXrmOZ14TYO9V6u/LvrM17W7izD4DlPCno3d7irkZA4AaOD6+5XtLog==
