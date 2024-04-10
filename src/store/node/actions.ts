@@ -36,6 +36,9 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
             context.dispatch('getAliases'),
             context.dispatch('getApiKeys'),
             context.dispatch('getDebug'),
+            context.dispatch('getSearchPresets'),
+            context.dispatch('getAnalyticsRules'),
+            context.dispatch('getStopwords'),
           ]);
           context.commit('setIsConnected', true);
           context.commit('saveHistory');
@@ -517,7 +520,7 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
     } catch (error) {
       context.commit('setError', (error as Error).message);
     }
-  },  
+  },
 };
 
 export default actions;
