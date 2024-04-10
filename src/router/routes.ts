@@ -10,6 +10,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'apikeys', component: () => import('pages/ApiKeys.vue') },
       { path: 'analyticsrules', component: () => import('pages/AnalyticsRules.vue') },
       { path: 'searchpresets', component: () => import('pages/SearchPresets.vue') },
+      { path: 'stopwords', component: () => import('pages/Stopwords.vue') },
       { path: 'collections', component: () => import('pages/Collections.vue') },
       { path: 'collection/:name/document', component: () => import('pages/Document.vue') },
       { path: 'collection/:name/search', component: () => import('pages/Search.vue') },

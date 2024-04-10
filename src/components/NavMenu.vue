@@ -50,6 +50,14 @@
       <q-item-section> Search Presets </q-item-section>
     </q-item>
 
+    <q-item clickable v-ripple to="/stopwords" exact>
+      <q-item-section avatar>
+        <q-icon name="sym_s_playlist_remove" />
+      </q-item-section>
+
+      <q-item-section> Stopwords </q-item-section>
+    </q-item>
+
     <q-separator spaced />
 
     <q-item>

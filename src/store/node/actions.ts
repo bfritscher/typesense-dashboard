@@ -20,6 +20,7 @@ import { Api } from 'src/shared/api';
 import { DebugResponseSchema } from 'typesense/lib/Typesense/Debug';
 import { AnalyticsRuleSchema } from 'typesense/lib/Typesense/AnalyticsRule';
 import { PresetSchema } from 'typesense/lib/Typesense/Preset';
+import { StopwordSchema } from 'typesense/lib/Typesense/Stopword';
 
 const actions: ActionTree<NodeStateInterface, StateInterface> = {
   connectionCheck(context) {
@@ -173,6 +174,32 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
     } catch (error) {
       context.commit('setError', (error as Error).message);
     }
+  },
+  async getStopwords(context) {
+    await context.getters.api
+      .getStopwords()
+      .then((response: { stopwords: StopwordSchema[] }) => {
+        context.commit('setData', {
+          stopwords: response.stopwords,
+        });
+      })
+      .catch((err: Error) => {
+        console.log(err);
+        void context.dispatch('connectionCheck');
+      });
+  },
+  async upsertStopwords(context, stopwordsSet: any) {
+    try {
+      context.commit('setError', null);
+      await context.getters.api.upsertStopwords(stopwordsSet.id, stopwordsSet);
+      void context.dispatch('getStopwords');
+    } catch (error) {
+      context.commit('setError', (error as Error).message);
+    }
+  },
+  async deleteStopwords(context, id: string) {
+    await context.getters.api.deleteStopwords(id);
+    void context.dispatch('getStopwords');
   },
   getSynonyms(context, collectionName: string) {
     context.getters.api

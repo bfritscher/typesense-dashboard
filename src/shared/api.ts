@@ -11,6 +11,7 @@ import { SynonymSchema } from 'typesense/lib/Typesense/Synonym';
 import { PresetCreateSchema } from 'typesense/lib/Typesense/Presets';
 import AnalyticsRule, { AnalyticsRuleCreateSchema } from 'typesense/lib/Typesense/AnalyticsRule';
 import AnalyticsRules from 'typesense/lib/Typesense/AnalyticsRules';
+import { StopwordCreateSchema } from 'typesense/lib/Typesense/Stopwords';
 
 export class Api {
   public axiosClient?: AxiosInstance;
@@ -103,6 +104,18 @@ export class Api {
 
   public deleteSearchPreset(name: string) {
     return this.typesenseClient?.presets(name).delete();
+  }
+
+  public getStopwords() {
+    return this.typesenseClient?.stopwords().retrieve();
+  }
+
+  public upsertStopwords(id: string, stopwordsSet: StopwordCreateSchema) {
+    return this.typesenseClient?.stopwords().upsert(id, stopwordsSet);
+  }
+
+  public deleteStopwords(id: string) {
+    return this.typesenseClient?.stopwords(id).delete();
   }
 
   public getSynonyms(collectionName: string) {
