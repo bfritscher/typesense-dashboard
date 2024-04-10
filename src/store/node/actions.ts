@@ -5,7 +5,7 @@ import {
   NodeStateInterface,
   STORAGE_KEY_LOGIN,
 } from './state';
-import { LocalStorage } from 'quasar';
+import { LocalStorage, Notify } from 'quasar';
 import { AxiosError, AxiosResponse } from 'axios';
 import FileSaver from 'file-saver';
 import { CollectionSchema, CollectionUpdateSchema } from 'typesense/lib/Typesense/Collection';
@@ -462,6 +462,62 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
     });
     FileSaver.saveAs(blob, 'export.json');
   },
+  async operationCompactDB(context) {
+    try {
+      context.commit('setError', null);
+      const response = await context.getters.api.post('/operations/db/compact');
+      if(response.data?.success) {
+        Notify.create({
+          position: 'top',
+          progress: true,
+          group: false,
+          timeout: 1000,
+          color: 'positive',
+          message: 'Compact DB: Server responded with success'
+        });
+      }
+    } catch (error) {
+      context.commit('setError', (error as Error).message);
+    }
+  },
+  async clearCache(context) {
+    try {
+      context.commit('setError', null);
+      const response = await context.getters.api.post('/operations/cache/clear');
+      if(response.data?.success) {
+        Notify.create({
+          position: 'top',
+          progress: true,
+          group: false,
+          timeout: 1000,
+          color: 'positive',
+          message: 'Clear Cache: Server responded with success'
+        });
+      }
+    } catch (error) {
+      context.commit('setError', (error as Error).message);
+    }
+  },
+  async slowQueryThreshold(context, payload: number) {
+    try {
+      context.commit('setError', null);
+      const response = await context.getters.api.post('/config', {
+        'log-slow-requests-time-ms': payload
+      });
+      if(response.data?.success) {
+        Notify.create({
+          position: 'top',
+          progress: true,
+          group: false,
+          timeout: 1000,
+          color: 'positive',
+          message: `Set Slow Request Threshold to: ${payload}`
+        });
+      }
+    } catch (error) {
+      context.commit('setError', (error as Error).message);
+    }
+  },  
 };
 
 export default actions;
