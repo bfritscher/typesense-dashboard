@@ -62,9 +62,8 @@
             color="primary"
             :disable="!!jsonError"
             @click="createStopwordsSet()"
-          >{{ isUpdate ? 'Update' : 'Add' }} Set
-          </q-btn
-          >
+            >{{ isUpdate ? 'Update' : 'Add' }} Set
+          </q-btn>
         </q-card-actions>
       </q-card>
     </q-expansion-item>
@@ -74,6 +73,7 @@
       title="Search Presets"
       flat
       bordered
+      wrap-cells
       :filter="filter"
       :rows="$store.state.node.data.stopwords"
       :columns="columns"
@@ -98,8 +98,15 @@
           </template>
         </q-input>
       </template>
+      <template v-slot:body-cell-stopwords="props">
+        <q-td>
+          <q-chip v-for="stopword in props.row.stopwords"  :key="stopword">
+            {{ stopword }}
+          </q-chip>
+        </q-td>
+      </template>
       <template v-slot:body-cell-actions_op="props">
-        <q-td class="text-right">
+        <q-td class="text-right text-no-wrap">
           <q-btn
             flat
             color="primary"
@@ -132,9 +139,7 @@ export default defineComponent({
       stopwordsSet: {
         id: 'stopword_set1',
         locale: 'en',
-        stopwords: [
-          'states', 'united', 'france', 'germany', 'italy'
-        ]
+        stopwords: ['states', 'united', 'france', 'germany', 'italy'],
       },
       expanded: this.$store.state.node.data.stopwords.length === 0,
       filter: '',
@@ -144,28 +149,28 @@ export default defineComponent({
           name: 'id',
           field: 'id',
           sortable: true,
-          align: 'left'
+          align: 'left',
         },
         {
           label: 'Locale',
           name: 'locale',
           field: 'locale',
           sortable: true,
-          align: 'left'
+          align: 'left',
         },
         {
           label: 'Stopwords',
           name: 'stopwords',
-          field: (row: StopwordSchema) => JSON.stringify(row.stopwords),
+          field: 'stopwords',
           sortable: true,
-          align: 'left'
+          align: 'left',
         },
         {
           label: 'Actions',
           name: 'actions_op',
-          align: 'right'
-        }
-      ]
+          align: 'right',
+        },
+      ],
     };
   },
   computed: {
@@ -173,7 +178,7 @@ export default defineComponent({
       return this.$store.state.node.data.stopwords
         .map((p: any) => p.id)
         .includes(this.stopwordsSet.id);
-    }
+    },
   },
   mounted() {
     void this.$store.dispatch('node/getStopwords');
@@ -195,12 +200,12 @@ export default defineComponent({
           title: 'Confirm',
           message: `Delete stopwords set ${id}?`,
           cancel: true,
-          persistent: true
+          persistent: true,
         })
         .onOk(() => {
           void this.$store.dispatch('node/deleteStopwords', id);
         });
-    }
-  }
+    },
+  },
 });
 </script>
