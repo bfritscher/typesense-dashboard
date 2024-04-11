@@ -32,6 +32,7 @@
           outlined
           clearable
           dense
+          options-dense
           :options="stopwords"
         ></q-select>
 
