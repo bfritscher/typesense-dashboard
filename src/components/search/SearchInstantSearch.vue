@@ -25,6 +25,16 @@
         <div class="text-subtitle2 q-pt-md">Sort By</div>
         <ais-sort-by :items="sortBy" />
 
+        <div class="text-subtitle2 q-pt-md">Stopwords</div>
+        <q-select
+          v-model="currentStopwordsSet"
+          @update:model-value="updateTypesenseAdapterConfiguration()"
+          outlined
+          clearable
+          dense
+          :options="stopwords"
+        ></q-select>
+
         <div class="q-mb-sm" v-for="name in facetNumberFields" :key="name">
           <div class="text-subtitle2 q-pt-md">{{ name }}</div>
           <ais-range-input :searchable="true" :attribute="name" />
@@ -69,8 +79,10 @@ export default defineComponent({
   data() {
     const data = {
       searchClient: null,
+      typesenseInstantsearchAdapter: null as any,
       instantSearchInstance: null as any,
       searchClientError: null as string | null,
+      currentStopwordsSet: null,
       middlewares: [
         //eslint-disable-next-line @typescript-eslint/no-explicit-any
         ({ instantSearchInstance }: any) => {
@@ -144,6 +156,9 @@ export default defineComponent({
         });
       return sortBy;
     },
+    stopwords() {
+      return this.$store.state.node.data.stopwords.map((set) => set.id);
+    },
   },
   methods: {
     async exportPage() {
@@ -155,6 +170,17 @@ export default defineComponent({
         );
       }
     },
+    updateTypesenseAdapterConfiguration() {
+      if (this.typesenseInstantsearchAdapter && this.currentCollection) {
+        this.typesenseInstantsearchAdapter.updateConfiguration({
+          ...this.typesenseInstantsearchAdapter.configuration,
+          additionalSearchParameters: {
+            ...this.typesenseInstantsearchAdapter.configuration.additionalSearchParameters,
+            stopwords: this.currentStopwordsSet
+          }
+        });
+      }
+    }
   },
   watch: {
     currentCollection: {
@@ -193,6 +219,7 @@ export default defineComponent({
                   query_by,
                 },
               });
+            this.typesenseInstantsearchAdapter = typesenseInstantsearchAdapter;
             this.searchClient = typesenseInstantsearchAdapter.searchClient;
           } catch (error) {
             this.searchClientError =
@@ -217,6 +244,7 @@ export default defineComponent({
   background-color: rgba(255, 255, 255, 0.07);
   color: #fff;
 }
+
 .body--dark .ais-InstantSearch option {
   background-color: #1f2937;
   color: #fff;
