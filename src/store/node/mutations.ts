@@ -67,6 +67,9 @@ const mutation: MutationTree<NodeStateInterface> & {$router?:Router} = {
       state.data[key as keyof NodeDataInterface] = data[key];
     }
   },
+  setFeature(state: NodeStateInterface, data: {key: keyof NodeDataInterface['features'], value: boolean}):void {
+    state.data.features[data.key] = data.value;
+  },
   setError(state: NodeStateInterface, error: string):void {
     state.error = error;
   },
