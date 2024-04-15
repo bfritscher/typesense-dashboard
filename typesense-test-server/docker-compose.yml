@@ -1,0 +1,17 @@
+services:
+  typesense26:
+    image: typesense/typesense:26.0
+    command: --data-dir /tmp --api-key=dev --enable-cors
+    ports:
+      - "8126:8108"
+  typesense22:
+    image: typesense/typesense:0.22.2
+    command: --data-dir /tmp --api-key=dev --enable-cors
+    ports:
+      - "8122:8108"
+  typesense17:
+    image: typesense/typesense:0.17.0
+    command: --data-dir /tmp --api-key=dev --enable-cors
+    ports:
+      - "8117:8108"
+  
