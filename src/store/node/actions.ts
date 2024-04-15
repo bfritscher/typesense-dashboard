@@ -31,12 +31,47 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
           context.commit('setData', {
             metrics: response.data,
           });
+          // minimal required data to consider the connection as successful
           await Promise.all([
             context.dispatch('getCollections'),
             context.dispatch('getAliases'),
             context.dispatch('getApiKeys'),
             context.dispatch('getDebug'),
           ]);
+          // optional features depending on the server capabilities
+          context.dispatch('getSearchPresets').then(() => {
+            context.commit('setFeature', {
+              key: 'searchPresets',
+              value: true
+            });
+          }).catch(() => {
+            context.commit('setFeature', {
+              key: 'searchPresets',
+              value: false
+            });
+          });
+          context.dispatch('getAnalyticsRules').then(() => {
+            context.commit('setFeature', {
+              key: 'analyticsRules',
+              value: true
+            });
+          }).catch(() => {
+            context.commit('setFeature', {
+              key: 'analyticsRules',
+              value: false
+            });
+          });
+          context.dispatch('getStopwords').then(() => {
+            context.commit('setFeature', {
+              key: 'stopwords',
+              value: true
+            });
+          }).catch(() => {
+            context.commit('setFeature', {
+              key: 'stopwords',
+              value: false
+            });
+          });
           context.commit('setIsConnected', true);
           context.commit('saveHistory');
           context.commit('setError', null);
@@ -57,18 +92,23 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
           metrics: response.data,
         });
       })
-      .catch(() => {
-        void context.dispatch('connectionCheck');
-      });
     context.getters.api
       .get('/stats.json')
       .then((response: AxiosResponse) => {
         context.commit('setData', {
           stats: response.data,
+        })
+        if (!context.state.data.features.stats) {
+          context.commit('setFeature', {
+            key: 'stats',
+            value: true
+          });
+        }
+      }).catch(() => {
+        context.commit('setFeature', {
+          key: 'stats',
+          value: false
         });
-      })
-      .catch(() => {
-        void context.dispatch('connectionCheck');
       });
   },
   async getDebug(context) {
@@ -79,10 +119,6 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
           debug: response,
         });
       })
-      .catch((err: Error) => {
-        console.log(err);
-        void context.dispatch('connectionCheck');
-      });
   },
   async getCollections(context) {
     await context.getters.api
@@ -105,10 +141,6 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
           aliases: response.aliases,
         });
       })
-      .catch((err: Error) => {
-        console.log(err);
-        void context.dispatch('connectionCheck');
-      });
   },
   async getApiKeys(context) {
     await context.getters.api
@@ -118,10 +150,6 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
           apiKeys: response.keys,
         });
       })
-      .catch((err: Error) => {
-        console.log(err);
-        void context.dispatch('connectionCheck');
-      });
   },
   async getAnalyticsRules(context) {
     await context.getters.api
@@ -131,10 +159,6 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
           analyticsRules: response.rules,
         });
       })
-      .catch((err: Error) => {
-        console.log(err);
-        void context.dispatch('connectionCheck');
-      });
   },
   async deleteAnalyticsRule(context, name: string) {
     await context.getters.api.deleteAnalyticsRule(name);
@@ -157,10 +181,6 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
           searchPresets: response.presets,
         });
       })
-      .catch((err: Error) => {
-        console.log(err);
-        void context.dispatch('connectionCheck');
-      });
   },
   async deleteSearchPreset(context, name: string) {
     await context.getters.api.deleteSearchPreset(name);
@@ -183,10 +203,6 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
           stopwords: response.stopwords,
         });
       })
-      .catch((err: Error) => {
-        console.log(err);
-        void context.dispatch('connectionCheck');
-      });
   },
   async upsertStopwords(context, stopwordsSet: any) {
     try {
@@ -209,10 +225,6 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
           synonyms: response.synonyms,
         });
       })
-      .catch((err: Error) => {
-        console.log(err);
-        void context.dispatch('connectionCheck');
-      });
   },
   getOverrides(context, collectionName: string) {
     context.getters.api
@@ -222,10 +234,6 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
           overrides: response.overrides,
         });
       })
-      .catch((err: Error) => {
-        console.log(err);
-        void context.dispatch('connectionCheck');
-      });
   },
   login(context, loginData: NodeLoginPayloadInterface) {
     const {
@@ -239,6 +247,7 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
   },
   logout(context) {
     LocalStorage.remove(STORAGE_KEY_LOGIN);
+    context.commit('setCurrentCollection', null);
     context.commit('setIsConnected', false);
   },
   loadCurrentCollection(context, collection: CollectionSchema) {

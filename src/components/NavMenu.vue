@@ -34,7 +34,7 @@
       <q-item-section> API Keys </q-item-section>
     </q-item>
 
-    <q-item clickable v-ripple to="/analyticsrules" exact>
+    <q-item clickable v-ripple to="/analyticsrules" exact :disable="!$store.state.node.data.features.analyticsRules">
       <q-item-section avatar>
         <q-icon name="sym_s_query_stats" />
       </q-item-section>
@@ -42,7 +42,7 @@
       <q-item-section> Analytics Rules </q-item-section>
     </q-item>
 
-    <q-item clickable v-ripple to="/searchpresets" exact>
+    <q-item clickable v-ripple to="/searchpresets" exact :disable="!$store.state.node.data.features.searchPresets">
       <q-item-section avatar>
         <q-icon name="sym_s_manage_search" />
       </q-item-section>
@@ -50,7 +50,7 @@
       <q-item-section> Search Presets </q-item-section>
     </q-item>
 
-    <q-item clickable v-ripple to="/stopwords" exact>
+    <q-item clickable v-ripple to="/stopwords" exact :disable="!$store.state.node.data.features.stopwords">
       <q-item-section avatar>
         <q-icon name="sym_s_playlist_remove" />
       </q-item-section>

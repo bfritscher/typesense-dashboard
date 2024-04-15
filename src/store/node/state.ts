@@ -25,6 +25,12 @@ export interface NodeDataInterface {
   stopwords: StopwordSchema[];
   overrides: OverrideSchema[];
   synonyms: SynonymSchema[];
+  features: {
+    stopwords: boolean;
+    analyticsRules: boolean;
+    searchPresets: boolean;
+    stats: boolean;
+  }
 }
 
 export interface CustomNodeConfiguration extends NodeConfiguration {
@@ -78,6 +84,12 @@ function state(): NodeStateInterface {
       stopwords: [],
       overrides: [],
       synonyms: [],
+      features: {
+        stopwords: false,
+        analyticsRules: false,
+        searchPresets: false,
+        stats: false,
+      },
     },
   };
 }
