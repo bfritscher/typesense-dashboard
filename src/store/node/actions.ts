@@ -239,6 +239,7 @@ const actions: ActionTree<NodeStateInterface, StateInterface> = {
   },
   logout(context) {
     LocalStorage.remove(STORAGE_KEY_LOGIN);
+    context.commit('setCurrentCollection', null);
     context.commit('setIsConnected', false);
   },
   loadCurrentCollection(context, collection: CollectionSchema) {
