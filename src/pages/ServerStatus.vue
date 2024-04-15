@@ -230,7 +230,9 @@
             }}
           </div>
           <div class="text-subtitle1 q-pt-md">Stats</div>
-
+          <div v-if="!$store.state.node.data.features.stats">
+            Stats are not enabled on this node.
+          </div>
           <div
             v-for="(content, label) in $store.state.node.data.stats"
             :key="label"
