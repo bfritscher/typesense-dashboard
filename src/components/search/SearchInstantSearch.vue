@@ -29,6 +29,7 @@
         <q-select
           v-model="currentStopwordsSet"
           @update:model-value="updateTypesenseAdapterConfiguration()"
+          :disable="!$store.state.node.data.features.stopwords"
           outlined
           clearable
           dense
