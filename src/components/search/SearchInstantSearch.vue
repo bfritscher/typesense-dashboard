@@ -6,7 +6,9 @@
     :middlewares="middlewares"
   >
     <ais-configure :hits-per-page.camel="12" />
-    <ais-search-box placeholder="" />
+    <ais-search-box index-name="instant_search" :search-client="searchClient">
+      <debounced-search-box />
+    </ais-search-box>
     <ais-stats></ais-stats>
     <ais-current-refinements />
 
@@ -70,12 +72,13 @@
 
 <script lang="ts">
 import SearchResultItem from 'src/components/search/SearchResultItem.vue';
+import DebouncedSearchBox from 'src/components/search/DebouncedSearchBox.vue';
 import TypesenseInstantSearchAdapter from 'typesense-instantsearch-adapter';
 import { CollectionSchema } from 'typesense/lib/Typesense/Collection';
 import { defineComponent } from 'vue';
 
 export default defineComponent({
-  components: { SearchResultItem },
+  components: { SearchResultItem, DebouncedSearchBox },
   name: 'SearchInstantSearch',
   data() {
     const data = {
