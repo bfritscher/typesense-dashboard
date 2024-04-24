@@ -4,6 +4,16 @@ services:
     command: --data-dir /tmp --api-key=dev --enable-cors
     ports:
       - "8126:8108"
+  typesense25:
+    image: typesense/typesense:0.25.0
+    command: --data-dir /tmp --api-key=dev --enable-cors
+    ports:
+      - "8125:8108"
+  typesense24:
+    image: typesense/typesense:0.24.0
+    command: --data-dir /tmp --api-key=dev --enable-cors
+    ports:
+      - "8124:8108"
   typesense22:
     image: typesense/typesense:0.22.2
     command: --data-dir /tmp --api-key=dev --enable-cors
