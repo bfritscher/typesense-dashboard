@@ -100,6 +100,7 @@
                 <q-checkbox v-model="field.index" label="index" />
                 <q-checkbox v-model="field.sort" label="sort" />
                 <q-checkbox v-model="field.infix" label="infix" />
+                <q-checkbox v-model="field.stem" label="stem" />
               </div>
 
               <q-btn
@@ -171,6 +172,7 @@ export default defineComponent({
               index: true,
               sort: false,
               infix: false,
+              stem: false,
               locale: '',
               num_dim: undefined,
             } as CollectionFieldSchema,
@@ -265,6 +267,7 @@ export default defineComponent({
           index: true,
           sort: false,
           infix: false,
+          stem: false,
           locale: '',
           num_dim: undefined,
         });
