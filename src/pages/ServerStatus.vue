@@ -9,16 +9,14 @@
             <div class="row">
               <div
                 class="column flex-center flex-wrap q-ma-md"
-                v-for="metric in Object.keys(
-                  $store.state.node.data.metrics
-                ).filter((m) => m.includes('cpu'))"
-                :key="metric"
+                v-for="cpu in sortedCPU"
+                :key="cpu.node"
               >
-                <span class="text-overline">{{ metric.split('_')[1] }}</span>
+                <span class="text-overline">CPU {{ cpu.node }}</span>
                 <q-circular-progress
                   show-value
                   class="text-accent"
-                  :value="parseFloat($store.state.node.data.metrics[metric])"
+                  :value="cpu.value"
                   size="50px"
                   color="accent"
                   track-color="grey-3"
@@ -266,6 +264,16 @@ export default defineComponent({
     this.refreshInterval = window.setInterval(() => {
       void this.$store.dispatch('node/refreshServerStatus');
     }, 2000);
+  },
+  computed: {
+    sortedCPU() {
+      return Object.entries(this.$store.state.node.data.metrics)
+        .filter(([key]) => key.includes('cpu'))
+        .map(([key, value]) => {
+          return { node: parseInt(key.split('_')[1].replace('cpu', ''))  || 0, value: parseFloat(<string>value) }
+        })
+        .sort((a, b) => a.node - b.node)
+    }
   },
   methods: {
     prettyBytes,
