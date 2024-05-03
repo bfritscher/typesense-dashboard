@@ -31,3 +31,15 @@ $warning   : #fba918;
     }
   }
 }
+
+.body--dark {
+  .q-radio__inner,
+  .q-tab--active .q-tab__label,
+  .q-field--highlighted .q-field__label {
+    color: #fff !important;
+  }
+
+  .ais-Stats-text {
+    color: #ffffffcc !important;
+  }
+}
