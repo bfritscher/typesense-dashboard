@@ -15,7 +15,6 @@
                 <span class="text-overline">CPU {{ cpu.node }}</span>
                 <q-circular-progress
                   show-value
-                  class="text-accent"
                   :value="cpu.value"
                   size="50px"
                   color="accent"
