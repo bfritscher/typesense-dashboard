@@ -1,0 +1,19 @@
+resources:
+- ../../base
+# - github.com/bfritscher/typesense-dashboard/kustomize/base
+
+namespace: typesense
+
+images:
+- name: typesense-dashboard
+  newName: typesense-dashboard
+  newTag: latest
+
+secretGenerator:
+- files:
+  - config.json
+  name: typesense-dashboard-config
+  behavior: replace
+  options:
+    disableNameSuffixHash: true
+  type: Opaque

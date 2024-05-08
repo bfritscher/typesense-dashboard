@@ -1,0 +1,10 @@
+resources:
+- install.yaml
+
+secretGenerator:
+- files:
+  - config.json
+  name: typesense-dashboard-config
+  options:
+    disableNameSuffixHash: true
+  type: Opaque

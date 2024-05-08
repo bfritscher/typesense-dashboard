@@ -63,7 +63,38 @@ Sample config.json (same data as saved in localStorage of the browser).
     "tls":true
   }
 }
-````
+```
+
+#### Kustomize
+
+To use along [Kustomize deployment for Typesense](https://github.com/typesense/typesense-kubernetes)
+
+Example usage [here](kustomize/overlays/dev)
+
+Create `config.json` file with your configuration and API key.
+
+Create kustomization file.
+```yml
+resources:
+- github.com/typesense/typesense-kubernetes/base
+- github.com/bfritscher/typesense-dashboard/kustomize/base
+
+namespace: typesense
+
+images:
+- name: typesense-dashboard
+  newName: typesense-dashboard
+  newTag: latest
+
+secretGenerator:
+- files:
+  - config.json
+  name: typesense-dashboard-config
+  behavior: replace
+  options:
+    disableNameSuffixHash: true
+  type: Opaque
+```
 
 
 ### Desktop
