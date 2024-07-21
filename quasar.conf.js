@@ -89,7 +89,7 @@ module.exports = configure(function (ctx) {
             languages: ['javascript', 'json'],
           }),
         )
-        // fix for devtools in electon based on https://github.com/quasarframework/quasar/issues/13535#issuecomment-1544028712
+        // fix for devtools in electron based on https://github.com/quasarframework/quasar/issues/13535#issuecomment-1544028712
         if (!isClient) { return; }
         cfg.externals = [({ request }, callback) => {
           if (/\.\/build-node\/(hook|backend)\.js/.test(request)) {
