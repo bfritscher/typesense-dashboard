@@ -195,7 +195,7 @@
 
           <div class="text-subtitle1 q-pt-md">Node</div>
 
-          <div>Protocole: {{ $store.state.node.loginData?.node.protocol }}</div>
+          <div>Protocol: {{ $store.state.node.loginData?.node.protocol }}</div>
           <div>Host: {{ $store.state.node.loginData?.node.host }}</div>
           <div>Port: {{ $store.state.node.loginData?.node.port }}</div>
           <div>Version: {{ $store.state.node.data.debug.version }}</div>
