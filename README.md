@@ -19,7 +19,7 @@ When using in your browser from an https address your server must also be behind
 
 self-host this dashboard with docker* (web version has some limitations import/export size of files)
 
-use environement variable `PUBLIC_PATH` if you need something else than `/`
+use environment variable `PUBLIC_PATH` if you need something else than `/`
 
 Example usage:
 ```bash

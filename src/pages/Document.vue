@@ -43,7 +43,7 @@
         >
           <template v-slot:hint>
             <div>
-              {{ actionDesciptions[action] }}
+              {{ actionDescriptions[action] }}
             </div>
           </template>
         </q-select>
@@ -84,7 +84,7 @@ export default defineComponent({
       results: [] as unknown[],
       action: 'upsert',
       actionOptions: ['create', 'upsert', 'update'],
-      actionDesciptions: {
+      actionDescriptions: {
         create: 'Create a new document. Fails if id exists.',
         upsert: 'Create a new document or update an existing document.',
         update: 'Update an existing document. Partial document allowed.',

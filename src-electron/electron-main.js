@@ -73,7 +73,7 @@ ipcMain.handle('importFile', async (events, collectionName, action) => {
     try {
       documents = JSON.parse(documents)
     } catch (e) {
-      // asume ljson
+      // assume ljson
     }
     return appApi.importDocuments(collectionName, documents, action);
   }

@@ -231,7 +231,7 @@ export default defineComponent({
           ['int32', 'float'].includes(field.type) ||
           (field.type === 'string' && field.sort)
       );
-      // emtpy option + compatible field names
+      // empty option + compatible field names
       return [''].concat(compatibleFields.map((field) => field.name));
     },
     schemaJson: {
