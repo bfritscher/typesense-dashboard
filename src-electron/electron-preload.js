@@ -16,7 +16,42 @@
  *   })
  */
 import { ipcRenderer, contextBridge } from 'electron';
-import { Api } from '../src/shared/api';
+const apiMethods = [
+  'init',
+  'getDebug',
+  'getCollections',
+  'createCollection',
+  'getCollection',
+  'dropCollection',
+  'updateCollection',
+  'getAliases',
+  'upsertAlias',
+  'deleteAlias',
+  'getApiKeys',
+  'createApiKey',
+  'deleteApiKey',
+  'getAnalyticsRules',
+  'upsertAnalyticsRule',
+  'deleteAnalyticsRule',
+  'getSearchPresets',
+  'upsertSearchPreset',
+  'deleteSearchPreset',
+  'getStopwords',
+  'upsertStopwords',
+  'deleteStopwords',
+  'getSynonyms',
+  'upsertSynonym',
+  'deleteSynonym',
+  'getOverrides',
+  'upsertOverride',
+  'deleteOverride',
+  'deleteDocumentById',
+  'importDocuments',
+  'exportDocuments',
+  'search',
+  'get',
+  'post',
+];
 
 const api = {
   importFile: (collectionName, action) => {
@@ -24,9 +59,9 @@ const api = {
   },
   rejectTLS: (value) => {
     return ipcRenderer.invoke('rejectTLS', value);
-  }
+  },
 };
-Object.getOwnPropertyNames(Api.prototype).forEach((f) => {
+apiMethods.forEach((f) => {
   api[f] = (...args) => {
     return ipcRenderer.invoke(f, ...args);
   };
