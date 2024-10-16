@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: typesense-dashboard-service
+  namespace: typesense
+spec:
+  selector:
+    app: typesense-dashboard
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: typesense-dashboard-deployment
+  namespace: typesense
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: typesense-dashboard
+  template:
+    metadata:
+      labels:
+        app: typesense-dashboard
+    spec:
+      containers:
+      - name: typesense-dashboard-container
+        image: typesense-dashboard
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "50m"
+        volumeMounts:
+        - name: config-volume
+          mountPath: /srv/config.json
+          subPath: config.json
+      volumes:
+      - name: config-volume
+        secret:
+          secretName: typesense-dashboard-config
