@@ -116,7 +116,7 @@ export default defineComponent({
               drop: true,
             } as CollectionDropFieldSchema;
           })
-          .concat(updatedSchema.fields as any),
+          .concat(JSON.parse(JSON.stringify(updatedSchema.fields))),
       } as CollectionUpdateSchema;
 
       void this.$store.dispatch('node/updateCollection', {
