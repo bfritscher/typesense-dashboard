@@ -8,36 +8,37 @@
         <q-card bordered class="q-pa-lg shadow-1">
           <q-card-section>
             <q-form class="q-gutter-md">
-              <q-input
-                filled
-                v-model="apiKey"
-                type="password"
-                label="Api Key"
-              />
+              <q-input v-model="state.apiKey" filled type="password" label="Api Key" />
               <p v-if="$q.platform.is.electron">
                 requires server with cors enabled only for search function.
               </p>
               <p v-else>requires server with cors enabled.</p>
               <q-select
+                v-model="state.node.protocol"
                 filled
-                v-model="node.protocol"
-                :options="protocolOptions"
+                :options="state.protocolOptions"
                 label="Protocol"
               />
-              <q-input filled v-model="node.host" type="text" label="host" />
-              <q-input filled v-model="node.port" type="number" label="port" />
-              <q-input filled v-model="node.path" type="text" label="path" hint="optional: leave blank or start with / and end without /"/>
+              <q-input v-model="state.node.host" filled type="text" label="host" />
+              <q-input v-model.number="state.node.port" filled type="number" label="port" />
+              <q-input
+                v-model="state.node.path"
+                filled
+                type="text"
+                label="path"
+                hint="optional: leave blank or start with / and end without /"
+              />
               <div class="text-left">
                 <q-toggle
-                  v-if="$q.platform.is.electron && node.protocol === 'https'"
+                  v-if="$q.platform.is.electron && state.node.protocol === 'https'"
+                  v-model="state.node.tls"
                   label="Check TLS"
-                  v-model="node.tls"
                 />
               </div>
             </q-form>
           </q-card-section>
-          <q-card-section v-if="error">
-            <p class="text-red">{{ error }}</p>
+          <q-card-section v-if="store.error">
+            <p class="text-red">{{ store.error }}</p>
           </q-card-section>
           <q-card-actions class="q-px-md row">
             <q-btn
@@ -60,49 +61,33 @@
   </div>
 </template>
 
-<script lang="ts">
-import { NodeLoginDataInterface } from 'src/store/node/state';
-import { defineComponent } from 'vue';
+<script setup lang="ts">
 import ServerHistory from 'components/ServerHistory.vue';
+import { useNodeStore } from 'src/stores/node';
+import { onMounted, ref } from 'vue';
 
-export default defineComponent({
-  name: 'Login',
-  components: {
-    ServerHistory,
-  },
-  data() {
-    return {
-      apiKey: '',
-      node: {
-        host: 'localhost',
-        port: '8108',
-        protocol: 'http',
-        path: '',
-        tls: true,
-      },
-      protocolOptions: ['http', 'https'],
-    };
-  },
-  computed: {
-    loginHistory() {
-      return this.$store.state.node.loginHistory.map(
-        (j) => JSON.parse(j) as NodeLoginDataInterface
-      );
-    },
-    error() {
-      return this.$store.state.node.error;
-    },
-  },
-  methods: {
-    login() {
-      void this.$store.dispatch('node/login', {
-        apiKey: this.apiKey,
-        node: this.node,
-      });
-    },
-    loginWithHistory(h: NodeLoginDataInterface) {
-      void this.$store.dispatch('node/login', h);
-    },
-  },
+const store = useNodeStore();
+
+onMounted(() => {
+  store.connectionCheck();
 });
+
+const state = ref({
+  apiKey: '',
+  node: {
+    host: 'localhost',
+    port: 8108,
+    protocol: 'http',
+    path: '',
+    tls: true,
+  },
+  protocolOptions: ['http', 'https'],
+});
+
+function login() {
+  void store.login({
+    apiKey: state.value.apiKey,
+    node: state.value.node,
+  });
+}
 </script>

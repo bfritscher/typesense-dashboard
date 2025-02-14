@@ -2,3 +2,5 @@
 .vscode/
 Dockerfile
 node_modules/
+typesense-test-server/
+docs/

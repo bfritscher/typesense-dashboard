@@ -11,29 +11,22 @@
           @click="toggleLeftDrawer"
         />
 
-        <q-toolbar-title>
-          Typesense Dashboard
-        </q-toolbar-title>
+        <q-toolbar-title> Typesense Dashboard </q-toolbar-title>
 
-        <q-btn
-          padding="xs md"
-          flat
-          dense
-          no-caps
-        >
-          {{ $store.state.node.loginData?.node.host }}
+        <q-btn padding="xs md" flat dense no-caps>
+          {{ store.loginData?.node.host }}
           <q-icon right name="sym_s_switch_account" />
           <q-menu>
-            <server-history v-bind:show-logout="true"></server-history>
+            <server-history :show-logout="true"></server-history>
           </q-menu>
         </q-btn>
         <q-separator dark vertical spaced inset />
         <q-btn
-          @click="$q.dark.toggle()"
           flat
           dense
           :icon="$q.dark.isActive ? 'sym_s_light_mode' : 'sym_s_dark_mode'"
           title="Toggle Dark Mode"
+          @click="$q.dark.toggle()"
         />
       </q-toolbar>
     </q-header>
@@ -49,13 +42,9 @@
     </q-drawer>
 
     <q-page-container>
-      <q-banner
-        inline-actions
-        class="text-white bg-red fixed-top z-max"
-        v-if="$store.state.node.error"
-      >
-        {{ $store.state.node.error }}
-        <template v-slot:action>
+      <q-banner v-if="store.error" inline-actions class="text-white bg-red fixed-top z-max">
+        {{ store.error }}
+        <template #action>
           <q-btn flat color="white" label="Dismiss" @click="dismiss()" />
         </template>
       </q-banner>
@@ -64,50 +53,20 @@
   </q-layout>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import NavMenu from 'components/NavMenu.vue';
-
-import { defineComponent } from 'vue';
 import ServerHistory from 'components/ServerHistory.vue';
+import { useNodeStore } from 'src/stores/node';
+import { ref } from 'vue';
 
-export default defineComponent({
-  name: 'MainLayout',
+const store = useNodeStore();
+const leftDrawerOpen = ref(false);
 
-  components: {
-    NavMenu,
-    ServerHistory,
-  },
+function toggleLeftDrawer() {
+  leftDrawerOpen.value = !leftDrawerOpen.value;
+}
 
-  data() {
-    return {
-      leftDrawerOpen: false,
-    };
-  },
-
-  computed: {
-    loginHistory(): any[] {
-      return this.$store.state.node.loginHistory.map(
-        (j): any => JSON.parse(j)
-      );
-    },
-    error() {
-      return this.$store.state.node.error;
-    },
-  },
-
-  methods: {
-    toggleLeftDrawer() {
-      this.leftDrawerOpen = !this.leftDrawerOpen;
-    },
-    logout() {
-      void this.$store.dispatch('node/logout');
-    },
-    dismiss() {
-      void this.$store.commit('node/setError', null);
-    },
-    loginWithHistory(h: any): any {
-      void this.$store.dispatch('node/login', h);
-    },
-  },
-});
+function dismiss() {
+  store.setError(null);
+}
 </script>

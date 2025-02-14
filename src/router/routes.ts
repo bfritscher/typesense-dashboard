@@ -1,4 +1,4 @@
-import { RouteRecordRaw } from 'vue-router';
+import type { RouteRecordRaw } from 'vue-router';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -17,7 +17,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'collection/:name/schema', component: () => import('pages/Schema.vue') },
       { path: 'collection/:name/synonyms', component: () => import('pages/Synonyms.vue') },
       { path: 'collection/:name/curations', component: () => import('pages/Overrides.vue') },
-  ],
+    ],
   },
   {
     path: '/login',

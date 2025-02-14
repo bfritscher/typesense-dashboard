@@ -1,15 +1,19 @@
 <template>
-  <div
-    ref="editorWrapper"
-    class="col relative-position overflow-hidden editorWrapper"
-  >
+  <div ref="editorWrapper" class="col relative-position overflow-hidden editorWrapper">
     <q-resize-observer @resize="onResize" />
     <div ref="editorElement" class="absolute-top-left"></div>
   </div>
 </template>
 <script lang="ts">
 import * as monaco from 'monaco-editor';
-import { defineComponent, onMounted, onUnmounted, watch, ref } from 'vue';
+import { defineComponent, onMounted, onUnmounted, ref, watch } from 'vue';
+
+import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
+self.MonacoEnvironment = {
+  getWorker() {
+    return new jsonWorker()
+  }
+}
 
 export default defineComponent({
   name: 'MonacoEditor',
@@ -42,8 +46,8 @@ export default defineComponent({
               enabled: false,
             },
           },
-          props.options
-        )
+          props.options,
+        ),
       );
       editor.onDidChangeModelContent(() => {
         emit('update:modelValue', editor?.getValue());
@@ -60,7 +64,7 @@ export default defineComponent({
           editor?.getModel()?.setValue(props.modelValue);
           editor?.setScrollPosition({ scrollTop: 0 });
         }
-      }
+      },
     );
     return {
       editorElement,

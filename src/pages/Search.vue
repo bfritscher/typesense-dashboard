@@ -1,12 +1,6 @@
 <template>
   <q-page padding>
-    <q-tabs
-      v-model="tab"
-      dense
-      class="bg-primary text-white"
-      align="justify"
-      narrow-indicator
-    >
+    <q-tabs v-model="tab" dense class="bg-primary text-white" align="justify" narrow-indicator>
       <q-tab name="form" label="InstantSearch Mode" />
       <q-tab name="json" label="JSON Mode" />
     </q-tabs>
@@ -24,20 +18,12 @@
   </q-page>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
+<script setup lang="ts">
+import { ref } from 'vue';
 import SearchJson from 'src/components/search/SearchJson.vue';
 import SearchInstantSearch from 'src/components/search/SearchInstantSearch.vue';
 
-export default defineComponent({
-  components: { SearchJson, SearchInstantSearch },
-  name: 'Search',
-  data() {
-    return {
-      tab: 'form',
-    };
-  },
-});
+const tab = ref('form');
 </script>
 <style>
 .ais-Hits-item,

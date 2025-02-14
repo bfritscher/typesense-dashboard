@@ -11,7 +11,7 @@
           >
           <q-item-label
             class="overflow-hidden text-no-wrap text-ellipsis"
-            :title="item[field.name]"
+            :title="item && item[field.name]"
           >
             <div
               v-if="item && Array.isArray(item._highlightResult[field.name])"
@@ -19,8 +19,8 @@
             >
               <div
                 v-for="(result, index) in item._highlightResult[field.name]"
-                v-html="result.value"
                 :key="index"
+                v-html="result.value"
               ></div>
             </div>
             <div v-else>
@@ -35,11 +35,7 @@
               <ais-highlight v-else :attribute="field.name" :hit="item" />
             </div>
           </q-item-label>
-          <q-item-label
-            v-if="item && isImage(item[field.name])"
-            caption
-            class="img-preview"
-          >
+          <q-item-label v-if="item && isImage(item[field.name])" caption class="img-preview">
             <q-img :src="item[field.name]" fit="contain" class="img-preview" />
           </q-item-label>
         </q-item-section>
@@ -63,19 +59,19 @@
           <q-item-label caption> {{ field }} </q-item-label>
           <q-item-label
             class="overflow-hidden text-no-wrap text-ellipsis"
-            :title="JSON.stringify(item[field], null, 2)"
+            :title="JSON.stringify(item && item[field], null, 2)"
           >
-            {{ item[field] }}
+            {{ item && item[field] }}
           </q-item-label>
-          <q-item-label v-if="isImage(item[field])" caption class="img-preview">
-            <q-img :src="item[field]" fit="contain" class="img-preview" />
+          <q-item-label v-if="isImage(item && item[field])" caption class="img-preview">
+            <q-img :src="item && item[field]" fit="contain" class="img-preview" />
           </q-item-label>
         </q-item-section>
-        <q-item-section v-if="isUrl(item[field])" side top>
+        <q-item-section v-if="isUrl(item && item[field])" side top>
           <q-item-label>
             <q-btn
               flat
-              :href="item[field]"
+              :href="item && item[field]"
               target="_blank"
               size="sm"
               padding="sm"
@@ -95,9 +91,9 @@
             flat
             size="sm"
             padding="sm"
-            @click="editDocument()"
             icon="sym_s_edit"
             title="Edit"
+            @click="editDocument()"
           ></q-btn>
         </q-item-label>
       </q-item-section>
@@ -107,9 +103,9 @@
             flat
             size="sm"
             padding="sm"
-            @click="deleteDocumentById(item.id)"
             icon="sym_s_delete_forever"
             title="Delete"
+            @click="deleteDocumentById(item?.id)"
           ></q-btn>
         </q-item-label>
       </q-item-section>
@@ -117,86 +113,68 @@
   </div>
 </template>
 
-<script lang="ts">
-import { CollectionSchema } from 'typesense/lib/Typesense/Collection';
-import { defineComponent } from 'vue';
+<script setup lang="ts">
+import type { CollectionSchema } from 'typesense/lib/Typesense/Collection';
+import { computed } from 'vue';
+import { useQuasar } from 'quasar';
+import { useNodeStore } from 'src/stores/node';
 
-export default defineComponent({
-  name: 'SearchResultItem',
-  props: {
-    item: {
-      type: Object,
-    },
-  },
-  computed: {
-    currentCollection(): CollectionSchema | null {
-      return this.$store.state.node.currentCollection;
-    },
-    fieldsNotInSchema(): string[] {
-      if (
-        !this.item ||
-        !this.currentCollection ||
-        !this.currentCollection.fields
-      )
-        return [];
-      const lookup = this.currentCollection.fields
-        .map((f) => f.name)
-        .concat(['objectID', 'text_match']);
-      return Object.keys(this.item).filter(
-        (k) => !k.startsWith('_') && !lookup.includes(k)
-      );
-    },
-  },
-  methods: {
-    isUrl(str: string) {
-      if (!str) return false;
-      str = String(str);
-      return str.startsWith('http://') || str.startsWith('https://');
-    },
-    isImage(filename: string) {
-      if (!filename) return false;
-      filename = String(filename);
-      const validImageExtensions = [
-        'jpg',
-        'jpeg',
-        'png',
-        'gif',
-        'bmp',
-        'svg',
-        'webp',
-      ];
-      const extension = filename.split('.').pop()?.toLowerCase() || '';
-      return validImageExtensions.includes(extension);
-    },
-    editDocument() {
-      //eslint-disable-next-line
-      const copyItem: any = {};
-      if (!this.item) return;
-      Object.keys(this.item).forEach((key) => {
-        if (!key.startsWith('_') && !['objectID', 'text_match'].includes(key)) {
-          if (!this.item) return;
-          copyItem[key] = this.item[key];
-        }
-      });
-      void this.$store.dispatch('node/editDocuments', [
-        JSON.parse(JSON.stringify(copyItem)),
-      ]);
-    },
-    deleteDocumentById(id: string) {
-      this.$q
-        .dialog({
-          title: 'Confirm',
-          message: `Delete document with id: ${id}?`,
-          cancel: true,
-          persistent: true,
-        })
-        .onOk(() => {
-          void this.$store.dispatch('node/deleteDocumentById', id);
-        });
-    },
-  },
+const props = defineProps<{
+  item?: Record<string, any>;
+}>();
+
+const store = useNodeStore();
+const $q = useQuasar();
+
+const currentCollection = computed((): CollectionSchema | null => {
+  return store.currentCollection;
 });
+
+const fieldsNotInSchema = computed((): string[] => {
+  if (!props.item || !currentCollection.value || !currentCollection.value.fields) return [];
+  const lookup = currentCollection.value.fields
+    .map((f) => f.name)
+    .concat(['objectID', 'text_match']);
+  return Object.keys(props.item).filter((k) => !k.startsWith('_') && !lookup.includes(k));
+});
+
+const isUrl = (str: string) => {
+  if (!str) return false;
+  str = String(str);
+  return str.startsWith('http://') || str.startsWith('https://');
+};
+
+const isImage = (filename: string) => {
+  if (!filename) return false;
+  filename = String(filename);
+  const validImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp'];
+  const extension = filename.split('.').pop()?.toLowerCase() || '';
+  return validImageExtensions.includes(extension);
+};
+
+const editDocument = () => {
+  const copyItem: Record<string, any> = {};
+  if (!props.item) return;
+  Object.keys(props.item).forEach((key) => {
+    if (!key.startsWith('_') && !['objectID', 'text_match'].includes(key)) {
+      copyItem[key] = props.item?.[key];
+    }
+  });
+  void store.editDocuments([JSON.parse(JSON.stringify(copyItem))]);
+};
+
+const deleteDocumentById = (id: string) => {
+  $q.dialog({
+    title: 'Confirm',
+    message: `Delete document with id: ${id}?`,
+    cancel: true,
+    persistent: true,
+  }).onOk(() => {
+    void store.deleteDocumentById(id);
+  });
+};
 </script>
+
 <style>
 .text-ellipsis {
   text-overflow: ellipsis;

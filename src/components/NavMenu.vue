@@ -1,14 +1,14 @@
 <template>
   <q-list>
-    <q-item clickable v-ripple to="/" exact>
+    <q-item v-ripple clickable to="/" exact>
       <q-item-section avatar>
-        <q-icon name="sym_s_dns"  />
+        <q-icon name="sym_s_dns" />
       </q-item-section>
 
       <q-item-section> Server Status </q-item-section>
     </q-item>
 
-    <q-item clickable v-ripple to="/collections" exact>
+    <q-item v-ripple clickable to="/collections" exact>
       <q-item-section avatar>
         <q-icon name="sym_s_grid_view" />
       </q-item-section>
@@ -18,7 +18,7 @@
       </q-item-section>
     </q-item>
 
-    <q-item clickable v-ripple to="/aliases" exact>
+    <q-item v-ripple clickable to="/aliases" exact>
       <q-item-section avatar>
         <q-icon name="sym_s_call_split" />
       </q-item-section>
@@ -26,7 +26,7 @@
       <q-item-section> Aliases </q-item-section>
     </q-item>
 
-    <q-item clickable v-ripple to="/apikeys" exact>
+    <q-item v-ripple clickable to="/apikeys" exact>
       <q-item-section avatar>
         <q-icon name="sym_s_key" />
       </q-item-section>
@@ -34,7 +34,13 @@
       <q-item-section> API Keys </q-item-section>
     </q-item>
 
-    <q-item clickable v-ripple to="/analyticsrules" exact :disable="!$store.state.node.data.features.analyticsRules">
+    <q-item
+      v-ripple
+      clickable
+      to="/analyticsrules"
+      exact
+      :disable="!store.data.features.analyticsRules"
+    >
       <q-item-section avatar>
         <q-icon name="sym_s_query_stats" />
       </q-item-section>
@@ -42,7 +48,13 @@
       <q-item-section> Analytics Rules </q-item-section>
     </q-item>
 
-    <q-item clickable v-ripple to="/searchpresets" exact :disable="!$store.state.node.data.features.searchPresets">
+    <q-item
+      v-ripple
+      clickable
+      to="/searchpresets"
+      exact
+      :disable="!store.data.features.searchPresets"
+    >
       <q-item-section avatar>
         <q-icon name="sym_s_manage_search" />
       </q-item-section>
@@ -50,7 +62,7 @@
       <q-item-section> Search Presets </q-item-section>
     </q-item>
 
-    <q-item clickable v-ripple to="/stopwords" exact :disable="!$store.state.node.data.features.stopwords">
+    <q-item v-ripple clickable to="/stopwords" exact :disable="!store.data.features.stopwords">
       <q-item-section avatar>
         <q-icon name="sym_s_playlist_remove" />
       </q-item-section>
@@ -63,9 +75,9 @@
     <q-item>
       <q-item-section>
         <q-select
-          borderless
           v-model="currentCollection"
-          :options="$store.state.node.data.collections"
+          borderless
+          :options="store.data.collections"
           label="Collection"
           option-label="name"
           color="white"
@@ -76,8 +88,8 @@
     </q-item>
 
     <q-item
-      clickable
       v-ripple
+      clickable
       :to="`/collection/${currentCollection?.name}/search`"
       exact
       :disable="!currentCollection"
@@ -90,8 +102,8 @@
     </q-item>
 
     <q-item
-      clickable
       v-ripple
+      clickable
       :to="`/collection/${currentCollection?.name}/synonyms`"
       exact
       :disable="!currentCollection"
@@ -104,8 +116,8 @@
     </q-item>
 
     <q-item
-      clickable
       v-ripple
+      clickable
       :to="`/collection/${currentCollection?.name}/curations`"
       exact
       :disable="!currentCollection"
@@ -118,8 +130,8 @@
     </q-item>
 
     <q-item
-      clickable
       v-ripple
+      clickable
       :to="`/collection/${currentCollection?.name}/schema`"
       exact
       :disable="!currentCollection"
@@ -132,8 +144,8 @@
     </q-item>
 
     <q-item
-      clickable
       v-ripple
+      clickable
       :to="`/collection/${currentCollection?.name}/document`"
       exact
       :disable="!currentCollection"
@@ -147,30 +159,23 @@
   </q-list>
 </template>
 
-<script lang="ts">
-import { CollectionSchema } from 'typesense/lib/Typesense/Collection';
-import { defineComponent } from 'vue';
+<script setup lang="ts">
+import type { CollectionSchema } from 'typesense/lib/Typesense/Collection';
+import { computed } from 'vue';
+import { useNodeStore } from 'src/stores/node';
 
-export default defineComponent({
-  name: 'NavMenu',
-  data() {
-    return {
-      model: '',
-      options: ['abc', 'def'],
-    };
+const store = useNodeStore();
+
+const currentCollection = computed({
+  get() {
+    return store.currentCollection;
   },
-  computed: {
-    currentCollection: {
-      get(){
-        return this.$store.state.node.currentCollection;
-      },
-      set(value: CollectionSchema | null) {
-        void this.$store.dispatch('node/loadCurrentCollection', value);
-      },
-    },
+  set(value: CollectionSchema | null) {
+    store.loadCurrentCollection(value);
   },
 });
 </script>
+
 <style scoped>
 .q-item.q-router-link--active,
 .q-item--active {
@@ -181,5 +186,4 @@ export default defineComponent({
   background-color: #111827;
   color: #fff;
 }
-
 </style>

@@ -1,27 +1,27 @@
 <template>
   <q-page padding>
     <q-expansion-item
+      v-model="state.expanded"
       expand-separator
       icon="sym_s_add_circle"
       expand-icon="sym_s_unfold_more"
       expanded-icon="sym_s_unfold_less"
       :label="`${isUpdate ? 'Update' : 'Add'} Stopwords Set`"
       header-class="bg-primary text-white"
-      v-model="expanded"
     >
       <q-card class="bg-surface column">
         <q-card-section class="q-col-gutter-md row">
           <q-input
+            v-model="state.stopwordsSet.id"
             class="col-12 col-sm-6"
-            v-model="stopwordsSet.id"
             label="ID"
             filled
             :rules="[(val) => !!val || 'Field is required']"
           />
           <q-input
+            v-model="state.stopwordsSet.locale"
             filled
             label="Locale"
-            v-model="stopwordsSet.locale"
             class="col-12 col-sm-4"
           />
           <q-btn
@@ -31,15 +31,15 @@
             color="info"
             flat
             dense
-            :href="`https://typesense.org/docs/${$store.state.node.data.debug.version}/api/stopwords.html`"
+            :href="`https://typesense.org/docs/${store.data.debug.version}/api/stopwords.html`"
             target="_blank"
           >
             Documentation
           </q-btn>
           <q-select
+            v-model="state.stopwordsSet.stopwords"
             class="col-12"
             filled
-            v-model="stopwordsSet.stopwords"
             multiple
             use-chips
             use-input
@@ -50,8 +50,8 @@
             hint="Enter a stopword and press enter"
           />
         </q-card-section>
-        <q-banner inline-actions class="text-white bg-red" v-if="jsonError">
-          Invalid Format: {{ jsonError }}
+        <q-banner v-if="state.jsonError" inline-actions class="text-white bg-red">
+          Invalid Format: {{ state.jsonError }}
         </q-banner>
 
         <q-card-actions align="right" class="bg-primary">
@@ -60,7 +60,7 @@
             padding="sm lg"
             unelevated
             color="primary"
-            :disable="!!jsonError"
+            :disable="!!state.jsonError"
             @click="createStopwordsSet()"
             >{{ isUpdate ? 'Update' : 'Add' }} Set
           </q-btn>
@@ -74,51 +74,40 @@
       flat
       bordered
       wrap-cells
-      :filter="filter"
-      :rows="$store.state.node.data.stopwords"
-      :columns="columns"
+      :filter="state.filter"
+      :rows="store.data.stopwords"
+      :columns="state.columns"
       row-key="id"
     >
-      <template v-slot:top-left>
+      <template #top-left>
         <div class="text-h6">
           <q-icon size="md" name="sym_s_playlist_remove" />
           Stopwords Sets
         </div>
       </template>
-      <template v-slot:top-right>
-        <q-input
-          borderless
-          dense
-          debounce="300"
-          v-model="filter"
-          placeholder="Search"
-        >
-          <template v-slot:append>
+      <template #top-right>
+        <q-input v-model="state.filter" borderless dense debounce="300" placeholder="Search">
+          <template #append>
             <q-icon name="sym_s_search" />
           </template>
         </q-input>
       </template>
-      <template v-slot:body-cell-stopwords="props">
+      <template #body-cell-stopwords="props">
         <q-td>
-          <q-chip v-for="stopword in props.row.stopwords"  :key="stopword">
+          <q-chip v-for="stopword in props.row.stopwords" :key="stopword">
             {{ stopword }}
           </q-chip>
         </q-td>
       </template>
-      <template v-slot:body-cell-actions_op="props">
+      <template #body-cell-actions_op="props">
         <q-td class="text-right text-no-wrap">
-          <q-btn
-            flat
-            @click="editStopwordsSet(props.row)"
-            icon="sym_s_edit"
-            title="Edit"
-          ></q-btn>
+          <q-btn flat icon="sym_s_edit" title="Edit" @click="editStopwordsSet(props.row)"></q-btn>
           <q-btn
             flat
             color="negative"
-            @click="deleteStopwordsSet(props.row.id)"
             icon="sym_s_delete_forever"
             title="Delete"
+            @click="deleteStopwordsSet(props.row.id)"
           ></q-btn>
         </q-td>
       </template>
@@ -126,85 +115,80 @@
   </q-page>
 </template>
 
-<script lang="ts">
-import { StopwordSchema } from 'typesense/lib/Typesense/Stopword';
-import { defineComponent } from 'vue';
+<script setup lang="ts">
+import { useNodeStore } from 'src/stores/node';
+import { computed, onMounted, reactive } from 'vue';
+import { useQuasar } from 'quasar';
+import type { StopwordSchema } from 'typesense/lib/Typesense/Stopword';
+import type { QTableProps } from 'quasar';
 
-export default defineComponent({
-  name: 'Stopwords',
-  data() {
-    return {
-      jsonError: null as string | null,
-      stopwordsSet: {
-        id: 'stopword_set1',
-        locale: 'en',
-        stopwords: ['states', 'united', 'france', 'germany', 'italy'],
-      },
-      expanded: this.$store.state.node.data.stopwords.length === 0,
-      filter: '',
-      columns: [
-        {
-          label: 'ID',
-          name: 'id',
-          field: 'id',
-          sortable: true,
-          align: 'left',
-        },
-        {
-          label: 'Locale',
-          name: 'locale',
-          field: 'locale',
-          sortable: true,
-          align: 'left',
-        },
-        {
-          label: 'Stopwords',
-          name: 'stopwords',
-          field: 'stopwords',
-          sortable: true,
-          align: 'left',
-        },
-        {
-          label: 'Actions',
-          name: 'actions_op',
-          align: 'right',
-        },
-      ],
-    };
+const $q = useQuasar();
+const store = useNodeStore();
+
+const state = reactive({
+  jsonError: null as string | null,
+  stopwordsSet: {
+    id: 'stopword_set1',
+    locale: 'en',
+    stopwords: ['states', 'united', 'france', 'germany', 'italy'],
   },
-  computed: {
-    isUpdate(): boolean {
-      return this.$store.state.node.data.stopwords
-        .map((p: any) => p.id)
-        .includes(this.stopwordsSet.id);
+  expanded: store.data.stopwords.length === 0,
+  filter: '',
+  columns: [
+    {
+      label: 'ID',
+      name: 'id',
+      field: 'id',
+      sortable: true,
+      align: 'left',
     },
-  },
-  mounted() {
-    void this.$store.dispatch('node/getStopwords');
-  },
-  methods: {
-    async createStopwordsSet() {
-      await this.$store.dispatch(
-        'node/upsertStopwords',
-        JSON.parse(JSON.stringify(this.stopwordsSet))
-      );
+    {
+      label: 'Locale',
+      name: 'locale',
+      field: 'locale',
+      sortable: true,
+      align: 'left',
     },
-    editStopwordsSet(stopwordsSet: StopwordSchema) {
-      this.stopwordsSet = JSON.parse(JSON.stringify(stopwordsSet));
-      this.expanded = true;
+    {
+      label: 'Stopwords',
+      name: 'stopwords',
+      field: 'stopwords',
+      sortable: true,
+      align: 'left',
     },
-    deleteStopwordsSet(id: string) {
-      this.$q
-        .dialog({
-          title: 'Confirm',
-          message: `Delete stopwords set ${id}?`,
-          cancel: true,
-          persistent: true,
-        })
-        .onOk(() => {
-          void this.$store.dispatch('node/deleteStopwords', id);
-        });
+    {
+      label: 'Actions',
+      name: 'actions_op',
+      align: 'right',
     },
-  },
+  ] as QTableProps['columns'],
+});
+
+const isUpdate = computed(() =>
+  store.data.stopwords.map((p: any) => p.id).includes(state.stopwordsSet.id),
+);
+
+async function createStopwordsSet() {
+  await store.upsertStopwords(JSON.parse(JSON.stringify(state.stopwordsSet)));
+}
+
+function editStopwordsSet(stopwordsSet: StopwordSchema) {
+  state.stopwordsSet = JSON.parse(JSON.stringify(stopwordsSet));
+  state.expanded = true;
+}
+
+function deleteStopwordsSet(id: string) {
+  $q.dialog({
+    title: 'Confirm',
+    message: `Delete stopwords set ${id}?`,
+    cancel: true,
+    persistent: true,
+  }).onOk(() => {
+    void store.deleteStopwords(id);
+  });
+}
+
+onMounted(() => {
+  void store.getStopwords();
 });
 </script>

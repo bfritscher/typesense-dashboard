@@ -30,33 +30,29 @@
         <div class="text-subtitle2 q-pt-md">Stopwords</div>
         <q-select
           v-model="currentStopwordsSet"
-          @update:model-value="updateTypesenseAdapterConfiguration()"
-          :disable="!$store.state.node.data.features.stopwords"
+          :disable="!store.data.features.stopwords"
           outlined
           clearable
           dense
           options-dense
           :options="stopwords"
+          @update:model-value="updateTypesenseAdapterConfiguration()"
         ></q-select>
 
-        <div class="q-mb-sm" v-for="name in facetNumberFields" :key="name">
+        <div v-for="name in facetNumberFields" :key="name" class="q-mb-sm">
           <div class="text-subtitle2 q-pt-md">{{ name }}</div>
           <ais-range-input :searchable="true" :attribute="name" />
         </div>
 
-        <div class="q-mb-sm" v-for="name in facetStringFields" :key="name">
+        <div v-for="name in facetStringFields" :key="name" class="q-mb-sm">
           <div class="text-subtitle2 q-pt-md">{{ name }}</div>
-          <ais-refinement-list
-            class="q-mb-sm"
-            :searchable="true"
-            :attribute="name"
-          />
+          <ais-refinement-list class="q-mb-sm" :searchable="true" :attribute="name" />
         </div>
       </div>
       <div class="col-9">
         <ais-pagination class="q-mb-md" />
         <ais-hits>
-          <template v-slot:item="{ item }" v-if="currentCollection">
+          <template v-if="currentCollection" #item="{ item }">
             <search-result-item :item="item"></search-result-item>
           </template>
         </ais-hits>
@@ -71,174 +67,142 @@
   </div>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import { computed, ref, watch } from 'vue';
+import { useNodeStore } from 'src/stores/node';
 import SearchResultItem from 'src/components/search/SearchResultItem.vue';
 import DebouncedSearchBox from 'src/components/search/DebouncedSearchBox.vue';
 import TypesenseInstantSearchAdapter from 'typesense-instantsearch-adapter';
-import { CollectionSchema } from 'typesense/lib/Typesense/Collection';
-import { defineComponent } from 'vue';
+import type { CollectionSchema } from 'typesense/lib/Typesense/Collection';
 
-export default defineComponent({
-  components: { SearchResultItem, DebouncedSearchBox },
-  name: 'SearchInstantSearch',
-  data() {
-    const data = {
-      searchClient: null,
-      typesenseInstantsearchAdapter: null as any,
-      instantSearchInstance: null as any,
-      searchClientError: null as string | null,
-      currentStopwordsSet: null,
-      middlewares: [
-        //eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ({ instantSearchInstance }: any) => {
-          return {
-            subscribe() {
-              // Do something when the InstantSearch instance starts.
-              data.instantSearchInstance = instantSearchInstance;
-            },
-            unsubscribe() {
-              // Do something when the InstantSearch instance is disposed.
-              data.instantSearchInstance = null;
-            },
-          };
-        },
-      ],
-    };
-    return data;
-  },
-  computed: {
-    currentCollection(): CollectionSchema | null {
-      return this.$store.state.node.currentCollection;
-    },
-    facetNumberFields(): string[] {
-      if (!this.currentCollection || !this.currentCollection.fields) return [];
-      return this.currentCollection.fields
-        .filter(
-          (f) =>
-            f.facet &&
-            [
-              'int32',
-              'int64',
-              'float',
-              'int32[]',
-              'int64[]',
-              'float[]',
-            ].includes(f.type) &&
-            !f.name.includes('.*')
-        )
-        .map((f) => f.name);
-    },
-    facetStringFields(): string[] {
-      if (!this.currentCollection || !this.currentCollection.fields) return [];
-      return this.currentCollection.fields
-        .filter(
-          (f) =>
-            f.facet &&
-            ['string', 'string[]'].includes(f.type) &&
-            !f.name.includes('.*')
-        )
-        .map((f) => f.name);
-    },
-    sortBy(): { value: string; label: string }[] {
-      if (!this.currentCollection || !this.currentCollection.fields) return [];
-      const sortBy = [{ value: this.currentCollection.name, label: 'Default' }];
-      this.currentCollection.fields
-        .filter(
-          (f) =>
-            ['int32', 'float'].includes(f.type) ||
-            (f.type === 'string' && f.sort)
-        )
-        .forEach((f) => {
-          if (!this.currentCollection) return;
-          sortBy.push({
-            value: `${this.currentCollection.name}/sort/${f.name}:asc`,
-            label: `${f.name} asc`,
-          });
-          sortBy.push({
-            value: `${this.currentCollection.name}/sort/${f.name}:desc`,
-            label: `${f.name} desc`,
-          });
-        });
-      return sortBy;
-    },
-    stopwords() {
-      return this.$store.state.node.data.stopwords.map((set) => set.id);
-    },
-  },
-  methods: {
-    async exportPage() {
-      if (this.instantSearchInstance && this.currentCollection) {
-        await this.$store.dispatch(
-          'node/exportToJson',
-          this.instantSearchInstance.renderState[this.currentCollection.name]
-            .hits.results.hits
-        );
-      }
-    },
-    updateTypesenseAdapterConfiguration() {
-      if (this.typesenseInstantsearchAdapter && this.currentCollection) {
-        this.typesenseInstantsearchAdapter.updateConfiguration({
-          ...this.typesenseInstantsearchAdapter.configuration,
-          additionalSearchParameters: {
-            ...this.typesenseInstantsearchAdapter.configuration.additionalSearchParameters,
-            stopwords: this.currentStopwordsSet
-          }
-        });
-      }
-    }
-  },
-  watch: {
-    currentCollection: {
-      handler() {
-        this.searchClient = null;
-        this.searchClientError = null;
-        // set first to null to reset instantClient DOM
-        window.setTimeout(() => {
-          if (!this.$store.state.node.loginData || !this.currentCollection)
-            return;
-          const query_by = (this.currentCollection?.fields || [])
-            .filter(
-              (f) =>
-                f.index &&
-                ['string', 'string[]'].includes(f.type) &&
-                !f.name.includes('.*')
-            )
-            .map((f) => f.name)
-            .join(',');
-          try {
-            const typesenseInstantsearchAdapter =
-              new TypesenseInstantSearchAdapter({
-                server: {
-                  nodes: [
-                    {
-                      ...this.$store.state.node.loginData.node,
-                    },
-                  ],
-                  apiKey: this.$store.state.node.loginData.apiKey,
-                },
-                // The following parameters are directly passed to Typesense's search API endpoint.
-                //  So you can pass any parameters supported by the search endpoint below.
-                //  queryBy is required.
-                additionalSearchParameters: {
-                  exhaustive_search: true,
-                  query_by,
-                },
-              });
-            this.typesenseInstantsearchAdapter = typesenseInstantsearchAdapter;
-            this.searchClient = typesenseInstantsearchAdapter.searchClient;
-          } catch (error) {
-            this.searchClientError =
-              (error as Error).message + 'Using query_by: ' + query_by;
+const store = useNodeStore();
+const searchClient = ref(null);
+const typesenseInstantsearchAdapter = ref<TypesenseInstantSearchAdapter>();
+const instantSearchInstance = ref<any>();
+const searchClientError = ref<string | null>(null);
+const currentStopwordsSet = ref(null);
 
-            console.error(error);
-          }
-        });
+const middlewares = [
+  ({ instantSearchInstance: instance }: any) => {
+    return {
+      subscribe() {
+        instantSearchInstance.value = instance;
       },
-      immediate: true,
-    },
+      unsubscribe() {
+        instantSearchInstance.value = null;
+      },
+    };
   },
+];
+
+const currentCollection = computed((): CollectionSchema | null => {
+  return store.currentCollection;
 });
+
+const facetNumberFields = computed((): string[] => {
+  if (!currentCollection.value || !currentCollection.value.fields) return [];
+  return currentCollection.value.fields
+    .filter(
+      (f) =>
+        f.facet &&
+        ['int32', 'int64', 'float', 'int32[]', 'int64[]', 'float[]'].includes(f.type) &&
+        !f.name.includes('.*'),
+    )
+    .map((f) => f.name);
+});
+
+const facetStringFields = computed((): string[] => {
+  if (!currentCollection.value || !currentCollection.value.fields) return [];
+  return currentCollection.value.fields
+    .filter((f) => f.facet && ['string', 'string[]'].includes(f.type) && !f.name.includes('.*'))
+    .map((f) => f.name);
+});
+
+const sortBy = computed((): { value: string; label: string }[] => {
+  if (!currentCollection.value || !currentCollection.value.fields) return [];
+  const sortBy = [{ value: currentCollection.value.name, label: 'Default' }];
+  currentCollection.value.fields
+    .filter((f) => ['int32', 'float'].includes(f.type) || (f.type === 'string' && f.sort))
+    .forEach((f) => {
+      if (!currentCollection.value) return;
+      sortBy.push({
+        value: `${currentCollection.value.name}/sort/${f.name}:asc`,
+        label: `${f.name} asc`,
+      });
+      sortBy.push({
+        value: `${currentCollection.value.name}/sort/${f.name}:desc`,
+        label: `${f.name} desc`,
+      });
+    });
+  return sortBy;
+});
+
+const stopwords = computed(() => {
+  return store.data.stopwords.map((set) => set.id);
+});
+
+const exportPage = () => {
+  if (instantSearchInstance.value && currentCollection.value) {
+    store.exportToJson(
+      instantSearchInstance.value.renderState[currentCollection.value.name].hits.results.hits,
+    );
+  }
+};
+
+const updateTypesenseAdapterConfiguration = () => {
+  if (typesenseInstantsearchAdapter.value && currentCollection.value) {
+    typesenseInstantsearchAdapter.value.updateConfiguration({
+      // @ts-expect-error internal property
+      ...typesenseInstantsearchAdapter.value.configuration,
+      additionalSearchParameters: {
+        // @ts-expect-error internal property
+        ...typesenseInstantsearchAdapter.value.configuration.additionalSearchParameters,
+        stopwords: currentStopwordsSet.value,
+      },
+    });
+  }
+};
+
+watch(
+  () => currentCollection.value,
+  () => {
+    searchClient.value = null;
+    searchClientError.value = null;
+
+    window.setTimeout(() => {
+      if (!store.loginData || !currentCollection.value) return;
+      const query_by = (currentCollection.value?.fields || [])
+        .filter((f) => f.index && ['string', 'string[]'].includes(f.type) && !f.name.includes('.*'))
+        .map((f) => f.name)
+        .join(',');
+
+      try {
+        const adapter = new TypesenseInstantSearchAdapter({
+          server: {
+            nodes: [
+              {
+                ...store.loginData.node,
+              },
+            ],
+            apiKey: store.loginData.apiKey,
+          },
+          additionalSearchParameters: {
+            exhaustive_search: true,
+            query_by,
+          },
+        });
+        typesenseInstantsearchAdapter.value = adapter;
+        searchClient.value = adapter.searchClient;
+      } catch (error) {
+        searchClientError.value = (error as Error).message + 'Using query_by: ' + query_by;
+        console.error(error);
+      }
+    });
+  },
+  { immediate: true },
+);
 </script>
+
 <style>
 .body--dark .ais-SearchBox-input,
 .body--dark .ais-MenuSelect-select,

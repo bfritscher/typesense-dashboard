@@ -14,8 +14,20 @@
  *   contextBridge.exposeInMainWorld('myAPI', {
  *     doAThing: () => {}
  *   })
+ *
+ * WARNING!
+ * If accessing Node functionality (like importing @electron/remote) then in your
+ * electron-main.ts you will need to set the following when you instantiate BrowserWindow:
+ *
+ * mainWindow = new BrowserWindow({
+ *   // ...
+ *   webPreferences: {
+ *     // ...
+ *     sandbox: false // <-- to be able to import @electron/remote in preload script
+ *   }
+ * }
  */
-import { ipcRenderer, contextBridge } from 'electron';
+import { contextBridge, ipcRenderer } from 'electron';
 const apiMethods = [
   'init',
   'getDebug',
@@ -54,14 +66,15 @@ const apiMethods = [
 ];
 
 const api = {
-  importFile: (collectionName, action) => {
+  importFile: (collectionName: any, action: any) => {
     return ipcRenderer.invoke('importFile', collectionName, action);
   },
-  rejectTLS: (value) => {
+  rejectTLS: (value: any) => {
     return ipcRenderer.invoke('rejectTLS', value);
   },
 };
 apiMethods.forEach((f) => {
+  // @ts-expect-error allow any
   api[f] = (...args) => {
     return ipcRenderer.invoke(f, ...args);
   };
