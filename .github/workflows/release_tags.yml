@@ -5,7 +5,7 @@ on:
     types:
       - published
 jobs:
-  build-linux:
+  build-darwin:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -15,15 +15,24 @@ jobs:
             node-version: '20'
       - run: npm install && npm -g install @quasar/cli
       - run: quasar build --mode electron --target darwin
-      - run: quasar build --mode electron --target linux
-      - run: zip -r ./Typesense-Dashboard-linux-x64-${{ github.ref_name }}.zip ./dist/electron/Typesense-Dashboard-linux-x64
-      - run: zip -r ./Typesense-Dashboard-darwin-x64-${{ github.ref_name }}.zip ./dist/electron/Typesense-Dashboard-darwin-x64
-      - name: Upload a Release Asset linux
-        run: gh release upload ${{ github.ref_name }} ./Typesense-Dashboard-linux-x64-${{ github.ref_name }}.zip --clobber
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: zip -r ./Typesense-Dashboard-darwin-x64-${{ github.ref_name }}.zip ./dist/electron/Packaged/Typesense-Dashboard-darwin-x64
       - name: Upload a Release Asset darwin
         run: gh release upload ${{ github.ref_name }} ./Typesense-Dashboard-darwin-x64-${{ github.ref_name }}.zip --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup NodeJS Environment
+        uses: actions/setup-node@v4
+        with:
+            node-version: '20'
+      - run: npm install && npm -g install @quasar/cli
+      - run: quasar build --mode electron --target linux
+      - run: zip -r ./Typesense-Dashboard-linux-x64-${{ github.ref_name }}.zip ./dist/electron/Packaged/Typesense-Dashboard-linux-x64
+      - name: Upload a Release Asset linux
+        run: gh release upload ${{ github.ref_name }} ./Typesense-Dashboard-linux-x64-${{ github.ref_name }}.zip --clobber
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   build-windows:
@@ -36,7 +45,7 @@ jobs:
             node-version: '20'
       - run: npm install && npm -g install @quasar/cli electron-installer-zip
       - run: quasar build --mode electron --target win32
-      - run: electron-installer-zip ./dist/electron/Typesense-Dashboard-win32-x64 ./Typesense-Dashboard-win32-x64-${{ github.ref_name }}.zip
+      - run: electron-installer-zip ./dist/electron/Packaged/Typesense-Dashboard-win32-x64 ./Typesense-Dashboard-win32-x64-${{ github.ref_name }}.zip
       - name: Upload a Release Asset win32
         run: gh release upload ${{ github.ref_name }} ./Typesense-Dashboard-win32-x64-${{ github.ref_name }}.zip --clobber
         env:
