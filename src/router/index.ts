@@ -1,12 +1,12 @@
-import { route } from 'quasar/wrappers';
+import { defineRouter } from '#q-app/wrappers';
 import {
   createMemoryHistory,
   createRouter,
   createWebHashHistory,
   createWebHistory,
 } from 'vue-router';
-import { StateInterface } from '../store';
 import routes from './routes';
+import { useNodeStore } from 'src/stores/node';
 
 /*
  * If not building with SSR mode, you can
@@ -17,12 +17,12 @@ import routes from './routes';
  * with the Router instance.
  */
 
-export default route<StateInterface>(function ({ store }) {
+export default defineRouter(function ({ store }) {
   const createHistory = process.env.SERVER
     ? createMemoryHistory
     : process.env.VUE_ROUTER_MODE === 'history'
-    ? createWebHistory
-    : createWebHashHistory;
+      ? createWebHistory
+      : createWebHashHistory;
 
   const Router = createRouter({
     scrollBehavior: () => ({ left: 0, top: 0 }),
@@ -31,25 +31,18 @@ export default route<StateInterface>(function ({ store }) {
     // Leave this as is and make changes in quasar.conf.js instead!
     // quasar.conf.js -> build -> vueRouterMode
     // quasar.conf.js -> build -> publicPath
-    history: createHistory(
-      process.env.MODE === 'ssr' ? void 0 : process.env.VUE_ROUTER_BASE
-    ),
+    history: createHistory(process.env.VUE_ROUTER_BASE),
   });
-  void store.dispatch('node/connectionCheck');
 
-  Router.beforeEach(async (to, from, next) => {
-    if (to.name !== 'Login' && !store.state.node.isConnected) {
-      store.commit('node/setPreviousRoute', to);
+  Router.beforeEach((to, from, next) => {
+    const nodeStore = useNodeStore(store);
+    if (to.name !== 'Login' && !nodeStore.isConnected) {
+      nodeStore.setPreviousRoute(to);
       next({ name: 'Login' });
     } else if (to.params.name) {
-      if (
-        !store.state.node.currentCollection ||
-        store.state.node.currentCollection.name !== to.params.name
-      ) {
-        await store.dispatch(
-          'node/loadCurrentCollectionByName',
-          to.params.name
-        );
+      if (!nodeStore.currentCollection || nodeStore.currentCollection.name !== to.params.name) {
+        // TODO check await needed?
+        nodeStore.loadCurrentCollectionByName(to.params.name as string);
       }
       next();
     } else next();

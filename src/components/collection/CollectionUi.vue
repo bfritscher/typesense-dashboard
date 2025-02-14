@@ -18,27 +18,27 @@
     <q-tab-panels
       v-model="tab"
       animated
-      :style="createMode? 'height: 60vh' : ''"
+      :style="createMode ? 'height: 60vh' : ''"
       class="bg-surface"
     >
       <q-tab-panel name="form">
         <q-card-section>
           <div class="row q-gutter-md">
             <q-input
+              v-model="schema.name"
               class="col"
               filled
               dense
-              v-model="schema.name"
               label="Collection Name"
               placeholder="books"
               :disable="!createMode"
               :rules="[(val) => !!val || 'Field is required']"
             />
             <q-select
+              v-model="schema.default_sorting_field"
               filled
               class="col"
               dense
-              v-model="schema.default_sorting_field"
               :options="availableSortFields"
               label="Default sort field optional, but must be int32 or float"
             >
@@ -46,48 +46,48 @@
           </div>
           <div class="text-subtitle1 q-pt-md">Fields</div>
           <q-card
-            flat
-            bordered
             v-for="(field, index) in schema.fields"
             :key="index"
+            flat
+            bordered
             class="q-mb-md"
           >
             <q-card-section class="row q-col-gutter-md">
               <q-input
+                v-model="field.name"
                 class="col-12 col-sm-6"
                 dense
                 outlined
-                v-model="field.name"
                 label="Field Name"
                 placeholder="title"
                 :rules="[(val) => !!val || 'Field is required']"
               />
 
               <q-select
+                v-model="field.type"
                 class="col-12 col-sm-4"
                 dense
                 outlined
-                v-model="field.type"
                 label="type"
                 :options="types"
                 :rules="[(val) => !!val || 'Field is required']"
               />
               <q-input
                 v-if="field.type === 'float[]'"
+                v-model.number="field.num_dim"
                 class="col-12 col-sm-2"
                 dense
                 outlined
                 type="number"
-                v-model.number="field.num_dim"
                 label="num_dim"
                 placeholder=""
               />
               <q-input
                 v-if="field.type.startsWith('string')"
+                v-model="field.locale"
                 class="col-12 col-sm-2"
                 dense
                 outlined
-                v-model="field.locale"
                 label="locale"
                 placeholder=""
               />
@@ -103,11 +103,7 @@
                 <q-checkbox v-model="field.stem" label="stem" />
               </div>
 
-              <q-btn
-                size="md"
-                padding="sm lg"
-                unelevated
-                @click="removeField(field)"
+              <q-btn size="md" padding="sm lg" unelevated @click="removeField(field)"
                 >Remove Field</q-btn
               >
             </q-card-actions>
@@ -116,23 +112,15 @@
       </q-tab-panel>
 
       <q-tab-panel name="json" class="q-pa-none">
-        <monaco-editor
-          v-model="schemaJson"
-          style="height: 60vh"
-        ></monaco-editor>
-        <q-banner inline-actions class="text-white bg-red" v-if="jsonError">
+        <monaco-editor v-model="schemaJson" style="height: 60vh"></monaco-editor>
+        <q-banner v-if="jsonError" inline-actions class="text-white bg-red">
           Invalid Format: {{ jsonError }}
         </q-banner>
       </q-tab-panel>
     </q-tab-panels>
     <q-separator />
     <q-card-actions align="between" class="bg-primary">
-      <q-btn
-        size="md"
-        padding="sm lg"
-        unelevated
-        color="primary"
-        @click="addField()"
+      <q-btn size="md" padding="sm lg" unelevated color="primary" @click="addField()"
         >Add field</q-btn
       >
       <q-btn
@@ -148,15 +136,18 @@
 </template>
 
 <script lang="ts">
-import { CollectionFieldSchema, CollectionSchema, CollectionUpdateSchema } from 'typesense/lib/Typesense/Collection';
-import { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections';
+import type {
+  CollectionFieldSchema,
+  CollectionSchema,
+  CollectionUpdateSchema,
+} from 'typesense/lib/Typesense/Collection';
+import type { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections';
 import { defineComponent } from 'vue';
 import MonacoEditor from '../MonacoEditor.vue';
 
 export default defineComponent({
-  components: { MonacoEditor },
   name: 'CollectionUi',
-  emits: ['submit'],
+  components: { MonacoEditor },
   props: {
     initialSchema: {
       type: Object as () => CollectionCreateSchema | CollectionSchema | CollectionUpdateSchema,
@@ -175,13 +166,13 @@ export default defineComponent({
               stem: false,
               locale: '',
               num_dim: undefined,
-            } as CollectionFieldSchema,
+            } as unknown,
           ],
           default_sorting_field: '',
           token_separators: [],
           symbols_to_index: [],
           enable_nested_fields: false,
-        } as CollectionCreateSchema),
+        }) as CollectionCreateSchema,
     },
     primaryActionLabel: {
       type: String,
@@ -190,8 +181,9 @@ export default defineComponent({
     createMode: {
       type: Boolean,
       default: false,
-    }
+    },
   },
+  emits: ['submit'],
   data() {
     return {
       tab: 'form',
@@ -228,8 +220,7 @@ export default defineComponent({
     availableSortFields(): string[] {
       const compatibleFields = (this.schema.fields || []).filter(
         (field) =>
-          ['int32', 'float'].includes(field.type) ||
-          (field.type === 'string' && field.sort)
+          ['int32', 'float'].includes(field.type) || (field.type === 'string' && field.sort),
       );
       // empty option + compatible field names
       return [''].concat(compatibleFields.map((field) => field.name));
@@ -259,6 +250,7 @@ export default defineComponent({
   methods: {
     addField() {
       if (this.schema.fields) {
+        // @ts-expect-error custom field
         this.schema.fields.push({
           name: '',
           type: 'string',

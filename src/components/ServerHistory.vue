@@ -1,75 +1,58 @@
 <template>
   <q-list style="min-width: 100px">
-    <q-item
-      v-if="$props.showLogout"
-      clickable
-      v-close-popup
-      @click="logout"
-    >
+    <q-item v-if="props.showLogout" v-close-popup clickable @click="store.logout">
       <q-item-section>Logout</q-item-section>
       <q-item-section avatar>
         <q-icon name="sym_s_logout" />
       </q-item-section>
     </q-item>
-    <q-separator v-if="$props.showLogout" />
-    <q-item
-      clickable
-      v-close-popup
-      @click="$store.commit('node/clearHistory')"
-    >
+    <q-separator v-if="props.showLogout" />
+    <q-item v-close-popup clickable @click="store.clearHistory">
       <q-item-section>Clear history</q-item-section>
       <q-item-section avatar>
         <q-icon name="sym_s_delete" />
       </q-item-section>
     </q-item>
     <q-separator />
-    <q-item-label header v-if="loginHistory.length === 0">No History</q-item-label>
-    <q-item-label header v-if="loginHistory.length > 0">Server History</q-item-label>
+    <q-item-label v-if="loginHistory.length === 0" header>No History</q-item-label>
+    <q-item-label v-if="loginHistory.length > 0" header>Server History</q-item-label>
     <q-item
-      clickable
-      v-close-popup
       v-for="(history, index) in loginHistory"
       :key="index"
+      v-close-popup
+      clickable
       @click="loginWithHistory(history)"
     >
       <q-item-section
         >{{ history.node.protocol }}://{{ history.node.host }}:{{
           history.node.port
-        }}</q-item-section>
+        }}</q-item-section
+      >
     </q-item>
   </q-list>
 </template>
 
+<script setup lang="ts">
+import { computed } from 'vue';
+import { useNodeStore } from 'src/stores/node';
+import type { NodeLoginDataInterface } from 'src/stores/node';
 
-<script lang="ts">
-import { NodeLoginDataInterface } from 'src/store/node/state';
-import { defineComponent } from 'vue';
-export default defineComponent({
-  name: 'ServerHistory',
-  props: {
-    showLogout: {
-      default: false,
-    },
-  },
-  computed: {
-    loginHistory() {
-      return this.$store.state.node.loginHistory.map(
-        (history) => JSON.parse(history) as NodeLoginDataInterface
-      );
-    },
-    error() {
-      return this.$store.state.node.error;
-    },
-  },
-  methods: {
-    logout() {
-        void this.$store.dispatch('node/logout');
-    },
-    loginWithHistory(history: NodeLoginDataInterface) {
-      // Force redirection used the MainLayout Menu
-      const forceHomeRedirect = this.$props.showLogout;
-      void this.$store.dispatch('node/login', {...history, forceHomeRedirect});
-    },
+const props = defineProps({
+  showLogout: {
+    type: Boolean,
+    default: false,
   },
 });
+
+const store = useNodeStore();
+
+const loginHistory = computed(() =>
+  store.loginHistory.map((history) => JSON.parse(history) as NodeLoginDataInterface),
+);
+
+function loginWithHistory(history: NodeLoginDataInterface) {
+  // Force redirection used the MainLayout Menu
+  const forceHomeRedirect = props.showLogout;
+  void store.login({ ...history, forceHomeRedirect });
+}
 </script>

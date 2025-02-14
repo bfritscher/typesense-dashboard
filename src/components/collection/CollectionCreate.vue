@@ -17,27 +17,23 @@
   </q-list>
 </template>
 
-<script lang="ts">
-import { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections';
-import { defineComponent } from 'vue';
+<script setup lang="ts">
+import type { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections';
+import { useNodeStore } from 'src/stores/node';
 import CollectionUi from './CollectionUi.vue';
 
-export default defineComponent({
-  components: { CollectionUi },
-  name: 'CollectionCreate',
-  methods: {
-    createCollection(schemaToCreate: CollectionCreateSchema) {
-      const schema = JSON.parse(JSON.stringify(schemaToCreate));
-      for (const field of schema.fields) {
-        if (field.type !== 'float[]' || !field.num_dim) {
-          delete field.num_dim;
-        }
-        if (field.type.startsWith('object')) {
-          schema.enable_nested_fields = true;
-        }
-      }
-      void this.$store.dispatch('node/createCollection', schema);
-    },
-  },
-});
+const store = useNodeStore();
+
+function createCollection(schemaToCreate: CollectionCreateSchema) {
+  const schema = JSON.parse(JSON.stringify(schemaToCreate));
+  for (const field of schema.fields) {
+    if (field.type !== 'float[]' || !field.num_dim) {
+      delete field.num_dim;
+    }
+    if (field.type.startsWith('object')) {
+      schema.enable_nested_fields = true;
+    }
+  }
+  void store.createCollection(schema);
+}
 </script>

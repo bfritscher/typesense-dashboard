@@ -8,12 +8,12 @@ jobs:
   build-linux:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup NodeJS Environment
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
             node-version: '20'
-      - run: yarn install && npm -g install @quasar/cli
+      - run: npm install && npm -g install @quasar/cli
       - run: quasar build --mode electron --target darwin --target linux
       - run: zip -r ./Typesense-Dashboard-linux-x64-${{ github.ref_name }}.zip ./dist/electron/Typesense-Dashboard-linux-x64
       - run: zip -r ./Typesense-Dashboard-darwin-x64-${{ github.ref_name }}.zip ./dist/electron/Typesense-Dashboard-darwin-x64
@@ -28,12 +28,12 @@ jobs:
   build-windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Setup NodeJS Environment
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
             node-version: '20'
-      - run: yarn install && npm -g install @quasar/cli electron-installer-zip
+      - run: npm install && npm -g install @quasar/cli electron-installer-zip
       - run: quasar build --mode electron --target win32
       - run: electron-installer-zip ./dist/electron/Typesense-Dashboard-win32-x64 ./Typesense-Dashboard-win32-x64-${{ github.ref_name }}.zip
       - name: Upload a Release Asset win32
