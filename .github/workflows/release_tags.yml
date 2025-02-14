@@ -14,7 +14,8 @@ jobs:
         with:
             node-version: '20'
       - run: npm install && npm -g install @quasar/cli
-      - run: quasar build --mode electron --target darwin --target linux
+      - run: quasar build --mode electron --target darwin
+      - run: quasar build --mode electron --target linux
       - run: zip -r ./Typesense-Dashboard-linux-x64-${{ github.ref_name }}.zip ./dist/electron/Typesense-Dashboard-linux-x64
       - run: zip -r ./Typesense-Dashboard-darwin-x64-${{ github.ref_name }}.zip ./dist/electron/Typesense-Dashboard-darwin-x64
       - name: Upload a Release Asset linux
