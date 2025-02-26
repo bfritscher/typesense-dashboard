@@ -1,0 +1,1 @@
+import{d as e,b as i,c as n,u as d}from"./index-Cf1oENz-.js";const c=e(({store:t})=>{i.is.electron||n.get("config.json").then(o=>{const a=d(t);o.data&&o.data.apiKey&&a.login(o.data)})});export{c as default};
