@@ -69,7 +69,6 @@ app.on('activate', () => {
   }
 });
 
-
 import { Api } from '../src/shared/api';
 const appApi = new Api();
 

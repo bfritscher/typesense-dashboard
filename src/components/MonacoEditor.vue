@@ -8,12 +8,12 @@
 import * as monaco from 'monaco-editor';
 import { defineComponent, onMounted, onUnmounted, ref, watch } from 'vue';
 
-import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
+import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
 self.MonacoEnvironment = {
   getWorker() {
-    return new jsonWorker()
-  }
-}
+    return new jsonWorker();
+  },
+};
 
 export default defineComponent({
   name: 'MonacoEditor',
