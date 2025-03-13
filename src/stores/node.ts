@@ -133,8 +133,6 @@ export const useNodeStore = defineStore('node', {
             await Promise.all([
               this.getCollections(),
               this.getAliases(),
-              this.getApiKeys(),
-              this.getDebug(),
             ]);
             // optional features depending on the server capabilities
             this.getSearchPresets()
