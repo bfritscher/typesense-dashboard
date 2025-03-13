@@ -20,7 +20,7 @@
             color="info"
             flat
             dense
-            :href="`https://typesense.org/docs/${store.data.debug.version}/api/api-keys.html#create-an-api-key`"
+            :href="`https://typesense.org/docs/${store.data.debug.version || store.data.defaultDocVersion}/api/api-keys.html#create-an-api-key`"
             target="_blank"
             >Documentation</q-btn
           >

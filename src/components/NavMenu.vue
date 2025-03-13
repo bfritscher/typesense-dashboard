@@ -18,7 +18,7 @@
       </q-item-section>
     </q-item>
 
-    <q-item v-ripple clickable to="/aliases" exact>
+    <q-item v-ripple clickable to="/aliases" exact :disable="!store.data.features.aliases">
       <q-item-section avatar>
         <q-icon name="sym_s_call_split" />
       </q-item-section>
@@ -26,7 +26,7 @@
       <q-item-section> Aliases </q-item-section>
     </q-item>
 
-    <q-item v-ripple clickable to="/apikeys" exact>
+    <q-item v-ripple clickable to="/apikeys" exact :disable="!store.data.features.apiKeys">
       <q-item-section avatar>
         <q-icon name="sym_s_key" />
       </q-item-section>

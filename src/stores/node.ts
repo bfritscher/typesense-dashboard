@@ -32,11 +32,15 @@ export interface NodeDataInterface {
   stopwords: StopwordSchema[];
   overrides: OverrideSchema[];
   synonyms: SynonymSchema[];
+  defaultDocVersion: string;
   features: {
     stopwords: boolean;
     analyticsRules: boolean;
     searchPresets: boolean;
     stats: boolean;
+    aliases: boolean;
+    apiKeys: boolean;
+    debug: boolean;
   };
 }
 
@@ -91,11 +95,15 @@ function state(): NodeStateInterface {
       stopwords: [],
       overrides: [],
       synonyms: [],
+      defaultDocVersion: '28.0',
       features: {
         stopwords: false,
         analyticsRules: false,
         searchPresets: false,
         stats: false,
+        aliases: false,
+        apiKeys: false,
+        debug: false,
       },
     },
   };
@@ -130,52 +138,33 @@ export const useNodeStore = defineStore('node', {
               metrics: response.data,
             });
             // minimal required data to consider the connection as successful
-            await Promise.all([
-              this.getCollections(),
-              this.getAliases(),
-              this.getApiKeys(),
-              this.getDebug(),
-            ]);
-            // optional features depending on the server capabilities
-            this.getSearchPresets()
-              .then(() => {
-                this.setFeature({
-                  key: 'searchPresets',
-                  value: true,
+            await this.getCollections();
+            // optional features depending on the apiKey and server capabilities
+            [
+              'getAliases',
+              'getSearchPresets',
+              'getAnalyticsRules',
+              'getStopwords',
+              'getApiKeys',
+              'getDebug',
+            ].forEach((funcName) => {
+              const key = (funcName[3]?.toLowerCase() +
+                funcName.slice(4)) as keyof NodeDataInterface['features'];
+              const func = (this as any)[funcName];
+              func()
+                .then(() => {
+                  this.setFeature({
+                    key,
+                    value: true,
+                  });
+                })
+                .catch(() => {
+                  this.setFeature({
+                    key,
+                    value: false,
+                  });
                 });
-              })
-              .catch(() => {
-                this.setFeature({
-                  key: 'searchPresets',
-                  value: false,
-                });
-              });
-            this.getAnalyticsRules()
-              .then(() => {
-                this.setFeature({
-                  key: 'analyticsRules',
-                  value: true,
-                });
-              })
-              .catch(() => {
-                this.setFeature({
-                  key: 'analyticsRules',
-                  value: false,
-                });
-              });
-            this.getStopwords()
-              .then(() => {
-                this.setFeature({
-                  key: 'stopwords',
-                  value: true,
-                });
-              })
-              .catch(() => {
-                this.setFeature({
-                  key: 'stopwords',
-                  value: false,
-                });
-              });
+            });
             this.setIsConnected(true);
             this.saveHistory();
             this.setError(null);

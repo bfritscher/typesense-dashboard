@@ -31,7 +31,7 @@
             color="info"
             flat
             dense
-            :href="`https://typesense.org/docs/${store.data.debug.version}/api/stopwords.html`"
+            :href="`https://typesense.org/docs/${store.data.debug.version || store.data.defaultDocVersion}/api/stopwords.html`"
             target="_blank"
           >
             Documentation
