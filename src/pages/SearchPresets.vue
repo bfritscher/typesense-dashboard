@@ -25,7 +25,7 @@
             color="info"
             flat
             dense
-            :href="`https://typesense.org/docs/${store.data.debug.version}/api/search.html#presets`"
+            :href="`https://typesense.org/docs/${store.data.debug.version || store.data.defaultDocVersion}/api/search.html#presets`"
             target="_blank"
             >Documentation</q-btn
           >

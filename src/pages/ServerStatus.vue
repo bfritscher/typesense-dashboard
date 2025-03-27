@@ -139,7 +139,7 @@
           <div>Protocol: {{ store.loginData?.node.protocol }}</div>
           <div>Host: {{ store.loginData?.node.host }}</div>
           <div>Port: {{ store.loginData?.node.port }}</div>
-          <div>Version: {{ store.data.debug.version }}</div>
+          <div v-if="store.data.debug.version">Version: {{ store.data.debug.version }}</div>
           <div v-if="Object.hasOwnProperty.call(store.data.debug, 'state')">
             Role:
             {{ store.data.debug.state === 1 ? 'Leader' : 'Follower' }}
