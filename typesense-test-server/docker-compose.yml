@@ -1,4 +1,9 @@
 services:
+  typesense28:
+    image: typesense/typesense:28.0
+    command: --data-dir /tmp --api-key=dev --enable-cors
+    ports:
+      - "8128:8108"
   typesense27:
     image: typesense/typesense:27.1
     command: --data-dir /tmp --api-key=dev --enable-cors
