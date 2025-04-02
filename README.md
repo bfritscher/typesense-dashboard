@@ -66,9 +66,33 @@ Sample config.json (same data as saved in localStorage of the browser).
     "protocol": "https",
     "path": "",
     "tls": true
-  }
+  },
+  "history": [
+    {
+      "apiKey": "abc",
+      "node": {
+        "host": "anotherhost",
+        "port": "80",
+        "protocol": "http",
+        "path": "",
+        "tls": false
+      }
+    },
+    {
+      "apiKey": "def",
+      "node": {
+        "host": "yetanotherhost",
+        "port": "8080",
+        "protocol": "http",
+        "path": "",
+        "tls": true
+      }
+    }
+  ]
 }
 ```
+
+The `history` is used to populate the client history to act as bookmarks.
 
 ### Desktop
 
