@@ -20,8 +20,28 @@
               <div
                 v-for="(result, index) in item._highlightResult[field.name]"
                 :key="index"
-                v-html="result.value"
-              ></div>
+              >
+                <div v-if="!result.value">
+                  <div v-for="(_, propertyIndex) in item[field.name][index]" :key="propertyIndex">
+                    <div v-if="Array.isArray(item[field.name][index][propertyIndex])">
+                      <span
+                        v-for="(__, nestedIndex) in item[field.name][index][propertyIndex]"
+                        :key="nestedIndex"
+                      >
+                        <ais-highlight
+                          :hit="item"
+                          :attribute="field.name + '.' + index + '.' + propertyIndex+ '.' + nestedIndex"
+                        />
+                        <span v-if="nestedIndex < item[field.name][index][propertyIndex].length - 1">, </span>
+                      </span>
+                    </div>
+                    <div v-else>
+                      <ais-highlight :attribute="field.name+'.'+index+'.'+propertyIndex" :hit="item" />
+                    </div>
+                  </div>
+                </div>
+                <div v-else v-html="result.value" />
+              </div>
             </div>
             <div v-else>
               <div v-if="field.name.includes('.*')">
