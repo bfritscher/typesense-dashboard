@@ -12,6 +12,7 @@
           >
         </q-item-label>
         <q-item-label
+          v-if="!props.embedFields.includes(key)"
           class="overflow-hidden text-no-wrap text-ellipsis"
           :title="JSON.stringify(item[key])"
         >
@@ -27,6 +28,7 @@
                 v-else
                 :item="subitem"
                 :include-fields="nestedFieldsFor(props.includeFields, key)"
+                :embed-fields="nestedFieldsFor(props.embedFields, key)"
               />
             </template>
           </div>
@@ -45,9 +47,11 @@ const props = withDefaults(
   defineProps<{
     item: Record<string, any>;
     includeFields?: string[];
+    embedFields?: string[];
   }>(),
   {
     includeFields: () => [],
+    embedFields: () => [],
   },
 );
 

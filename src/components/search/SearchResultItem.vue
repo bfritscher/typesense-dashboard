@@ -4,6 +4,7 @@
       v-if="item"
       :item="item._highlightResult"
       :include-fields="collectionFields"
+      :embed-fields="embedFields"
     />
     <q-space />
     <q-separator></q-separator>
@@ -57,6 +58,13 @@ const currentCollection = computed((): CollectionSchema | null => {
 const collectionFields = computed((): string[] => {
   if (!props.item || !currentCollection.value || !currentCollection.value.fields) return [];
   return currentCollection.value.fields.map((f) => f.name);
+});
+
+const embedFields = computed((): string[] => {
+  if (!props.item || !currentCollection.value || !currentCollection.value.fields) return [];
+  return currentCollection.value.fields
+    .filter((f) => f.embed)
+    .map((f) => f.name);
 });
 
 const editDocument = () => {
