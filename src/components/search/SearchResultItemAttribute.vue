@@ -38,7 +38,7 @@ const isImage = (filename: string) => {
 };
 </script>
 
-<style>
+<style scoped>
 .ais-Highlight {
   display: block;
   text-overflow: ellipsis;
