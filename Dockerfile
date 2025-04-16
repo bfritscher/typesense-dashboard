@@ -1,5 +1,5 @@
 ARG PUBLIC_PATH=/
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 ARG PUBLIC_PATH
 WORKDIR /app
 

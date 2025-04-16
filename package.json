@@ -51,6 +51,10 @@
     "vite-plugin-checker": "0.9.1",
     "vue-tsc": "2.2.8"
   },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "4.40.0",
+    "sass-embedded": "1.86.3"
+  },
   "engines": {
     "node": "^28 || ^26 || ^24 || ^22 || ^20 || ^18",
     "npm": ">= 6.13.4",
