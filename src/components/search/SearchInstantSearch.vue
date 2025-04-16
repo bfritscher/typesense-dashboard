@@ -76,7 +76,7 @@ import TypesenseInstantSearchAdapter from 'typesense-instantsearch-adapter';
 import type { CollectionSchema } from 'typesense/lib/Typesense/Collection';
 
 const store = useNodeStore();
-const searchClient = ref(null);
+const searchClient = ref<any>(null);
 const typesenseInstantsearchAdapter = ref<TypesenseInstantSearchAdapter>();
 const instantSearchInstance = ref<any>();
 const searchClientError = ref<string | null>(null);

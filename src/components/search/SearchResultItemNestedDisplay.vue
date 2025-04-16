@@ -14,7 +14,7 @@
         <q-item-label
           v-if="!props.embedFields.includes(key)"
           class="overflow-hidden text-no-wrap text-ellipsis"
-          :title="JSON.stringify(item[key])"
+          :title="JSON.stringify(extractValue(item[key]), null, 2)"
         >
           <div
             v-if="Array.isArray(item[key])"
@@ -73,6 +73,23 @@ const sortedKeys = computed(() => {
     .filter((key) => keys.includes(key))
     .concat(keys.filter((key) => !props.includeFields.includes(key)));
 });
+
+function extractValue(item: any): any {
+  if (Array.isArray(item)) {
+    return item.map((subitem: any) => extractValue(subitem));
+  }
+  if (
+    Object.prototype.hasOwnProperty.call(item, 'value') &&
+    Object.prototype.hasOwnProperty.call(item, 'matchLevel')
+  ) {
+    return item.value;
+  }
+  const values: Record<string, any> = {};
+  for (const key in item) {
+    values[key] = extractValue(item[key]);
+  }
+  return values;
+}
 </script>
 <style>
 .text-ellipsis {

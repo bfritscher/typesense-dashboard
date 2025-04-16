@@ -62,9 +62,7 @@ const collectionFields = computed((): string[] => {
 
 const embedFields = computed((): string[] => {
   if (!props.item || !currentCollection.value || !currentCollection.value.fields) return [];
-  return currentCollection.value.fields
-    .filter((f) => f.embed)
-    .map((f) => f.name);
+  return currentCollection.value.fields.filter((f) => f.embed).map((f) => f.name);
 });
 
 const editDocument = () => {
