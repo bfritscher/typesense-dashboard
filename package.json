@@ -1,6 +1,6 @@
 {
   "name": "typesense-dashboard",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "description": "A Typesense Dashboard to manage and browse collections.",
   "productName": "Typesense-Dashboard",
   "author": "Boris Fritscher <boris@fritscher.ch>",
