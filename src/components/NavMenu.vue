@@ -77,12 +77,17 @@
         <q-select
           v-model="currentCollection"
           borderless
-          :options="store.data.collections"
+          :options="filteredCollections"
+          use-input
+          fill-input
+          hide-selected
+          input-debounce="0"
           label="Collection"
           option-label="name"
           color="white"
           label-color="white"
           dark
+          @filter="collectionFilterFn"
         />
       </q-item-section>
     </q-item>
@@ -161,10 +166,32 @@
 
 <script setup lang="ts">
 import type { CollectionSchema } from 'typesense/lib/Typesense/Collection';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useNodeStore } from 'src/stores/node';
 
 const store = useNodeStore();
+
+const sortedCollections = computed(() =>
+  store.data.collections.slice(0).sort((a, b) => a.name.localeCompare(b.name)),
+);
+
+const filteredCollections = ref<CollectionSchema[]>([]);
+
+function collectionFilterFn(val: string, update: (fn: () => void) => void) {
+  if (val === '') {
+    update(() => {
+      filteredCollections.value = sortedCollections.value;
+    });
+    return;
+  }
+
+  update(() => {
+    const needle = val.toLowerCase();
+    filteredCollections.value = sortedCollections.value.filter((v) =>
+      v.name.toLowerCase().includes(needle),
+    );
+  });
+}
 
 const currentCollection = computed({
   get() {

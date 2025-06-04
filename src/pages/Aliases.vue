@@ -109,7 +109,9 @@ const state = reactive({
   ] as QTableProps['columns'],
 });
 
-const collectionNames = computed(() => store.data.collections.map((collection) => collection.name));
+const collectionNames = computed(() =>
+  store.data.collections.map((collection) => collection.name).sort(),
+);
 const isUpdate = computed(() => store.data.aliases.map((a) => a.name).includes(state.alias.name));
 async function createAlias() {
   await store.createAlias({
