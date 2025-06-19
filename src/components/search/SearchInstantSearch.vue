@@ -53,7 +53,10 @@
         <ais-pagination class="q-mb-md" />
         <ais-hits>
           <template v-if="currentCollection" #item="{ item }">
-            <search-result-item :item="item"></search-result-item>
+            <search-result-item
+              :item="item"
+              @deleted="instantSearchInstance.refresh()"
+            ></search-result-item>
           </template>
         </ais-hits>
         <ais-pagination class="q-my-md" />

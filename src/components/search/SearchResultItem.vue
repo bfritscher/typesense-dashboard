@@ -47,6 +47,7 @@ import SearchResultItemNestedDisplay from './SearchResultItemNestedDisplay.vue';
 const props = defineProps<{
   item?: Record<string, any>;
 }>();
+const emit = defineEmits<(e: 'deleted', id: string) => void>();
 
 const store = useNodeStore();
 const $q = useQuasar();
@@ -83,7 +84,17 @@ const deleteDocumentById = (id: string) => {
     cancel: true,
     persistent: true,
   }).onOk(() => {
-    void store.deleteDocumentById(id);
+    store
+      .deleteDocumentById(id)
+      ?.then(() => {
+        emit('deleted', id);
+      })
+      .catch((error: Error) => {
+        $q.notify({
+          type: 'negative',
+          message: `Error deleting document: ${error.message}`,
+        });
+      });
   });
 };
 </script>
