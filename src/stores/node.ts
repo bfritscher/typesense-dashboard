@@ -476,12 +476,11 @@ export const useNodeStore = defineStore('node', {
       await this.api?.deleteOverride(this.currentCollection.name, id);
       void this.getOverrides(this.currentCollection.name);
     },
-    async deleteDocumentById(id: string) {
+    deleteDocumentById(id: string) {
       if (!this.currentCollection) {
         throw new Error('No collection selected');
       }
-      void (await this.api?.deleteDocumentById(this.currentCollection.name, id));
-      // TODO refresh
+      return this.api?.deleteDocumentById(this.currentCollection.name, id);
     },
     search(payload: SearchParams) {
       return (this.api as Api)?.search(
