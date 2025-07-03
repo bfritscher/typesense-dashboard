@@ -1,5 +1,5 @@
 <template>
-  <q-list>
+  <q-list class="column fit">
     <q-item v-ripple clickable to="/" exact>
       <q-item-section avatar>
         <q-icon name="sym_s_dns" />
@@ -161,6 +161,7 @@
 
       <q-item-section> Add Document </q-item-section>
     </q-item>
+    <ProjectInfo v-if="!store.uiConfig.hideProjectInfo" />
   </q-list>
 </template>
 
@@ -168,6 +169,7 @@
 import type { CollectionSchema } from 'typesense/lib/Typesense/Collection';
 import { computed, ref } from 'vue';
 import { useNodeStore } from 'src/stores/node';
+import ProjectInfo from './ProjectInfo.vue';
 
 const store = useNodeStore();
 

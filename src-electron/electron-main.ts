@@ -1,4 +1,4 @@
-import { BrowserWindow, app, dialog, ipcMain } from 'electron';
+import { BrowserWindow, app, dialog, ipcMain, shell } from 'electron';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
@@ -108,6 +108,10 @@ ipcMain.handle('rejectTLS', (event, value) => {
     app.off('certificate-error', certErrorHandler);
     certErrorListenerInstalled = false;
   }
+});
+
+ipcMain.handle('openExternal', (event, url) => {
+  return shell.openExternal(url);
 });
 
 Object.getOwnPropertyNames(Api.prototype).forEach((f) => {
