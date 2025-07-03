@@ -1,6 +1,7 @@
 <template>
-  <q-list class="column fit">
-    <q-item v-ripple clickable to="/" exact>
+  <div class="column fit no-wrap">
+    <q-list class="col overflow-auto">
+      <q-item v-ripple clickable to="/" exact>
       <q-item-section avatar>
         <q-icon name="sym_s_dns" />
       </q-item-section>
@@ -161,8 +162,9 @@
 
       <q-item-section> Add Document </q-item-section>
     </q-item>
+    </q-list>
     <ProjectInfo v-if="!store.uiConfig.hideProjectInfo" />
-  </q-list>
+  </div>
 </template>
 
 <script setup lang="ts">
