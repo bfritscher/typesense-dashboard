@@ -72,6 +72,9 @@ const api = {
   rejectTLS: (value: any) => {
     return ipcRenderer.invoke('rejectTLS', value);
   },
+  openExternal: (url: string) => {
+    return ipcRenderer.invoke('openExternal', url);
+  },
 };
 apiMethods.forEach((f) => {
   // @ts-expect-error allow any

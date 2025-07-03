@@ -55,7 +55,7 @@ You can enable auto-login by mapping a config.json file to `/srv/config.json` in
 docker run -d -p 80:80 -v /path/to/config.json:/srv/config.json typesense-dashboard
 ```
 
-Sample config.json (same data as saved in localStorage of the browser).
+Sample config.json (same data as saved in localStorage of the browser). A sample configuration file is available at `config.json.sample` in the project root.
 
 ```json
 {
@@ -66,6 +66,9 @@ Sample config.json (same data as saved in localStorage of the browser).
     "protocol": "https",
     "path": "",
     "tls": true
+  },
+  "ui": {
+    "hideProjectInfo": false
   },
   "history": [
     {
@@ -93,6 +96,12 @@ Sample config.json (same data as saved in localStorage of the browser).
 ```
 
 The `history` is used to populate the client history to act as bookmarks.
+
+#### UI Configuration
+
+The `ui` section allows you to customize the dashboard interface:
+
+- `hideProjectInfo`: Set to `true` to hide the project information section (version, GitHub link, and issue tracker) from the navigation menu. Default is `false`.
 
 ### Desktop
 

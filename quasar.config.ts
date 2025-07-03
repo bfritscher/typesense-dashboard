@@ -2,6 +2,11 @@
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file
 
 import { defineConfig } from '#q-app/wrappers';
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
+
+// Read package.json to get version info
+const packageJson = JSON.parse(readFileSync(resolve('./package.json'), 'utf-8'));
 
 export default defineConfig((/* ctx */) => {
   return {
@@ -56,7 +61,9 @@ export default defineConfig((/* ctx */) => {
         process.env.PUBLIC_PATH ??
         (process.env.NODE_ENV === 'development' ? '/' : '/typesense-dashboard'),
       // analyze: true,
-      // env: {},
+      env: {
+        APP_VERSION: packageJson.version,
+      },
       // rawDefine: {}
       // ignorePublicFolder: true,
       // minify: false,

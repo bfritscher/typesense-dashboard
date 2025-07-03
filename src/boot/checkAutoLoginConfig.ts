@@ -21,5 +21,9 @@ export default defineBoot(({ store }) => {
         }
       });
     }
+    // Handle UI configuration options
+    if (response.data && response.data.ui) {
+      nodeStore.setUIConfig(response.data.ui);
+    }
   });
 });

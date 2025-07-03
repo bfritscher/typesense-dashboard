@@ -57,6 +57,10 @@ export interface NodeLoginPayloadInterface extends NodeLoginDataInterface {
   forceHomeRedirect?: boolean;
 }
 
+export interface UIConfigInterface {
+  hideProjectInfo?: boolean;
+}
+
 export interface NodeStateInterface {
   loginData: NodeLoginDataInterface | null;
   loginHistory: string[];
@@ -66,6 +70,7 @@ export interface NodeStateInterface {
   error: string | null;
   data: NodeDataInterface;
   currentCollection: CollectionSchema | null;
+  uiConfig: UIConfigInterface;
 
   documentsToEdit: any[] | null;
 }
@@ -83,6 +88,9 @@ function state(): NodeStateInterface {
     error: null,
     currentCollection: null,
     documentsToEdit: [],
+    uiConfig: {
+      hideProjectInfo: false,
+    },
     data: {
       debug: {},
       metrics: {},
@@ -645,6 +653,9 @@ export const useNodeStore = defineStore('node', {
     },
     setDocumentsToEdit(documents: any[]): void {
       this.documentsToEdit = documents;
+    },
+    setUIConfig(config: UIConfigInterface): void {
+      this.uiConfig = { ...this.uiConfig, ...config };
     },
   },
 });
