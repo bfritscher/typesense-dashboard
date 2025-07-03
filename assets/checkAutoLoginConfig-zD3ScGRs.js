@@ -1,1 +1,0 @@
-import{d as f,b as n,c,u as g}from"./index-CEKgHZlV.js";const r=f(({store:o})=>{n.is.electron||c.get("config.json").then(t=>{const a=g(o);t.data&&t.data.apiKey&&a.login(t.data),t.data&&t.data.history&&t.data.history.forEach(d=>{const i=JSON.stringify(d);a.loginHistory.includes(i)||a.loginHistory.push(i)}),t.data&&t.data.ui&&a.setUIConfig(t.data.ui)})});export{r as default};
