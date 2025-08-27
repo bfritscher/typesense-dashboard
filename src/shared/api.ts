@@ -190,4 +190,8 @@ export class Api {
         throw Error(err.response?.data?.message || err.message);
       });
   }
+
+  public createSnapshot(snapshotPath: string) {
+    return this.typesenseClient?.operations.perform('snapshot', { snapshot_path: snapshotPath });
+  }
 }

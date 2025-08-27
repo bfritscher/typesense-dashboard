@@ -63,6 +63,7 @@ const apiMethods = [
   'search',
   'get',
   'post',
+  'createSnapshot',
 ];
 
 const api = {

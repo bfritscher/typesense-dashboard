@@ -127,6 +127,18 @@
               padding="sm lg"
               @click="store.operationCompactDB"
             />
+            <div class="text-subtitle1 q-pt-md">Create Snapshot</div>
+            <p>
+              Creates a point-in-time snapshot of the node's state and data for backup purposes.
+            </p>
+            <q-btn
+              label="Create Snapshot"
+              color="accent"
+              unelevated
+              size="md"
+              padding="sm lg"
+              @click="showSnapshotDialog()"
+            />
           </q-card-section>
         </q-card>
       </div>
@@ -168,6 +180,39 @@
         </q-card-section>
       </q-card>
     </div>
+
+    <!-- Create Snapshot Dialog -->
+    <q-dialog v-model="isSnapshotDialogVisible" persistent>
+      <q-card style="min-width: 400px">
+        <q-card-section>
+          <div class="text-h6">Create Snapshot</div>
+          <div class="text-subtitle2 text-grey-7 q-mt-sm">
+            Enter the directory path where the snapshot should be saved on the server.
+          </div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <q-input
+            v-model="snapshotPath"
+            outlined
+            label="Snapshot Path"
+            hint="Example: /tmp/typesense-data-snapshot"
+            :rules="[(val) => (val && val.length > 0) || 'Snapshot path is required']"
+          />
+        </q-card-section>
+
+        <q-card-actions align="right" class="text-primary">
+          <q-btn flat label="Cancel" @click="cancelSnapshot" />
+          <q-btn
+            flat
+            label="Create Snapshot"
+            color="accent"
+            :disable="!isSnapshotPathValid"
+            @click="createSnapshot"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
@@ -180,10 +225,33 @@ const store = useNodeStore();
 
 const refreshInterval = ref<number | undefined>(undefined);
 const slowQueryThreshold = ref<number>(-1);
+const isSnapshotDialogVisible = ref<boolean>(false);
+const snapshotPath = ref<string>('/tmp/typesense-data-snapshot');
 
 function isObject(obj: unknown) {
   return typeof obj === 'object';
 }
+
+function showSnapshotDialog() {
+  snapshotPath.value = `/tmp/typesense-data-snapshot-${new Date().toISOString().replace(/:\d{2}\.\d{3}Z$/, '')}`;
+  isSnapshotDialogVisible.value = true;
+}
+
+function cancelSnapshot() {
+  isSnapshotDialogVisible.value = false;
+  snapshotPath.value = '/tmp/typesense-data-snapshot';
+}
+
+function createSnapshot() {
+  if (isSnapshotPathValid.value) {
+    void store.createSnapshot(snapshotPath.value);
+    isSnapshotDialogVisible.value = false;
+  }
+}
+
+const isSnapshotPathValid = computed(() => {
+  return snapshotPath.value && snapshotPath.value.length > 0;
+});
 
 onMounted(() => {
   refreshInterval.value = window.setInterval(() => {

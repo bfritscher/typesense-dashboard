@@ -581,6 +581,24 @@ export const useNodeStore = defineStore('node', {
         this.setError((error as Error).message);
       }
     },
+    async createSnapshot(snapshotPath: string) {
+      try {
+        this.setError(null);
+        const response = await this.api?.createSnapshot(snapshotPath);
+        if (response?.success) {
+          Notify.create({
+            position: 'top',
+            progress: true,
+            group: false,
+            timeout: 3000,
+            color: 'positive',
+            message: `Snapshot created successfully at: ${snapshotPath}`,
+          });
+        }
+      } catch (error) {
+        this.setError((error as Error).message);
+      }
+    },
     /*** mutations from vuex migration ****/
     setNodeData(payload: { apiKey: string; node: CustomNodeConfiguration } | null) {
       this.loginData = payload;
