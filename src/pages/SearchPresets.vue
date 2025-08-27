@@ -119,7 +119,7 @@ const state = reactive({
     {
       label: 'Search Parameters',
       name: 'value',
-      field: (row: PresetSchema) => JSON.stringify(row.value),
+      field: (row: PresetSchema<any>) => JSON.stringify(row.value),
       sortable: true,
       align: 'left',
     },
@@ -144,14 +144,14 @@ const keyJson = computed({
 });
 
 const isUpdate = computed(() =>
-  store.data.searchPresets.map((p: PresetSchema) => p.name).includes(state.preset.name),
+  store.data.searchPresets.map((p: PresetSchema<any>) => p.name).includes(state.preset.name),
 );
 
 async function createSearchPreset() {
   await store.upsertSearchPreset(JSON.parse(JSON.stringify(state.preset)));
 }
 
-function editSearchPreset(preset: PresetSchema) {
+function editSearchPreset(preset: PresetSchema<any>) {
   state.preset = JSON.parse(JSON.stringify(preset));
   state.expanded = true;
 }

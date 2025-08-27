@@ -88,7 +88,7 @@ const store = useNodeStore();
 const STORAGE_KEY_SEARCH_HISTORY = 'typesense-search-history';
 
 const history = ref<string[]>([]);
-const searchParameters = ref<SearchParams>({
+const searchParameters = ref<SearchParams<any>>({
   q: 'stark',
   query_by: 'company_name',
   filter_by: 'num_employees:>100',

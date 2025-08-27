@@ -28,7 +28,7 @@ export interface NodeDataInterface {
   aliases: CollectionAliasSchema[];
   apiKeys: KeySchema[];
   analyticsRules: AnalyticsRuleSchema[];
-  searchPresets: PresetSchema[];
+  searchPresets: PresetSchema<any>[];
   stopwords: StopwordSchema[];
   overrides: OverrideSchema[];
   synonyms: SynonymSchema[];
@@ -266,7 +266,7 @@ export const useNodeStore = defineStore('node', {
       }
     },
     async getSearchPresets() {
-      await this.api?.getSearchPresets()?.then((response: { presets: PresetSchema[] }) => {
+      await this.api?.getSearchPresets()?.then((response: { presets: PresetSchema<any>[] }) => {
         this.setData({
           searchPresets: response.presets,
         });
@@ -490,7 +490,7 @@ export const useNodeStore = defineStore('node', {
       }
       return this.api?.deleteDocumentById(this.currentCollection.name, id);
     },
-    search(payload: SearchParams) {
+    search(payload: SearchParams<any>) {
       return (this.api as Api)?.search(
         this.currentCollection?.name || '',
         JSON.parse(JSON.stringify(payload)), // remove proxy which is not serializable

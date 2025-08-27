@@ -103,7 +103,7 @@ export class Api {
     return this.typesenseClient?.presets().retrieve();
   }
 
-  public upsertSearchPreset(name: string, preset: PresetCreateSchema) {
+  public upsertSearchPreset(name: string, preset: PresetCreateSchema<any, any>) {
     return this.typesenseClient?.presets().upsert(name, preset);
   }
 
@@ -165,7 +165,7 @@ export class Api {
     return this.typesenseClient?.collections(collectionName).documents().export();
   }
 
-  public search(collectionName: string, searchParameters: SearchParams) {
+  public search(collectionName: string, searchParameters: SearchParams<any>) {
     return this.typesenseClient?.collections(collectionName).documents().search(searchParameters);
   }
 
