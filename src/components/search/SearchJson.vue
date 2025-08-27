@@ -88,7 +88,7 @@ const store = useNodeStore();
 const STORAGE_KEY_SEARCH_HISTORY = 'typesense-search-history';
 
 const history = ref<string[]>([]);
-const searchParameters = ref<SearchParams>({
+const searchParameters = ref<SearchParams<any>>({
   q: 'stark',
   query_by: 'company_name',
   filter_by: 'num_employees:>100',
@@ -119,16 +119,65 @@ const hits = computed(() => {
 
   return results.value.hits.map((item: any) => {
     const transformedItem = Object.assign({}, item.document);
-    transformedItem._highlightResult = Object.keys(item.document).reduce(
-      (obj: any, key: string) => {
-        obj[key] = { value: String(item.document[key]) };
-        return obj;
-      },
-      {},
-    );
+
+    // Create a deep copy of the document structure for _highlightResult
+    const createHighlightStructure = (obj: any): any => {
+      if (obj === null || obj === undefined) {
+        return { value: String(obj), matchLevel: 'none' };
+      }
+
+      if (Array.isArray(obj)) {
+        return obj.map((subItem: any) => createHighlightStructure(subItem));
+      }
+
+      if (typeof obj === 'object') {
+        const result: any = {};
+        for (const key in obj) {
+          if (Object.prototype.hasOwnProperty.call(obj, key)) {
+            result[key] = createHighlightStructure(obj[key]);
+          }
+        }
+        return result;
+      }
+
+      return { value: String(obj), matchLevel: 'none' };
+    };
+
+    transformedItem._highlightResult = createHighlightStructure(item.document);
+
+    // Apply highlights to the appropriate nested paths
     item.highlights.forEach((h: any) => {
-      transformedItem._highlightResult[h.field] = { value: h.snippet };
+      const fieldPath = h.field.split('.');
+      let current = transformedItem._highlightResult;
+
+      // Navigate to the correct nested location
+      for (let i = 0; i < fieldPath.length - 1; i++) {
+        const pathSegment = fieldPath[i];
+        if (current[pathSegment] !== undefined) {
+          current = current[pathSegment];
+        }
+      }
+
+      const finalKey = fieldPath[fieldPath.length - 1];
+      if (current[finalKey] !== undefined) {
+        if (Array.isArray(current[finalKey])) {
+          // For arrays, we need to find the matching item or update all
+          // This is a simplified approach - in a real scenario you might want
+          // to match based on indices or content
+          current[finalKey] = current[finalKey].map((item: any) => {
+            if (typeof item === 'object' && item.value !== undefined) {
+              return { ...item, value: h.snippet, matchLevel: 'full' };
+            }
+            return { value: h.snippet, matchLevel: 'full' };
+          });
+        } else if (typeof current[finalKey] === 'object' && current[finalKey].value !== undefined) {
+          current[finalKey] = { value: h.snippet, matchLevel: 'full' };
+        } else {
+          current[finalKey] = { value: h.snippet, matchLevel: 'full' };
+        }
+      }
     });
+
     return transformedItem;
   });
 });

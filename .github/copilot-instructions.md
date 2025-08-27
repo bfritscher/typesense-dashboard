@@ -44,6 +44,7 @@ Always reference these instructions first and fallback to search or bash command
 The following are outputs from frequently run commands. Reference them instead of viewing, searching, or running bash commands to save time.
 
 ### Repository Root
+
 ```
 ls -la
 .dockerignore
@@ -76,6 +77,7 @@ typesense-test-server/
 ```
 
 ### Package.json Scripts
+
 ```
 "scripts": {
   "lint": "eslint -c ./eslint.config.js \"./src*/**/*.{ts,js,cjs,mjs,vue}\"",
@@ -90,6 +92,7 @@ typesense-test-server/
 ```
 
 ### Key Dependencies
+
 - Vue 3.5.17
 - Quasar Framework 2.18.1
 - TypeScript 5.8.3
@@ -98,6 +101,7 @@ typesense-test-server/
 - Monaco Editor 0.52.2 (for code editing)
 
 ### Project Structure
+
 - `src/` - Main Vue application source code
   - `src/pages/` - Page components (Collections, Search, ApiKeys, etc.)
   - `src/components/` - Reusable components
@@ -111,6 +115,7 @@ typesense-test-server/
 - `config.json.sample` - Sample configuration for auto-login
 
 ### Build Outputs
+
 - Web build: `dist/spa/` - Static files ready for web deployment
 - Desktop build: `dist/electron/Packaged/` - Contains platform-specific executables:
   - `Typesense-Dashboard-linux-x64/`
@@ -119,15 +124,17 @@ typesense-test-server/
   - `Typesense-Dashboard-win32-x64/`
 
 ### Configuration
+
 - Development servers use port 9000 by default
 - The application can be configured with `config.json` for auto-login and UI customization
 - See `config.json.sample` for configuration options
 - Environment can be tested with local Typesense instances using `typesense-test-server/docker-compose.yml`
   - Provides multiple Typesense versions (v17.0 to v28.0) on different ports
-  - Default API key is "dev" 
+  - Default API key is "dev"
   - Example: Typesense v28 runs on port 8128, v27 on 8127, etc.
 
 ### CI/CD Workflows
+
 - `.github/workflows/build_deploy.yml` - Builds and deploys to GitHub Pages
 - `.github/workflows/build_docker.yml` - Builds and publishes Docker images
 - `.github/workflows/release_tags.yml` - Handles release automation

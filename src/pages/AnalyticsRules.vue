@@ -54,7 +54,7 @@
                   hint="Track searches sent to these collections or aliases"
                 ></q-select>
                 <q-select
-                  v-model="state.rule.params.destination.collection"
+                  v-model="state.rule.params.destination!.collection"
                   class="col-12 col-sm-6"
                   label="Destination Collection"
                   filled
@@ -189,7 +189,7 @@ const state = reactive({
     {
       label: 'Destination Collection',
       name: 'destination',
-      field: (r: AnalyticsRuleSchema) => r.params.destination.collection,
+      field: (r: AnalyticsRuleSchema) => r.params.destination?.collection || '',
       align: 'left',
       sortable: true,
     },

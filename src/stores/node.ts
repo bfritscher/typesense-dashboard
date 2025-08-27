@@ -28,7 +28,7 @@ export interface NodeDataInterface {
   aliases: CollectionAliasSchema[];
   apiKeys: KeySchema[];
   analyticsRules: AnalyticsRuleSchema[];
-  searchPresets: PresetSchema[];
+  searchPresets: PresetSchema<any>[];
   stopwords: StopwordSchema[];
   overrides: OverrideSchema[];
   synonyms: SynonymSchema[];
@@ -266,7 +266,7 @@ export const useNodeStore = defineStore('node', {
       }
     },
     async getSearchPresets() {
-      await this.api?.getSearchPresets()?.then((response: { presets: PresetSchema[] }) => {
+      await this.api?.getSearchPresets()?.then((response: { presets: PresetSchema<any>[] }) => {
         this.setData({
           searchPresets: response.presets,
         });
@@ -490,7 +490,7 @@ export const useNodeStore = defineStore('node', {
       }
       return this.api?.deleteDocumentById(this.currentCollection.name, id);
     },
-    search(payload: SearchParams) {
+    search(payload: SearchParams<any>) {
       return (this.api as Api)?.search(
         this.currentCollection?.name || '',
         JSON.parse(JSON.stringify(payload)), // remove proxy which is not serializable
@@ -575,6 +575,24 @@ export const useNodeStore = defineStore('node', {
             timeout: 1000,
             color: 'positive',
             message: `Set Slow Request Threshold to: ${payload}`,
+          });
+        }
+      } catch (error) {
+        this.setError((error as Error).message);
+      }
+    },
+    async createSnapshot(snapshotPath: string) {
+      try {
+        this.setError(null);
+        const response = await this.api?.createSnapshot(snapshotPath);
+        if (response?.success) {
+          Notify.create({
+            position: 'top',
+            progress: true,
+            group: false,
+            timeout: 3000,
+            color: 'positive',
+            message: `Snapshot created successfully at: ${snapshotPath}`,
           });
         }
       } catch (error) {
