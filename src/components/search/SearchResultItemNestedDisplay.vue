@@ -74,19 +74,42 @@ const sortedKeys = computed(() => {
     .concat(keys.filter((key) => !props.includeFields.includes(key)));
 });
 
-function extractValue(item: any): any {
-  if (Array.isArray(item)) {
-    return item.map((subitem: any) => extractValue(subitem));
+function extractValue(item: any, depth = 0, visited = new WeakSet()): any {
+  // Prevent infinite recursion with depth limit
+  if (depth > 10) {
+    return '[Max depth reached]';
   }
+
+  // Handle primitive values
+  if (item === null || item === undefined) {
+    return item;
+  }
+  if (typeof item !== 'object') {
+    return item;
+  }
+
+  // Prevent circular references
+  if (visited.has(item)) {
+    return '[Circular reference]';
+  }
+  visited.add(item);
+
+  if (Array.isArray(item)) {
+    return item.map((subitem: any) => extractValue(subitem, depth + 1, visited));
+  }
+  
   if (
     Object.prototype.hasOwnProperty.call(item, 'value') &&
     Object.prototype.hasOwnProperty.call(item, 'matchLevel')
   ) {
     return item.value;
   }
+  
   const values: Record<string, any> = {};
   for (const key in item) {
-    values[key] = extractValue(item[key]);
+    if (Object.prototype.hasOwnProperty.call(item, key)) {
+      values[key] = extractValue(item[key], depth + 1, visited);
+    }
   }
   return values;
 }
