@@ -74,21 +74,41 @@ const sortedKeys = computed(() => {
     .concat(keys.filter((key) => !props.includeFields.includes(key)));
 });
 
-function extractValue(item: any): any {
-  if (Array.isArray(item)) {
-    return item.map((subitem: any) => extractValue(subitem));
+function extractValue(item: any, visited = new WeakSet()): any {
+  // Handle primitive types
+  if (item === null || typeof item !== 'object') {
+    return item;
   }
-  if (
-    Object.prototype.hasOwnProperty.call(item, 'value') &&
-    Object.prototype.hasOwnProperty.call(item, 'matchLevel')
-  ) {
-    return item.value;
+  
+  // Check for circular reference
+  if (visited.has(item)) {
+    return '[Circular]';
   }
-  const values: Record<string, any> = {};
-  for (const key in item) {
-    values[key] = extractValue(item[key]);
+  
+  // Add to visited set
+  visited.add(item);
+  
+  try {
+    if (Array.isArray(item)) {
+      return item.map((subitem: any) => extractValue(subitem, visited));
+    }
+    
+    if (
+      Object.prototype.hasOwnProperty.call(item, 'value') &&
+      Object.prototype.hasOwnProperty.call(item, 'matchLevel')
+    ) {
+      return item.value;
+    }
+    
+    const values: Record<string, any> = {};
+    for (const key in item) {
+      values[key] = extractValue(item[key], visited);
+    }
+    return values;
+  } finally {
+    // Remove from visited set after processing
+    visited.delete(item);
   }
-  return values;
 }
 </script>
 <style>
