@@ -39,6 +39,18 @@
           @update:model-value="updateTypesenseAdapterConfiguration()"
         ></q-select>
 
+        <div class="text-subtitle2 q-pt-md">Max Candidates</div>
+        <q-input
+          v-model.number="maxCandidates"
+          type="number"
+          outlined
+          dense
+          :min="0"
+          :max="10000"
+          hint="Number of similar words for prefix and typo searching"
+          @update:model-value="updateTypesenseAdapterConfiguration()"
+        ></q-input>
+
         <div v-for="name in facetNumberFields" :key="name" class="q-mb-sm">
           <div class="text-subtitle2 q-pt-md">{{ name }}</div>
           <ais-range-input :searchable="true" :attribute="name" />
@@ -89,6 +101,7 @@ const typesenseInstantsearchAdapter = ref<TypesenseInstantSearchAdapter>();
 const instantSearchInstance = ref<any>();
 const searchClientError = ref<string | null>(null);
 const currentStopwordsSet = ref(null);
+const maxCandidates = ref(4);
 
 const middlewares = [
   ({ instantSearchInstance: instance }: any) => {
@@ -173,6 +186,7 @@ const updateTypesenseAdapterConfiguration = () => {
         // @ts-expect-error internal property
         ...typesenseInstantsearchAdapter.value.configuration.additionalSearchParameters,
         stopwords: currentStopwordsSet.value,
+        max_candidates: maxCandidates.value,
       },
     });
   }
@@ -202,7 +216,7 @@ watch(
             apiKey: store.loginData.apiKey,
           },
           additionalSearchParameters: {
-            exhaustive_search: true,
+            max_candidates: maxCandidates.value,
             query_by,
           },
         });
