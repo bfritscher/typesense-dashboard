@@ -71,6 +71,20 @@
         <q-item-section> Stopwords </q-item-section>
       </q-item>
 
+      <q-item
+        v-ripple
+        clickable
+        to="/stemming"
+        exact
+        :disable="!store.data.features.stemmingDictionaries"
+      >
+        <q-item-section avatar>
+          <q-icon name="sym_s_spellcheck" />
+        </q-item-section>
+
+        <q-item-section> Stemming </q-item-section>
+      </q-item>
+
       <q-separator spaced />
 
       <q-item>

@@ -123,6 +123,18 @@ export class Api {
     return this.typesenseClient?.stopwords(id).delete();
   }
 
+  public getStemmingDictionaries() {
+    return this.typesenseClient?.stemming.dictionaries().retrieve();
+  }
+
+  public upsertStemmingDictionaries(id: string, wordRootCombinations: string | any[]) {
+    return this.typesenseClient?.stemming.dictionaries().upsert(id, wordRootCombinations);
+  }
+
+  public getStemmingDictionary(id: string) {
+    return this.typesenseClient?.stemming.dictionaries(id).retrieve();
+  }
+
   public getSynonyms(collectionName: string) {
     return this.typesenseClient?.collections(collectionName).synonyms().retrieve();
   }
@@ -183,6 +195,17 @@ export class Api {
   public post(url: string, body?: any): Promise<any> | void {
     return this.axiosClient
       ?.post(url, body)
+      .then((r) => {
+        return { data: r.data };
+      })
+      .catch((err) => {
+        throw Error(err.response?.data?.message || err.message);
+      });
+  }
+
+  public delete(url: string): Promise<any> | void {
+    return this.axiosClient
+      ?.delete(url)
       .then((r) => {
         return { data: r.data };
       })
