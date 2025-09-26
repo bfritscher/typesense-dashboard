@@ -51,6 +51,10 @@ const apiMethods = [
   'getStopwords',
   'upsertStopwords',
   'deleteStopwords',
+  'getStemmingDictionaries',
+  'upsertStemmingDictionaries',
+  'getStemmingDictionary',
+  'deleteStemmingDictionary',
   'getSynonyms',
   'upsertSynonym',
   'deleteSynonym',
@@ -63,12 +67,16 @@ const apiMethods = [
   'search',
   'get',
   'post',
+  'delete',
   'createSnapshot',
 ];
 
 const api = {
   importFile: (collectionName: any, action: any) => {
     return ipcRenderer.invoke('importFile', collectionName, action);
+  },
+  importStemmingFile: (id: string) => {
+    return ipcRenderer.invoke('importStemmingFile', id);
   },
   rejectTLS: (value: any) => {
     return ipcRenderer.invoke('rejectTLS', value);

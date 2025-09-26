@@ -70,7 +70,6 @@
 
     <q-table
       class="q-mt-md"
-      title="Search Presets"
       flat
       bordered
       wrap-cells

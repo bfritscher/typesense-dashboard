@@ -75,7 +75,7 @@ const appApi = new Api();
 ipcMain.handle('importFile', async (events, collectionName, action) => {
   const { filePaths } = await dialog.showOpenDialog({
     properties: ['openFile'],
-    filters: [{ name: 'JSON/LJSON', extensions: ['json', 'ljson'] }],
+    filters: [{ name: 'JSON/JSONL', extensions: ['json', 'jsonl'] }],
   });
   if (filePaths && filePaths.length > 0) {
     let documents = fs.readFileSync(filePaths[0] || '', 'utf8');
@@ -83,9 +83,26 @@ ipcMain.handle('importFile', async (events, collectionName, action) => {
       documents = JSON.parse(documents);
     } catch (e) {
       console.error(e);
-      // assume ljson
+      // assume jsonl
     }
     return appApi.importDocuments(collectionName, documents, action);
+  }
+});
+
+ipcMain.handle('importStemmingFile', async (events, id) => {
+  const { filePaths } = await dialog.showOpenDialog({
+    properties: ['openFile'],
+    filters: [{ name: 'JSON/JSONL', extensions: ['json', 'jsonl'] }],
+  });
+  if (filePaths && filePaths.length > 0) {
+    let wordRootCombinations: string | any[] = fs.readFileSync(filePaths[0] || '', 'utf8');
+    try {
+      wordRootCombinations = JSON.parse(wordRootCombinations);
+    } catch (e) {
+      console.error(e);
+      // assume jsonl
+    }
+    return appApi.upsertStemmingDictionaries(id, wordRootCombinations);
   }
 });
 

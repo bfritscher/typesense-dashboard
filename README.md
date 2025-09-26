@@ -106,7 +106,7 @@ The `ui` section allows you to customize the dashboard interface:
 ### Desktop
 
 With the desktop application everything except instant search will work without cors.
-To export or import large json or ljson files, desktop version is required, because the browser version times out.
+To export or import large json or jsonl files, desktop version is required, because the browser version times out.
 
 Download from the [release page](https://github.com/bfritscher/typesense-dashboard/releases) or build your own.
 

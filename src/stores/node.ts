@@ -10,6 +10,8 @@ import type { DebugResponseSchema } from 'typesense/lib/Typesense/Debug';
 import type { AnalyticsRuleSchema } from 'typesense/lib/Typesense/AnalyticsRule';
 import type { PresetSchema } from 'typesense/lib/Typesense/Preset';
 import type { StopwordSchema } from 'typesense/lib/Typesense/Stopword';
+import type { StemmingDictionariesRetrieveSchema } from 'typesense/lib/Typesense/StemmingDictionaries';
+import type { StemmingDictionarySchema } from 'typesense/lib/Typesense/StemmingDictionary';
 import type { NodeConfiguration } from 'typesense/lib/Typesense/Configuration';
 import type { RouteLocationNormalized } from 'vue-router';
 
@@ -30,11 +32,13 @@ export interface NodeDataInterface {
   analyticsRules: AnalyticsRuleSchema[];
   searchPresets: PresetSchema<any>[];
   stopwords: StopwordSchema[];
+  stemmingDictionaries: string[];
   overrides: OverrideSchema[];
   synonyms: SynonymSchema[];
   defaultDocVersion: string;
   features: {
     stopwords: boolean;
+    stemmingDictionaries: boolean;
     analyticsRules: boolean;
     searchPresets: boolean;
     stats: boolean;
@@ -101,11 +105,13 @@ function state(): NodeStateInterface {
       analyticsRules: [],
       searchPresets: [],
       stopwords: [],
+      stemmingDictionaries: [],
       overrides: [],
       synonyms: [],
       defaultDocVersion: '28.0',
       features: {
         stopwords: false,
+        stemmingDictionaries: false,
         analyticsRules: false,
         searchPresets: false,
         stats: false,
@@ -153,6 +159,7 @@ export const useNodeStore = defineStore('node', {
               'getSearchPresets',
               'getAnalyticsRules',
               'getStopwords',
+              'getStemmingDictionaries',
               'getApiKeys',
               'getDebug',
             ].forEach((funcName) => {
@@ -304,6 +311,31 @@ export const useNodeStore = defineStore('node', {
     async deleteStopwords(id: string) {
       await this.api?.deleteStopwords(id);
       void this.getStopwords();
+    },
+    async getStemmingDictionaries() {
+      await this.api
+        ?.getStemmingDictionaries()
+        ?.then((response: StemmingDictionariesRetrieveSchema) => {
+          this.setData({
+            stemmingDictionaries: response.dictionaries,
+          });
+        });
+    },
+    async upsertStemmingDictionaries(dictionary: StemmingDictionarySchema) {
+      try {
+        this.setError(null);
+        await this.api?.upsertStemmingDictionaries(dictionary.id, dictionary.words);
+        void this.getStemmingDictionaries();
+      } catch (error) {
+        this.setError((error as Error).message);
+      }
+    },
+    async getStemmingDictionary(id: string) {
+      return await this.api?.getStemmingDictionary(id);
+    },
+    async deleteStemmingDictionary(id: string) {
+      await this.api?.delete(`/stemming/dictionaries/${id}`);
+      void this.getStemmingDictionaries();
     },
     getSynonyms(collectionName: string) {
       void this.api
@@ -511,7 +543,7 @@ export const useNodeStore = defineStore('node', {
         const blob = new Blob([documents], {
           type: 'text/plain;charset=utf-8',
         });
-        FileSaver.saveAs(blob, `${collectionName}.ljson`);
+        FileSaver.saveAs(blob, `${collectionName}.jsonl`);
       });
     },
 
