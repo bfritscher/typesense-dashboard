@@ -63,7 +63,7 @@
           </q-td>
           <q-td key="schema_fields" :props="props">
             <q-btn no-caps flat :to="`/collection/${props.row.name}/schema`"
-              >{{ props.row.fields.length || 0 }} <q-icon name="sym_s_data_object" size="1em" right
+              >{{ props.row.fields?.length || 0 }} <q-icon name="sym_s_data_object" size="1em" right
             /></q-btn>
           </q-td>
           <q-td key="created_at" :props="props">
