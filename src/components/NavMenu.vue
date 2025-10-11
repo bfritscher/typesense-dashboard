@@ -9,6 +9,14 @@
         <q-item-section> Server Status </q-item-section>
       </q-item>
 
+      <q-item v-if="!!store.currentClusterTag" v-ripple clickable :to="{ name: 'Clusters' }">
+        <q-item-section avatar>
+          <q-icon name="sym_s_view_column" />
+        </q-item-section>
+
+        <q-item-section> Cluster Status </q-item-section>
+      </q-item>
+
       <q-item v-ripple clickable to="/collections" exact>
         <q-item-section avatar>
           <q-icon name="sym_s_grid_view" />

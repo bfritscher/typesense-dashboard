@@ -20,12 +20,19 @@ import { LocalStorage, Notify } from 'quasar';
 import { acceptHMRUpdate, defineStore } from 'pinia';
 import { Api } from 'src/shared/api';
 
+export interface Health {
+  ok: boolean;
+  resource_error?: string;
+}
+
 export interface NodeDataInterface {
   debug: any;
 
   metrics: any;
 
   stats: any;
+
+  health: Health | undefined;
   collections: CollectionSchema[];
   aliases: CollectionAliasSchema[];
   apiKeys: KeySchema[];
@@ -45,6 +52,7 @@ export interface NodeDataInterface {
     aliases: boolean;
     apiKeys: boolean;
     debug: boolean;
+    health: boolean;
   };
 }
 
@@ -55,6 +63,7 @@ export interface CustomNodeConfiguration extends NodeConfiguration {
 export interface NodeLoginDataInterface {
   node: CustomNodeConfiguration;
   apiKey: string;
+  clusterTag?: string;
 }
 
 export interface NodeLoginPayloadInterface extends NodeLoginDataInterface {
@@ -99,6 +108,7 @@ function state(): NodeStateInterface {
       debug: {},
       metrics: {},
       stats: {},
+      health: undefined,
       collections: [],
       aliases: [],
       apiKeys: [],
@@ -118,6 +128,7 @@ function state(): NodeStateInterface {
         aliases: false,
         apiKeys: false,
         debug: false,
+        health: false,
       },
     },
   };
@@ -140,6 +151,46 @@ export const useNodeStore = defineStore('node', {
         });
         return api;
       }
+    },
+    loginHistoryParsed(state): NodeLoginDataInterface[] {
+      const parsed: NodeLoginDataInterface[] = [];
+      for (const raw of state.loginHistory) {
+        if (typeof raw !== 'string') continue;
+        try {
+          const item = JSON.parse(raw) as NodeLoginDataInterface;
+          if (item && item.node && item.apiKey) parsed.push(item);
+        } catch {
+          /* ignore malformed */
+        }
+      }
+      return parsed;
+    },
+    currentHistoryEntry(): NodeLoginDataInterface | null {
+      if (!this.loginData) return null;
+      const baseKey = JSON.stringify({ node: this.loginData.node, apiKey: this.loginData.apiKey });
+      for (const item of this.loginHistoryParsed) {
+        const key = JSON.stringify({ node: item.node, apiKey: item.apiKey });
+        if (key === baseKey) return item;
+      }
+      return null;
+    },
+    currentClusterTag(): string | null {
+      return this.currentHistoryEntry?.clusterTag || null;
+    },
+    clusterMembersForCurrent(): NodeLoginDataInterface[] {
+      const tag = this.currentClusterTag;
+      if (!tag) return [];
+      return this.loginHistoryParsed
+        .filter((h) => h.clusterTag === tag)
+        .slice()
+        .sort((a, b) => {
+          const h = a.node.host.localeCompare(b.node.host);
+          if (h !== 0) return h;
+          const pa = Number(a.node.port || 0);
+          const pb = Number(b.node.port || 0);
+          if (pa !== pb) return pa - pb;
+          return String(a.node.protocol).localeCompare(String(b.node.protocol));
+        });
     },
   },
   actions: {
@@ -198,6 +249,18 @@ export const useNodeStore = defineStore('node', {
           metrics: response.data,
         });
       });
+      this.api
+        ?.get('/health')
+        ?.then((response: AxiosResponse) => {
+          this.setData({ health: response.data });
+          this.setFeature({
+            key: 'health',
+            value: true,
+          });
+        })
+        .catch(() => {
+          this.setFeature({ key: 'health', value: false });
+        });
       this.api
         ?.get('/stats.json')
         ?.then((response: AxiosResponse) => {
@@ -357,8 +420,24 @@ export const useNodeStore = defineStore('node', {
     },
     login(loginData: NodeLoginPayloadInterface) {
       const { apiKey, node, forceHomeRedirect = false } = loginData;
+      let { clusterTag } = loginData;
+      // Recover clusterTag from history if not provided
+      if (!clusterTag) {
+        try {
+          const targetKey = JSON.stringify({ node, apiKey });
+          for (const item of this.loginHistoryParsed) {
+            const key = JSON.stringify({ node: item.node, apiKey: item.apiKey });
+            if (key === targetKey && item.clusterTag) {
+              clusterTag = item.clusterTag;
+              break;
+            }
+          }
+        } catch {
+          /* ignore */
+        }
+      }
       this.setForceRedirect(forceHomeRedirect);
-      this.setNodeData({ apiKey, node });
+      this.setNodeData({ apiKey, node, clusterTag } as NodeLoginDataInterface);
       void this.connectionCheck();
     },
     logout() {
@@ -366,6 +445,9 @@ export const useNodeStore = defineStore('node', {
       this.setNodeData(null);
       this.setCurrentCollection(null);
       this.setIsConnected(false);
+    },
+    isCurrent(member: NodeLoginDataInterface): boolean {
+      return JSON.stringify(this.loginData) === JSON.stringify(member);
     },
     loadCurrentCollection(collection: CollectionSchema | null) {
       this.setCurrentCollection(collection);
@@ -632,7 +714,7 @@ export const useNodeStore = defineStore('node', {
       }
     },
     /*** mutations from vuex migration ****/
-    setNodeData(payload: { apiKey: string; node: CustomNodeConfiguration } | null) {
+    setNodeData(payload: NodeLoginDataInterface | null): void {
       this.loginData = payload;
       LocalStorage.set(STORAGE_KEY_LOGIN, payload);
     },
@@ -672,11 +754,94 @@ export const useNodeStore = defineStore('node', {
         this.loginHistory.splice(index, 1);
       }
       this.loginHistory.unshift(currentLoginDataJson);
+      // cleanup remove duplicates without custom tags and preserve custom tags
+      // Strategy:
+      // - Consider duplicates based on { node, apiKey } only (ignore clusterTag for identity)
+      // - Keep at most one entry per identity
+      // - Prefer a tagged entry over an untagged one; if an untagged was kept earlier,
+      //   replace it when we encounter a tagged duplicate
+      // - If a tagged entry already exists for an identity, drop subsequent duplicates
+      try {
+        const cleaned: string[] = [];
+        const keptPosByKey = new Map<string, number>();
+        const hasTaggedByKey = new Map<string, boolean>();
+
+        for (const raw of this.loginHistory) {
+          if (typeof raw !== 'string') continue;
+          let parsed: NodeLoginDataInterface | null = null;
+          try {
+            parsed = JSON.parse(raw) as NodeLoginDataInterface;
+          } catch {
+            // ignore malformed entries
+            continue;
+          }
+          if (!parsed || !parsed.node || !parsed.apiKey) continue;
+
+          const identityKey = JSON.stringify({ node: parsed.node, apiKey: parsed.apiKey });
+          const hasTag = Boolean(parsed.clusterTag && String(parsed.clusterTag).length > 0);
+
+          if (!keptPosByKey.has(identityKey)) {
+            cleaned.push(raw);
+            keptPosByKey.set(identityKey, cleaned.length - 1);
+            hasTaggedByKey.set(identityKey, hasTag);
+            continue;
+          }
+
+          const alreadyTagged = hasTaggedByKey.get(identityKey) === true;
+          if (alreadyTagged) {
+            // We already kept a tagged entry for this identity; drop duplicates
+            continue;
+          }
+
+          // We only have an untagged kept so far
+          if (hasTag) {
+            // Replace previously kept untagged with this tagged one
+            const pos = keptPosByKey.get(identityKey)!;
+            cleaned[pos] = raw;
+            hasTaggedByKey.set(identityKey, true);
+          }
+          // else: both untagged duplicates -> drop current
+        }
+
+        this.loginHistory = cleaned;
+      } catch {
+        // If anything goes wrong during cleanup, keep the current list as-is
+      }
       LocalStorage.set(STORAGE_KEY_LOGIN_HISTORY, this.loginHistory);
     },
     clearHistory(): void {
       this.loginHistory = [];
       LocalStorage.set(STORAGE_KEY_LOGIN_HISTORY, []);
+    },
+    removeHistoryAt(index: number): void {
+      if (index >= 0 && index < this.loginHistory.length) {
+        this.loginHistory.splice(index, 1);
+        LocalStorage.set(STORAGE_KEY_LOGIN_HISTORY, this.loginHistory);
+      }
+    },
+    setHistoryTag(index: number, tag: string): void {
+      if (index < 0 || index >= this.loginHistoryParsed.length) return;
+      const parsed = this.loginHistoryParsed[index] as NodeLoginDataInterface;
+      const updated: NodeLoginDataInterface = {
+        node: parsed.node,
+        apiKey: parsed.apiKey,
+        clusterTag: tag,
+      };
+      this.loginHistory.splice(index, 1, JSON.stringify(updated));
+      LocalStorage.set(STORAGE_KEY_LOGIN_HISTORY, this.loginHistory);
+      if (this.loginData) {
+        this.loginData.clusterTag = tag;
+      }
+    },
+    removeHistoryTag(index: number): void {
+      if (index < 0 || index >= this.loginHistoryParsed.length) return;
+      const base = this.loginHistoryParsed[index] as NodeLoginDataInterface;
+      const noTag: NodeLoginDataInterface = { node: base.node, apiKey: base.apiKey };
+      this.loginHistory.splice(index, 1, JSON.stringify(noTag));
+      LocalStorage.set(STORAGE_KEY_LOGIN_HISTORY, this.loginHistory);
+      if (this.loginData) {
+        delete this.loginData.clusterTag;
+      }
     },
     setForceRedirect(value: boolean): void {
       this.forceHomeRedirect = value;

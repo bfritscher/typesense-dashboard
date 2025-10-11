@@ -89,7 +89,8 @@ Sample config.json (same data as saved in localStorage of the browser). A sample
         "protocol": "http",
         "path": "",
         "tls": true
-      }
+      },
+      "clusterTag": "dev-cluster"
     }
   ]
 }
@@ -102,6 +103,28 @@ The `history` is used to populate the client history to act as bookmarks.
 The `ui` section allows you to customize the dashboard interface:
 
 - `hideProjectInfo`: Set to `true` to hide the project information section (version, GitHub link, and issue tracker) from the navigation menu. Default is `false`.
+
+### Cluster Status
+
+The Cluster Status page lets you see multiple Typesense nodes side-by-side and poll their status in parallel. Each node card shows:
+
+- Node URL and version
+- Role with emphasis (Leader/Follower)
+- Memory and Disk usage
+- Typesense memory metrics (eg, typesense\_\* metrics)
+- System Network Rx/Tx
+- Stats (if enabled on the node)
+
+How it works:
+
+- The navigation entry for Cluster Status appears only when the currently connected node belongs to a cluster.
+- Nodes are associated to a cluster using an optional `clusterTag` field embedded in each login history entry.
+- Nodes are displayed in a stable order (host, then port, then protocol), and the current node is highlighted. You can switch to another node directly from its card.
+
+Ways to define clusters:
+
+- In the UI: tag any saved server entry (from the server history popover) with a text tag. The tag input autocompletes existing tags and accepts new values.
+- In `config.json`: pre-populate history entries with an optional `clusterTag` to group them. If a history entry omits `clusterTag`, it is not part of any cluster. The Cluster Status page is shown only when the currently connected node has a `clusterTag`.
 
 ### Desktop
 
