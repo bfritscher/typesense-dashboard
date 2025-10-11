@@ -14,7 +14,7 @@
         <q-toolbar-title> Typesense Dashboard </q-toolbar-title>
 
         <q-btn padding="xs md" flat dense no-caps>
-          {{ store.loginData?.node.host }}
+          {{ store.loginData?.node.host }}:{{ store.loginData?.node.port }}
           <q-icon right name="sym_s_switch_account" />
           <q-menu>
             <server-history :show-logout="true"></server-history>

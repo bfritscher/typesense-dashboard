@@ -6,20 +6,33 @@
           <q-card-section>
             <div class="text-h5">System</div>
             <div class="text-subtitle1 q-pt-md">CPU</div>
-            <div class="row">
+            <q-linear-progress
+              v-if="hasCpuOverall"
+              size="25px"
+              :value="cpuOverallRatio"
+              color="accent"
+            >
+              <div class="absolute-full flex flex-center">
+                <q-badge color="white" text-color="accent" :label="`${cpuOverallPercent}%`" />
+              </div>
+            </q-linear-progress>
+
+            <div class="row q-mt-sm">
               <div
                 v-for="cpu in sortedCPU"
                 :key="cpu.node"
-                class="column flex-center flex-wrap q-ma-md"
+                class="col-6 col-sm-4 col-md-3 col-lg-2 q-mb-md flex flex-center"
               >
-                <span class="text-overline">CPU {{ cpu.node }}</span>
-                <q-circular-progress
-                  show-value
-                  :value="cpu.value"
-                  size="50px"
-                  color="accent"
-                  track-color="grey-3"
-                />
+                <div class="column items-center">
+                  <span class="text-overline">CPU {{ cpu.node }}</span>
+                  <q-circular-progress
+                    show-value
+                    :value="cpu.value"
+                    size="50px"
+                    color="accent"
+                    track-color="grey-3"
+                  />
+                </div>
               </div>
             </div>
             <div class="text-subtitle1 q-pt-md">Memory</div>
@@ -146,7 +159,10 @@
         <q-card-section>
           <div class="text-h5">Typesense</div>
 
-          <div class="text-subtitle1 q-pt-md">Node</div>
+          <div class="text-subtitle1 q-pt-md">
+            Node
+            <health-tag :health="store.data.health"></health-tag>
+          </div>
 
           <div>Protocol: {{ store.loginData?.node.protocol }}</div>
           <div>Host: {{ store.loginData?.node.host }}</div>
@@ -156,6 +172,35 @@
             Role:
             {{ store.data.debug.state === 1 ? 'Leader' : 'Follower' }}
           </div>
+
+          <template v-if="store.currentClusterTag">
+            <div class="text-subtitle1 q-pt-md">Cluster: {{ store.currentClusterTag }}</div>
+            <q-list dense separator class="q-mt-xs">
+              <q-item
+                v-for="(member, idx) in store.clusterMembersForCurrent"
+                :key="idx"
+                clickable
+                :disable="store.isCurrent(member)"
+                @click="connectTo(member)"
+              >
+                <q-item-section>
+                  {{ member.node.protocol }}://{{ member.node.host }}:{{ member.node.port }}
+                </q-item-section>
+                <q-item-section side>
+                  <q-chip
+                    v-if="store.isCurrent(member)"
+                    color="positive"
+                    text-color="white"
+                    dense
+                    size="sm"
+                  >
+                    Current
+                  </q-chip>
+                  <q-btn v-else flat dense size="sm" label="Connect" />
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </template>
 
           <div class="text-subtitle1 q-pt-md">Memory</div>
           <div
@@ -218,8 +263,10 @@
 
 <script setup lang="ts">
 import { useNodeStore } from 'src/stores/node';
+import type { NodeLoginDataInterface } from 'src/stores/node';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import prettyBytes from 'pretty-bytes';
+import HealthTag from 'src/components/HealthTag.vue';
 
 const store = useNodeStore();
 
@@ -265,7 +312,7 @@ onBeforeUnmount(() => {
 
 const sortedCPU = computed(() => {
   return Object.entries(store.data.metrics)
-    .filter(([key]) => key.includes('cpu'))
+    .filter(([key]) => /^system_cpu\d+_active_percentage$/.test(key))
     .map(([key, value]) => {
       let node = 0;
       const keyData = key.split('_');
@@ -279,4 +326,22 @@ const sortedCPU = computed(() => {
     })
     .sort((a, b) => a.node - b.node);
 });
+
+const hasCpuOverall = computed(() =>
+  Object.prototype.hasOwnProperty.call(store.data.metrics, 'system_cpu_active_percentage'),
+);
+
+const cpuOverallRatio = computed(() => {
+  const metrics = store.data.metrics as Record<string, unknown> | undefined;
+  const raw = metrics ? metrics['system_cpu_active_percentage'] : undefined;
+  const v = typeof raw === 'number' ? raw : typeof raw === 'string' ? parseFloat(raw) : NaN;
+  if (!isFinite(v)) return 0;
+  return Math.max(0, Math.min(1, v / 100));
+});
+
+const cpuOverallPercent = computed(() => Math.round(cpuOverallRatio.value * 100));
+
+function connectTo(member: NodeLoginDataInterface) {
+  void store.login({ apiKey: member.apiKey, node: member.node, forceHomeRedirect: true });
+}
 </script>

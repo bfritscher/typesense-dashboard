@@ -18,6 +18,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'collection/:name/schema', component: () => import('pages/Schema.vue') },
       { path: 'collection/:name/synonyms', component: () => import('pages/Synonyms.vue') },
       { path: 'collection/:name/curations', component: () => import('pages/Overrides.vue') },
+      { path: 'clusters', name: 'Clusters', component: () => import('pages/ClusterStatus.vue') },
     ],
   },
   {

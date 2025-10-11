@@ -20,6 +20,17 @@
         "path": "",
         "tls": true
       }
+    },
+    {
+      "apiKey": "another-api-key",
+      "node": {
+        "host": "production-server-2.com",
+        "port": "443",
+        "protocol": "https",
+        "path": "",
+        "tls": true
+      },
+      "clusterTag": "prod-cluster"
     }
   ]
 }

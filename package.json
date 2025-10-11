@@ -1,6 +1,6 @@
 {
   "name": "typesense-dashboard",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "description": "A Typesense Dashboard to manage and browse collections.",
   "productName": "Typesense-Dashboard",
   "author": "Boris Fritscher <boris@fritscher.ch>",
@@ -14,7 +14,8 @@
     "dev:desktop": "quasar dev -m electron --devtools",
     "build": "quasar build",
     "build:desktop": "quasar build -m electron --target all",
-    "postinstall": "quasar prepare"
+    "postinstall": "quasar prepare",
+    "type-check": "vue-tsc --build"
   },
   "dependencies": {
     "@quasar/extras": "1.17.0",
