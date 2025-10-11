@@ -34,4 +34,30 @@ services:
     command: --data-dir /tmp --api-key=dev --enable-cors
     ports:
       - "8117:8108"
-  
+  typesense-node-1:
+    image: typesense/typesense:29.0
+    container_name: typesense-node-1
+    command: --data-dir /tmp --api-key=dev --enable-cors --cluster --nodes /etc/typesense/nodes
+    ports:
+      - "8101:8108"
+    volumes:
+      - ./nodes:/etc/typesense/nodes
+    depends_on:
+      - typesense-node-2
+      - typesense-node-3
+  typesense-node-2:
+    image: typesense/typesense:29.0
+    container_name: typesense-node-2
+    command: --data-dir /tmp --api-key=dev --enable-cors --cluster --nodes /etc/typesense/nodes
+    ports:
+      - "8102:8108"
+    volumes:
+      - ./nodes:/etc/typesense/nodes
+  typesense-node-3:
+    image: typesense/typesense:29.0
+    container_name: typesense-node-3
+    command: --data-dir /tmp --api-key=dev --enable-cors --cluster --nodes /etc/typesense/nodes
+    ports:
+      - "8103:8108"
+    volumes:
+      - ./nodes:/etc/typesense/nodes
