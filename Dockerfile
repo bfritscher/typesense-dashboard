@@ -21,7 +21,16 @@ RUN apk del .gyp
 FROM caddy:2-alpine
 ARG PUBLIC_PATH
 WORKDIR /srv
+
 COPY --from=builder /app/dist/spa/ .${PUBLIC_PATH}
 
+COPY generate-config.sh /usr/local/bin/generate-config.sh
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /usr/local/bin/generate-config.sh /entrypoint.sh
+
+ENV TYPESENSE_API_KEY=${TYPESENSE_API_KEY}
+ENV TYPESENSE_HOST=${TYPESENSE_HOST}
+ENV TYPESENSE_NODE_PORT=${TYPESENSE_NODE_PORT}
+
 EXPOSE 80
-CMD ["caddy", "file-server"]
+CMD ["/entrypoint.sh"]
