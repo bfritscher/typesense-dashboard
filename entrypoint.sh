@@ -1,10 +1,9 @@
 #!/bin/sh
 set -e
 
-# Generate config.json from environment variables if they are set
-if [ -n "$TYPESENSE_API_KEY" ] || [ -n "$TYPESENSE_NODE_HOST" ]; then
-  /usr/local/bin/generate-config.sh
+if [ -n "$TYPESENSE_DASHBOARD_CONFIG" ]; then
+  echo "$TYPESENSE_DASHBOARD_CONFIG" | base64 -d > /srv/config.json
+  echo "Generated config.json from TYPESENSE_DASHBOARD_CONFIG environment variable"
 fi
 
-# Start Caddy file server
 exec caddy file-server

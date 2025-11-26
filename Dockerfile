@@ -1,5 +1,5 @@
 ARG PUBLIC_PATH=/
-FROM node:22-alpine AS builder
+FROM node:24-alpine AS builder
 ARG PUBLIC_PATH
 WORKDIR /app
 
@@ -16,21 +16,12 @@ COPY . .
 RUN quasar prepare
 RUN quasar build
 
-RUN apk del .gyp
-
 FROM caddy:2-alpine
 ARG PUBLIC_PATH
 WORKDIR /srv
-
-COPY --from=builder /app/dist/spa/ .${PUBLIC_PATH}
-
-COPY generate-config.sh /usr/local/bin/generate-config.sh
 COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /usr/local/bin/generate-config.sh /entrypoint.sh
-
-ENV TYPESENSE_API_KEY=${TYPESENSE_API_KEY}
-ENV TYPESENSE_HOST=${TYPESENSE_HOST}
-ENV TYPESENSE_NODE_PORT=${TYPESENSE_NODE_PORT}
+RUN chmod +x /entrypoint.sh
+COPY --from=builder /app/dist/spa/ .${PUBLIC_PATH}
 
 EXPOSE 80
 CMD ["/entrypoint.sh"]
