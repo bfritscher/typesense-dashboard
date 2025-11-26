@@ -49,10 +49,21 @@ You can also use the pre-built docker image for example like this:
 docker run -d -p 80:80 ghcr.io/bfritscher/typesense-dashboard:latest
 ```
 
-You can enable auto-login by mapping a config.json file to `/srv/config.json` in the container.
+### Configuration
+
+Multiple settings are available to configure the dashboard behaviour: autologin, UI options, bookmarks (via history) and cluster tagging.
+
+The application looks for the configuration in `/config.json` on initial page load. There are two ways to provide this file when running in Docker:
+
+- volume mount a `config.json` file to `/srv/config.json` in the container
+- set environment variable `TYPESENSE_DASHBOARD_CONFIG` containing the configuration JSON file in base64 encoded format (the container will generate `config.json` at startup)
 
 ```bash
 docker run -d -p 80:80 -v /path/to/config.json:/srv/config.json typesense-dashboard
+```
+
+```bash
+docker run -d -p 80:80 -e TYPESENSE_DASHBOARD_CONFIG=$(base64 -w 0 /path/to/config.json) typesense-dashboard
 ```
 
 Sample config.json (same data as saved in localStorage of the browser). A sample configuration file is available at `config.json.sample` in the project root.

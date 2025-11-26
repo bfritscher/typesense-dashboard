@@ -1,5 +1,5 @@
 ARG PUBLIC_PATH=/
-FROM node:22-alpine AS builder
+FROM node:24-alpine AS builder
 ARG PUBLIC_PATH
 WORKDIR /app
 
@@ -16,12 +16,12 @@ COPY . .
 RUN quasar prepare
 RUN quasar build
 
-RUN apk del .gyp
-
 FROM caddy:2-alpine
 ARG PUBLIC_PATH
 WORKDIR /srv
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 COPY --from=builder /app/dist/spa/ .${PUBLIC_PATH}
 
 EXPOSE 80
-CMD ["caddy", "file-server"]
+CMD ["/entrypoint.sh"]

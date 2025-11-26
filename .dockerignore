@@ -1,5 +1,8 @@
 .git/
 .vscode/
+.quasar/
+.github/
+dist/
 Dockerfile
 node_modules/
 typesense-test-server/
