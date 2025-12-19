@@ -72,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive } from 'vue';
+import { computed, onMounted, reactive } from 'vue';
 import { useNodeStore } from 'src/stores/node';
 import { useQuasar } from 'quasar';
 import type { CollectionAliasSchema } from 'typesense/lib/Typesense/Aliases';
@@ -137,4 +137,8 @@ function deleteAlias(name: string) {
     void store.deleteAlias(name);
   });
 }
+
+onMounted(() => {
+  void store.getAliases();
+});
 </script>

@@ -239,7 +239,8 @@ export default defineComponent({
     availableSortFields(): string[] {
       const compatibleFields = (this.schema.fields || []).filter(
         (field) =>
-          ['int32', 'int64','float'].includes(field.type) || (field.type === 'string' && field.sort),
+          ['int32', 'int64', 'float'].includes(field.type) ||
+          (field.type === 'string' && field.sort),
       );
       // empty option + compatible field names
       return [''].concat(compatibleFields.map((field) => field.name));

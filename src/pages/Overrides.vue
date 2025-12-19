@@ -70,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive } from 'vue';
+import { computed, onMounted, reactive } from 'vue';
 import { useQuasar } from 'quasar';
 import { nanoid } from 'nanoid';
 import MonacoEditor from 'src/components/MonacoEditor.vue';
@@ -179,4 +179,10 @@ function deleteOverride(id: string) {
     void store.deleteOverride(id);
   });
 }
+
+onMounted(() => {
+  if (store.currentCollection) {
+    void store.getOverrides(store.currentCollection.name);
+  }
+});
 </script>
