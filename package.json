@@ -34,7 +34,7 @@
     "vue-router": "4.6.4"
   },
   "devDependencies": {
-    "@electron/packager": "19.0.1",
+    "@electron/packager": "18.4.4",
     "@eslint/js": "9.39.2",
     "@quasar/app-vite": "2.4.0",
     "@types/file-saver": "2.0.7",
