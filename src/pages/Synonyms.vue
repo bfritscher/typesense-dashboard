@@ -124,7 +124,7 @@
 
 <script setup lang="ts">
 import { useNodeStore } from 'src/stores/node';
-import { computed, reactive } from 'vue';
+import { computed, onMounted, reactive } from 'vue';
 import { useQuasar } from 'quasar';
 import { nanoid } from 'nanoid';
 import type { SynonymCreateSchema } from 'typesense/lib/Typesense/Synonyms';
@@ -265,4 +265,10 @@ function deleteSynonym(id: string) {
     void store.deleteSynonym(id);
   });
 }
+
+onMounted(() => {
+  if (store.currentCollection) {
+    void store.getSynonyms(store.currentCollection.name);
+  }
+});
 </script>
