@@ -68,6 +68,28 @@ docker run -d -p 80:80 -e TYPESENSE_DASHBOARD_CONFIG=$(base64 -w 0 /path/to/conf
 
 Sample config.json (same data as saved in localStorage of the browser). A sample configuration file is available at `config.json.sample` in the project root.
 
+#### Special host mode: `SAME`
+
+For the web version, you can set `node.host` to `"SAME"` to connect to a Typesense node on the same hostname as the dashboard is being served from.
+When `host` is `"SAME"`, the dashboard resolves:
+
+- `host` from `window.location.hostname`
+- `protocol` from `window.location.protocol` (`http` / `https`)
+- `port` from `window.location.port` (or `80/443` if not present)
+
+This is useful when you reverse-proxy the dashboard and Typesense under the same domain.
+
+Example:
+
+```json
+{
+  "node": {
+    "host": "SAME",
+    "path": "/api",
+  }
+}
+```
+
 ```json
 {
   "apiKey": "xyz",

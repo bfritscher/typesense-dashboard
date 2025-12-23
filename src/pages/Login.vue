@@ -8,21 +8,26 @@
         <q-card bordered class="q-pa-lg shadow-1">
           <q-card-section>
             <q-form class="q-gutter-md">
-              <q-input v-model="state.apiKey" filled type="password" label="Api Key" />
+              <q-input v-model="apiKey" filled type="password" label="Api Key" />
               <p v-if="$q.platform.is.electron">
                 requires server with cors enabled only for search function.
               </p>
               <p v-else>requires server with cors enabled.</p>
               <q-select
-                v-model="state.node.protocol"
+                v-model="store.currentNodeConfig.protocol"
                 filled
-                :options="state.protocolOptions"
+                :options="protocolOptions"
                 label="Protocol"
               />
-              <q-input v-model="state.node.host" filled type="text" label="host" />
-              <q-input v-model.number="state.node.port" filled type="number" label="port" />
+              <q-input v-model="store.currentNodeConfig.host" filled type="text" label="host" />
               <q-input
-                v-model="state.node.path"
+                v-model.number="store.currentNodeConfig.port"
+                filled
+                type="number"
+                label="port"
+              />
+              <q-input
+                v-model="store.currentNodeConfig.path"
                 filled
                 type="text"
                 label="path"
@@ -30,8 +35,8 @@
               />
               <div class="text-left">
                 <q-toggle
-                  v-if="$q.platform.is.electron && state.node.protocol === 'https'"
-                  v-model="state.node.tls"
+                  v-if="$q.platform.is.electron && store.currentNodeConfig.protocol === 'https'"
+                  v-model="store.currentNodeConfig.tls"
                   label="Check TLS"
                 />
               </div>
@@ -68,26 +73,17 @@ import { onMounted, ref } from 'vue';
 
 const store = useNodeStore();
 
+const protocolOptions = ['http', 'https'];
+const apiKey = ref('');
+
 onMounted(() => {
   store.connectionCheck();
 });
 
-const state = ref({
-  apiKey: '',
-  node: {
-    host: 'localhost',
-    port: 8108,
-    protocol: 'http',
-    path: '',
-    tls: true,
-  },
-  protocolOptions: ['http', 'https'],
-});
-
 function login() {
   void store.login({
-    apiKey: state.value.apiKey,
-    node: state.value.node,
+    apiKey: apiKey.value,
+    node: store.currentNodeConfig,
   });
 }
 </script>

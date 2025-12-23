@@ -76,6 +76,7 @@ export interface UIConfigInterface {
 
 export interface NodeStateInterface {
   loginData: NodeLoginDataInterface | null;
+  currentNodeConfig: CustomNodeConfiguration;
   loginHistory: string[];
   forceHomeRedirect: boolean;
   isConnected: boolean;
@@ -92,8 +93,21 @@ export const STORAGE_KEY_LOGIN = 'typesense-logindata';
 export const STORAGE_KEY_LOGIN_HISTORY = 'typesense-loginhistory';
 
 function state(): NodeStateInterface {
+  const storedLoginDataRaw = LocalStorage.getItem(STORAGE_KEY_LOGIN);
+  const storedLoginData: NodeLoginDataInterface | null =
+    storedLoginDataRaw && typeof storedLoginDataRaw === 'object'
+      ? (storedLoginDataRaw as NodeLoginDataInterface)
+      : null;
+  const defaultNodeConfig: CustomNodeConfiguration = {
+    host: 'localhost',
+    port: 8108,
+    protocol: 'http',
+    path: '',
+    tls: true,
+  };
   return {
-    loginData: LocalStorage.getItem(STORAGE_KEY_LOGIN),
+    loginData: storedLoginData,
+    currentNodeConfig: (storedLoginData?.node as CustomNodeConfiguration) || defaultNodeConfig,
     loginHistory: LocalStorage.getItem(STORAGE_KEY_LOGIN_HISTORY) || [],
     forceHomeRedirect: false,
     isConnected: false,
@@ -437,6 +451,7 @@ export const useNodeStore = defineStore('node', {
         }
       }
       this.setForceRedirect(forceHomeRedirect);
+      this.setCurrentNodeConfig(node);
       this.setNodeData({ apiKey, node, clusterTag } as NodeLoginDataInterface);
       void this.connectionCheck();
     },
@@ -717,6 +732,21 @@ export const useNodeStore = defineStore('node', {
     setNodeData(payload: NodeLoginDataInterface | null): void {
       this.loginData = payload;
       LocalStorage.set(STORAGE_KEY_LOGIN, payload);
+    },
+    setCurrentNodeConfig(config: Partial<CustomNodeConfiguration>): void {
+      const merged: CustomNodeConfiguration = {
+        ...(this.currentNodeConfig as CustomNodeConfiguration),
+        ...(config as CustomNodeConfiguration),
+      };
+
+      if (!merged.protocol) merged.protocol = 'http';
+      if (!merged.host) merged.host = 'localhost';
+      const port = Number(merged.port);
+      merged.port = Number.isFinite(port) ? port : 8108;
+      if (merged.path == null) merged.path = '';
+      if (typeof merged.tls !== 'boolean') merged.tls = true;
+
+      this.currentNodeConfig = merged;
     },
     setIsConnected(status: boolean): void {
       const route = this.router.currentRoute.value;
