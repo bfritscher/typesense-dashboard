@@ -10,8 +10,26 @@ export default defineBoot(({ store }) => {
   }
   void axios.get('config.json').then((response) => {
     const nodeStore = useNodeStore(store);
-    if (response.data && response.data.apiKey) {
-      nodeStore.login(response.data);
+    if (response.data && response.data.node) {
+      let node = response.data.node;
+      if (node?.host && String(node.host).toUpperCase() === 'SAME') {
+        const loc = window.location;
+        const protocol = String(loc.protocol || '').replace(':', '') || node.protocol || 'http';
+        const defaultPort = protocol === 'https' ? 443 : 80;
+        const port = Number(loc.port || node.port || defaultPort);
+        node = {
+          ...node,
+          host: loc.hostname,
+          port,
+          protocol,
+        };
+      }
+
+      nodeStore.setCurrentNodeConfig(node);
+
+      if (response.data.apiKey) {
+        nodeStore.login(response.data);
+      }
     }
     if (response.data && response.data.history) {
       response.data.history.forEach((historyItem: NodeLoginDataInterface) => {
