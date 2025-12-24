@@ -23,6 +23,7 @@ export default defineBoot(({ store }) => {
           port,
           protocol,
         };
+        response.data.node = node;
       }
 
       nodeStore.setCurrentNodeConfig(node);
