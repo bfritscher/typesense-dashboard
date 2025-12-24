@@ -77,7 +77,7 @@ const protocolOptions = ['http', 'https'];
 const apiKey = ref('');
 
 onMounted(() => {
-  store.connectionCheck();
+  void store.connectionCheck();
 });
 
 function login() {

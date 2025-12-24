@@ -37,25 +37,23 @@
             </div>
             <div class="text-subtitle1 q-pt-md">Memory</div>
             <q-linear-progress
+              v-if="hasSystemMemory"
               size="25px"
-              :value="
-                parseInt(store.data.metrics.system_memory_used_bytes, 10) /
-                parseInt(store.data.metrics.system_memory_total_bytes, 10)
-              "
+              :value="systemMemoryRatio"
               color="accent"
             >
               <div class="absolute-full flex flex-center">
                 <q-badge
                   color="white"
                   text-color="accent"
-                  :label="prettyBytes(parseInt(store.data.metrics.system_memory_used_bytes, 10))"
+                  :label="prettyBytes(systemMemoryUsedBytes!)"
                 />
               </div>
               <div class="absolute-full flex justify-end">
                 <q-badge
                   color="white"
                   text-color="accent"
-                  :label="prettyBytes(parseInt(store.data.metrics.system_memory_total_bytes, 10))"
+                  :label="prettyBytes(systemMemoryTotalBytes!)"
                 />
               </div>
             </q-linear-progress>
@@ -63,34 +61,32 @@
             <div class="text-subtitle1 q-pt-md">Disk</div>
 
             <q-linear-progress
+              v-if="hasSystemDisk"
               size="25px"
-              :value="
-                parseInt(store.data.metrics.system_disk_used_bytes, 10) /
-                parseInt(store.data.metrics.system_disk_total_bytes, 10)
-              "
+              :value="systemDiskRatio"
               color="accent"
             >
               <div class="absolute-full flex flex-center">
                 <q-badge
                   color="white"
                   text-color="accent"
-                  :label="prettyBytes(parseInt(store.data.metrics.system_disk_used_bytes, 10))"
+                  :label="prettyBytes(systemDiskUsedBytes!)"
                 />
               </div>
               <div class="absolute-full flex justify-end">
                 <q-badge
                   color="white"
                   text-color="accent"
-                  :label="prettyBytes(parseInt(store.data.metrics.system_disk_total_bytes, 10))"
+                  :label="prettyBytes(systemDiskTotalBytes!)"
                 />
               </div>
             </q-linear-progress>
             <div class="text-subtitle1 q-pt-md">System Network</div>
             <div>
               Received:
-              {{ prettyBytes(parseInt(store.data.metrics.system_network_received_bytes, 10)) }}
+              {{ systemNetworkReceivedLabel }}
               Sent:
-              {{ prettyBytes(parseInt(store.data.metrics.system_network_sent_bytes, 10)) }}
+              {{ systemNetworkSentLabel }}
             </div>
           </q-card-section>
         </q-card>
@@ -324,6 +320,7 @@ const sortedCPU = computed(() => {
         value: parseFloat(value as string),
       };
     })
+    .filter((cpu) => Number.isFinite(cpu.value))
     .sort((a, b) => a.node - b.node);
 });
 
@@ -340,6 +337,73 @@ const cpuOverallRatio = computed(() => {
 });
 
 const cpuOverallPercent = computed(() => Math.round(cpuOverallRatio.value * 100));
+
+function toFiniteNumber(v: unknown): number | null {
+  if (typeof v === 'number') {
+    return Number.isFinite(v) ? v : null;
+  }
+  if (typeof v === 'string') {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+}
+
+const systemMemoryUsedBytes = computed(() =>
+  toFiniteNumber((store.data.metrics as Record<string, unknown>)?.system_memory_used_bytes),
+);
+
+const systemMemoryTotalBytes = computed(() =>
+  toFiniteNumber((store.data.metrics as Record<string, unknown>)?.system_memory_total_bytes),
+);
+
+const hasSystemMemory = computed(() => {
+  const used = systemMemoryUsedBytes.value;
+  const total = systemMemoryTotalBytes.value;
+  return used !== null && total !== null && total > 0;
+});
+
+const systemMemoryRatio = computed(() => {
+  if (!hasSystemMemory.value) return 0;
+  const ratio = (systemMemoryUsedBytes.value as number) / (systemMemoryTotalBytes.value as number);
+  if (!Number.isFinite(ratio)) return 0;
+  return Math.max(0, Math.min(1, ratio));
+});
+
+const systemDiskUsedBytes = computed(() =>
+  toFiniteNumber((store.data.metrics as Record<string, unknown>)?.system_disk_used_bytes),
+);
+
+const systemDiskTotalBytes = computed(() =>
+  toFiniteNumber((store.data.metrics as Record<string, unknown>)?.system_disk_total_bytes),
+);
+
+const hasSystemDisk = computed(() => {
+  const used = systemDiskUsedBytes.value;
+  const total = systemDiskTotalBytes.value;
+  return used !== null && total !== null && total > 0;
+});
+
+const systemDiskRatio = computed(() => {
+  if (!hasSystemDisk.value) return 0;
+  const ratio = (systemDiskUsedBytes.value as number) / (systemDiskTotalBytes.value as number);
+  if (!Number.isFinite(ratio)) return 0;
+  return Math.max(0, Math.min(1, ratio));
+});
+
+const systemNetworkReceivedLabel = computed(() => {
+  const v = toFiniteNumber(
+    (store.data.metrics as Record<string, unknown>)?.system_network_received_bytes,
+  );
+  return v === null ? '—' : prettyBytes(v);
+});
+
+const systemNetworkSentLabel = computed(() => {
+  const v = toFiniteNumber(
+    (store.data.metrics as Record<string, unknown>)?.system_network_sent_bytes,
+  );
+  return v === null ? '—' : prettyBytes(v);
+});
 
 function connectTo(member: NodeLoginDataInterface) {
   void store.login({ apiKey: member.apiKey, node: member.node, forceHomeRedirect: true });

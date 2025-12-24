@@ -1,4 +1,4 @@
-import type { AxiosError, AxiosResponse } from 'axios';
+import type { AxiosResponse } from 'axios';
 import type { CollectionSchema, CollectionUpdateSchema } from 'typesense/lib/Typesense/Collection';
 import type { CollectionAliasSchema } from 'typesense/lib/Typesense/Aliases';
 import type { KeySchema } from 'typesense/lib/Typesense/Key';
@@ -91,6 +91,26 @@ export interface NodeStateInterface {
 
 export const STORAGE_KEY_LOGIN = 'typesense-logindata';
 export const STORAGE_KEY_LOGIN_HISTORY = 'typesense-loginhistory';
+
+function isValidMetricsPayload(payload: unknown): payload is Record<string, unknown> {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return false;
+  const keys = Object.keys(payload as Record<string, unknown>);
+  if (keys.length === 0) return false;
+  // Typesense metrics generally contain system_* and/or typesense_* keys.
+  return keys.some((k) => k.startsWith('system_') || k.startsWith('typesense_'));
+}
+
+function isValidCollectionsPayload(payload: unknown): payload is CollectionSchema[] {
+  if (!Array.isArray(payload)) return false;
+  // Collections are objects; require at least a name to avoid treating junk as success.
+  return payload.every(
+    (c) =>
+      c &&
+      typeof c === 'object' &&
+      !Array.isArray(c) &&
+      typeof (c as Record<string, unknown>).name === 'string',
+  );
+}
 
 function state(): NodeStateInterface {
   const storedLoginDataRaw = LocalStorage.getItem(STORAGE_KEY_LOGIN);
@@ -208,61 +228,82 @@ export const useNodeStore = defineStore('node', {
     },
   },
   actions: {
-    connectionCheck() {
-      if (this.loginData) {
-        this.api
-          ?.get('/metrics.json')
-          ?.then(async (response: AxiosResponse) => {
-            this.setData({
-              metrics: response.data,
-            });
-            // minimal required data to consider the connection as successful
-            await this.getCollections();
-            // optional features depending on the apiKey and server capabilities
-            [
-              'getAliases',
-              'getSearchPresets',
-              'getAnalyticsRules',
-              'getStopwords',
-              'getStemmingDictionaries',
-              'getApiKeys',
-              'getDebug',
-            ].forEach((funcName) => {
-              const key = (funcName[3]?.toLowerCase() +
-                funcName.slice(4)) as keyof NodeDataInterface['features'];
-              const func = (this as any)[funcName];
-              func()
-                .then(() => {
-                  this.setFeature({
-                    key,
-                    value: true,
-                  });
-                })
-                .catch(() => {
-                  this.setFeature({
-                    key,
-                    value: false,
-                  });
-                });
-            });
-            this.setIsConnected(true);
-            this.saveHistory();
-            this.setError(null);
-          })
-          .catch((error: AxiosError) => {
-            this.setIsConnected(false);
-            this.setError(error.message);
-          });
-      } else {
+    async connectionCheck() {
+      if (!this.loginData) {
         this.setIsConnected(false);
+        return;
+      }
+
+      // Metrics are optional; only store them when valid.
+      try {
+        const response = await this.api?.get('/metrics.json');
+        if (response && isValidMetricsPayload(response.data)) {
+          this.setData({ metrics: response.data });
+        } else {
+          this.setData({ metrics: {} });
+        }
+      } catch {
+        this.setData({ metrics: {} });
+      }
+
+      try {
+        // Minimal required data to consider the connection successful.
+        const collections = await this.api?.getCollections();
+        if (!isValidCollectionsPayload(collections)) {
+          throw new Error('Invalid collections response');
+        }
+        this.setData({ collections });
+
+        // Optional features depending on the apiKey and server capabilities
+        [
+          'getAliases',
+          'getSearchPresets',
+          'getAnalyticsRules',
+          'getStopwords',
+          'getStemmingDictionaries',
+          'getApiKeys',
+          'getDebug',
+        ].forEach((funcName) => {
+          const key = (funcName[3]?.toLowerCase() +
+            funcName.slice(4)) as keyof NodeDataInterface['features'];
+          const func = (this as any)[funcName];
+          func()
+            .then(() => {
+              this.setFeature({
+                key,
+                value: true,
+              });
+            })
+            .catch(() => {
+              this.setFeature({
+                key,
+                value: false,
+              });
+            });
+        });
+
+        this.setIsConnected(true);
+        this.saveHistory();
+        this.setError(null);
+      } catch (error: unknown) {
+        this.setIsConnected(false);
+        this.setError((error as Error).message || String(error));
       }
     },
     refreshServerStatus() {
-      void this.api?.get('/metrics.json')?.then((response: AxiosResponse) => {
-        this.setData({
-          metrics: response.data,
+      // Metrics are optional; update if valid, otherwise clear so UI can hide them.
+      void this.api
+        ?.get('/metrics.json')
+        ?.then((response: AxiosResponse) => {
+          if (isValidMetricsPayload(response.data)) {
+            this.setData({ metrics: response.data });
+          } else {
+            this.setData({ metrics: {} });
+          }
+        })
+        .catch(() => {
+          this.setData({ metrics: {} });
         });
-      });
       this.api
         ?.get('/health')
         ?.then((response: AxiosResponse) => {
