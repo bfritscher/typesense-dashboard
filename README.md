@@ -49,6 +49,18 @@ You can also use the pre-built docker image for example like this:
 docker run -d -p 80:80 ghcr.io/bfritscher/typesense-dashboard:latest
 ```
 
+#### Development proxy (`/api`)
+
+When running `npm run dev`, you can optionally proxy `/api` to a remote Typesense server to avoid CORS issues during local development.
+
+Set `DEV_API_PROXY_TARGET` to the remote origin (protocol + host + optional port). The dev server will forward `/api/*` to the target and strip the `/api` prefix.
+
+PowerShell example:
+
+```powershell
+$env:DEV_API_PROXY_TARGET = "https://my-typesense.example.com"; npm run dev
+```
+
 ### Configuration
 
 Multiple settings are available to configure the dashboard behaviour: autologin, UI options, bookmarks (via history) and cluster tagging.
@@ -85,7 +97,7 @@ Example:
 {
   "node": {
     "host": "SAME",
-    "path": "/api",
+    "path": "/api"
   }
 }
 ```

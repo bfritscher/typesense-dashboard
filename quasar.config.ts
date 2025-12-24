@@ -8,6 +8,8 @@ import { resolve } from 'path';
 // Read package.json to get version info
 const packageJson = JSON.parse(readFileSync(resolve('./package.json'), 'utf-8'));
 
+const devApiProxyTarget = process.env.DEV_API_PROXY_TARGET;
+
 export default defineConfig((/* ctx */) => {
   return {
     // https://v2.quasar.dev/quasar-cli-vite/prefetch-feature
@@ -92,6 +94,18 @@ export default defineConfig((/* ctx */) => {
     devServer: {
       // https: true,
       open: true, // opens browser window automatically
+      ...(devApiProxyTarget
+        ? {
+            proxy: {
+              '/api': {
+                target: devApiProxyTarget,
+                changeOrigin: true,
+                secure: false,
+                rewrite: (path: string) => path.replace(/^\/api/, ''),
+              },
+            },
+          }
+        : {}),
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#framework
