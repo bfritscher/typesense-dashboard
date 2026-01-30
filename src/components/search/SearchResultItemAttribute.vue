@@ -1,13 +1,13 @@
 <template>
-  <ais-highlight attribute="a" :hit="{ _highlightResult: { a: hit } }" />
-  <div v-if="isImage(hit?.value)" class="img-preview">
-    <q-img :src="hit.value" fit="contain" class="img-preview" />
+  <ais-highlight attribute="a" :hit="{ _highlightResult: { a: hitForHighlight } }" />
+  <div v-if="isImage(hitValue)" class="img-preview">
+    <q-img :src="hitValue" fit="contain" class="img-preview" />
   </div>
   <q-btn
-    v-if="isUrl(hit?.value)"
+    v-if="isUrl(hitValue)"
     class="absolute-top-right"
     flat
-    :href="hit.value"
+    :href="hitValue"
     target="_blank"
     size="sm"
     padding="sm"
@@ -16,12 +16,40 @@
   ></q-btn>
 </template>
 <script setup lang="ts">
-defineProps<{
+import { computed } from 'vue';
+
+const props = defineProps<{
   hit: {
-    value: string;
-    matchLevel: string;
+    value: unknown;
+    matchLevel: unknown;
   };
 }>();
+
+function unknownToString(value: unknown): string {
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
+    return String(value);
+  }
+  if (value instanceof Date) return value.toISOString();
+  if (typeof value === 'object') {
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return '';
+    }
+  }
+  return '';
+}
+
+const hitValue = computed(() => {
+  return unknownToString(props.hit?.value);
+});
+
+const hitForHighlight = computed(() => {
+  const matchLevel = unknownToString(props.hit?.matchLevel);
+  return { value: hitValue.value, matchLevel };
+});
 
 const isUrl = (str: string) => {
   if (!str) return false;
