@@ -163,6 +163,7 @@
           <div>Protocol: {{ store.loginData?.node.protocol }}</div>
           <div>Host: {{ store.loginData?.node.host }}</div>
           <div>Port: {{ store.loginData?.node.port }}</div>
+          <div>Connection Timeout: {{ connectionTimeoutDisplay }}</div>
           <div v-if="store.data.debug.version">Version: {{ store.data.debug.version }}</div>
           <div v-if="Object.hasOwnProperty.call(store.data.debug, 'state')">
             Role:
@@ -405,7 +406,20 @@ const systemNetworkSentLabel = computed(() => {
   return v === null ? '—' : prettyBytes(v);
 });
 
+const connectionTimeoutDisplay = computed(() => {
+  const timeout = store.loginData?.connectionTimeoutSeconds;
+  return timeout !== undefined ? `${timeout}s` : 'Default';
+});
+
 function connectTo(member: NodeLoginDataInterface) {
-  void store.login({ apiKey: member.apiKey, node: member.node, forceHomeRedirect: true });
+  const payload: Parameters<typeof store.login>[0] = {
+    apiKey: member.apiKey,
+    node: member.node,
+    forceHomeRedirect: true,
+  };
+  if (member.connectionTimeoutSeconds !== undefined) {
+    payload.connectionTimeoutSeconds = member.connectionTimeoutSeconds;
+  }
+  void store.login(payload);
 }
 </script>

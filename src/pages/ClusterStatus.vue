@@ -40,6 +40,13 @@ function isCurrent(entry: NodeLoginDataInterface) {
 
 function connect(entry: NodeLoginDataInterface) {
   // Do not redirect to home from the cluster page
-  store.login({ node: entry.node, apiKey: entry.apiKey });
+  const payload: Parameters<typeof store.login>[0] = {
+    node: entry.node,
+    apiKey: entry.apiKey,
+  };
+  if (entry.connectionTimeoutSeconds !== undefined) {
+    payload.connectionTimeoutSeconds = entry.connectionTimeoutSeconds;
+  }
+  store.login(payload);
 }
 </script>

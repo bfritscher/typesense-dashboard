@@ -33,6 +33,23 @@
                 label="path"
                 hint="optional: leave blank or start with / and end without /"
               />
+              <q-expansion-item
+                v-model="showAdvancedSettings"
+                dense
+                dense-toggle
+                label="Advanced settings"
+                class="text-left"
+              >
+                <q-input
+                  v-model.number="connectionTimeoutSeconds"
+                  class="q-mt-sm"
+                  filled
+                  type="number"
+                  label="Connection Timeout (seconds)"
+                  hint="optional: leave blank to use default timeout"
+                  clearable
+                />
+              </q-expansion-item>
               <div class="text-left">
                 <q-toggle
                   v-if="$q.platform.is.electron && store.currentNodeConfig.protocol === 'https'"
@@ -75,15 +92,23 @@ const store = useNodeStore();
 
 const protocolOptions = ['http', 'https'];
 const apiKey = ref('');
+const showAdvancedSettings = ref(false);
+const connectionTimeoutSeconds = ref<number | null>(
+  store.loginData?.connectionTimeoutSeconds ?? null,
+);
 
 onMounted(() => {
   void store.connectionCheck();
 });
 
 function login() {
-  void store.login({
+  const payload: Parameters<typeof store.login>[0] = {
     apiKey: apiKey.value,
     node: store.currentNodeConfig,
-  });
+  };
+  if (connectionTimeoutSeconds.value !== null) {
+    payload.connectionTimeoutSeconds = connectionTimeoutSeconds.value;
+  }
+  void store.login(payload);
 }
 </script>
