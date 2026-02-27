@@ -910,6 +910,9 @@ export const useNodeStore = defineStore('node', {
         apiKey: parsed.apiKey,
         clusterTag: tag,
       };
+      if (parsed.connectionTimeoutSeconds !== undefined) {
+        updated.connectionTimeoutSeconds = parsed.connectionTimeoutSeconds;
+      }
       this.loginHistory.splice(index, 1, JSON.stringify(updated));
       LocalStorage.set(STORAGE_KEY_LOGIN_HISTORY, this.loginHistory);
       if (this.loginData) {
@@ -920,6 +923,9 @@ export const useNodeStore = defineStore('node', {
       if (index < 0 || index >= this.loginHistoryParsed.length) return;
       const base = this.loginHistoryParsed[index] as NodeLoginDataInterface;
       const noTag: NodeLoginDataInterface = { node: base.node, apiKey: base.apiKey };
+      if (base.connectionTimeoutSeconds !== undefined) {
+        noTag.connectionTimeoutSeconds = base.connectionTimeoutSeconds;
+      }
       this.loginHistory.splice(index, 1, JSON.stringify(noTag));
       LocalStorage.set(STORAGE_KEY_LOGIN_HISTORY, this.loginHistory);
       if (this.loginData) {
