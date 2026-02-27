@@ -64,6 +64,7 @@ export interface NodeLoginDataInterface {
   node: CustomNodeConfiguration;
   apiKey: string;
   clusterTag?: string;
+  connectionTimeoutSeconds?: number;
 }
 
 export interface NodeLoginPayloadInterface extends NodeLoginDataInterface {
@@ -179,10 +180,14 @@ export const useNodeStore = defineStore('node', {
           api = electron;
           (electron as any).rejectTLS(Number(state.loginData.node.tls));
         }
-        api.init({
+        const initConfig: Parameters<typeof api.init>[0] = {
           node: { ...state.loginData.node },
           apiKey: state.loginData.apiKey,
-        });
+        };
+        if (state.loginData.connectionTimeoutSeconds !== undefined) {
+          initConfig.connectionTimeoutSeconds = state.loginData.connectionTimeoutSeconds;
+        }
+        api.init(initConfig);
         return api;
       }
     },
@@ -474,7 +479,7 @@ export const useNodeStore = defineStore('node', {
         });
     },
     login(loginData: NodeLoginPayloadInterface) {
-      const { apiKey, node, forceHomeRedirect = false } = loginData;
+      const { apiKey, node, forceHomeRedirect = false, connectionTimeoutSeconds } = loginData;
       let { clusterTag } = loginData;
       // Recover clusterTag from history if not provided
       if (!clusterTag) {
@@ -493,7 +498,14 @@ export const useNodeStore = defineStore('node', {
       }
       this.setForceRedirect(forceHomeRedirect);
       this.setCurrentNodeConfig(node);
-      this.setNodeData({ apiKey, node, clusterTag } as NodeLoginDataInterface);
+      const nodeData: NodeLoginDataInterface = { apiKey, node };
+      if (clusterTag !== undefined) {
+        nodeData.clusterTag = clusterTag;
+      }
+      if (connectionTimeoutSeconds !== undefined) {
+        nodeData.connectionTimeoutSeconds = connectionTimeoutSeconds;
+      }
+      this.setNodeData(nodeData);
       void this.connectionCheck();
     },
     logout() {
