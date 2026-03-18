@@ -169,6 +169,10 @@ export class Api {
     return this.typesenseClient?.collections(collectionName).overrides(id).delete();
   }
 
+  public getDocumentById(collectionName: string, id: string) {
+    return this.typesenseClient?.collections(collectionName).documents(id).retrieve();
+  }
+
   public deleteDocumentById(collectionName: string, id: string) {
     return this.typesenseClient?.collections(collectionName).documents(id).delete();
   }

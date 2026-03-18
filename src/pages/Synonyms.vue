@@ -100,11 +100,37 @@
         <div class="text-h6"><q-icon size="md" name="sym_s_dataset_linked" /> Synonyms</div>
       </template>
       <template #top-right>
+        <q-btn
+          flat
+          dense
+          icon="sym_s_file_upload"
+          label="Import"
+          class="q-mr-sm"
+          title="Import synonyms from JSON file"
+          @click="triggerImport()"
+        />
+        <q-btn
+          flat
+          dense
+          icon="sym_s_file_download"
+          label="Export"
+          class="q-mr-md"
+          title="Export all synonyms as JSON file"
+          :disable="store.data.synonyms.length === 0"
+          @click="exportSynonyms()"
+        />
         <q-input v-model="state.filter" borderless dense debounce="300" placeholder="Search">
           <template #append>
             <q-icon name="sym_s_search" />
           </template>
         </q-input>
+        <input
+          ref="fileInputRef"
+          type="file"
+          accept=".json"
+          style="display: none"
+          @change="handleFileImport"
+        />
       </template>
       <template #body-cell-actions="props">
         <q-td class="text-right">
@@ -124,15 +150,19 @@
 
 <script setup lang="ts">
 import { useNodeStore } from 'src/stores/node';
-import { computed, onMounted, reactive } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 import { useQuasar } from 'quasar';
+import { useRoute } from 'vue-router';
 import { nanoid } from 'nanoid';
+import FileSaver from 'file-saver';
 import type { SynonymCreateSchema } from 'typesense/lib/Typesense/Synonyms';
 import type { SynonymSchema } from 'typesense/lib/Typesense/Synonym';
 import type { QTableProps } from 'quasar';
 
 const $q = useQuasar();
 const store = useNodeStore();
+const route = useRoute();
+const fileInputRef = ref<HTMLInputElement | null>(null);
 
 enum RootTypes {
   ONE_WAY = 'one-way',
@@ -266,9 +296,93 @@ function deleteSynonym(id: string) {
   });
 }
 
+// T-060: Bulk export synonyms as JSON
+function exportSynonyms() {
+  const synonyms = store.data.synonyms.map((s: SynonymSchema) => ({
+    id: s.id,
+    root: s.root,
+    synonyms: s.synonyms,
+    locale: s.locale,
+    symbols_to_index: s.symbols_to_index,
+  }));
+  const blob = new Blob([JSON.stringify(synonyms, null, 2)], {
+    type: 'application/json;charset=utf-8',
+  });
+  const collectionName = store.currentCollection?.name || 'synonyms';
+  FileSaver.saveAs(blob, `${collectionName}-synonyms.json`);
+}
+
+// T-060: Trigger file input for import
+function triggerImport() {
+  fileInputRef.value?.click();
+}
+
+// T-060: Handle file import
+async function handleFileImport(event: Event) {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (!file) return;
+
+  try {
+    const text = await file.text();
+    const synonyms = JSON.parse(text);
+
+    if (!Array.isArray(synonyms)) {
+      $q.notify({ type: 'negative', message: 'Invalid JSON: expected an array of synonyms.' });
+      return;
+    }
+
+    let successCount = 0;
+    let failureCount = 0;
+
+    for (const entry of synonyms) {
+      try {
+        const id = entry.id || nanoid();
+        const synonym: SynonymCreateSchema = {
+          synonyms: entry.synonyms || [],
+        };
+        if (entry.root) {
+          synonym.root = entry.root;
+        }
+        if (entry.locale) {
+          synonym.locale = entry.locale;
+        }
+        if (entry.symbols_to_index && entry.symbols_to_index.length > 0) {
+          synonym.symbols_to_index = entry.symbols_to_index;
+        }
+
+        await store.createSynonym({ id, synonym });
+        successCount++;
+      } catch {
+        failureCount++;
+      }
+    }
+
+    $q.notify({
+      type: failureCount === 0 ? 'positive' : 'warning',
+      message: `Import complete: ${successCount} succeeded, ${failureCount} failed.`,
+    });
+  } catch {
+    $q.notify({ type: 'negative', message: 'Failed to parse JSON file.' });
+  } finally {
+    // Reset file input so the same file can be re-imported
+    target.value = '';
+  }
+}
+
+// T-061: Pre-fill from query parameter
+function applyPrefill() {
+  const prefill = route.query.prefill;
+  if (prefill && typeof prefill === 'string') {
+    state.synonym.synonyms = [prefill] as unknown as string[];
+    state.expanded = true;
+  }
+}
+
 onMounted(() => {
   if (store.currentCollection) {
     void store.getSynonyms(store.currentCollection.name);
   }
+  applyPrefill();
 });
 </script>
