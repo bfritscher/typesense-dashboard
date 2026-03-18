@@ -19,6 +19,27 @@ const routes: RouteRecordRaw[] = [
       { path: 'collection/:name/synonyms', component: () => import('pages/Synonyms.vue') },
       { path: 'collection/:name/curations', component: () => import('pages/Overrides.vue') },
       { path: 'clusters', name: 'Clusters', component: () => import('pages/ClusterStatus.vue') },
+
+      // Merchandising
+      { path: 'merchandising/products', name: 'ProductPositioning', component: () => import('pages/ProductPositioning.vue') },
+      { path: 'merchandising/vendors', name: 'VendorControls', component: () => import('pages/VendorControls.vue') },
+
+      // Search Preview & Debugging
+      { path: 'search/preview', name: 'SearchPreview', component: () => import('pages/SearchPreview.vue') },
+      { path: 'search/debugger', name: 'QueryDebugger', component: () => import('pages/QueryDebugger.vue') },
+      { path: 'search/autocomplete', name: 'AutocompletePreview', component: () => import('pages/AutocompletePreview.vue') },
+
+      // Relevance
+      { path: 'relevance/ranking', name: 'RankingFormula', component: () => import('pages/RankingFormula.vue') },
+      { path: 'relevance/weights', name: 'SearchWeights', component: () => import('pages/SearchWeights.vue') },
+
+      // Curations (enhanced)
+      { path: 'curations/overrides', name: 'OverridesVisual', component: () => import('pages/OverridesVisual.vue') },
+
+      // Analytics
+      { path: 'analytics/popular', name: 'PopularQueries', component: () => import('pages/PopularQueries.vue') },
+      { path: 'analytics/noresults', name: 'NoResultsQueries', component: () => import('pages/NoResultsQueries.vue') },
+      { path: 'analytics/health', name: 'SearchHealthKPIs', component: () => import('pages/SearchHealthKPIs.vue') },
     ],
   },
   {
