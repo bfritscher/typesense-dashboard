@@ -959,6 +959,7 @@ function resetToDefaults() {
 // ---------------------------------------------------------------------------
 const saving = ref(false);
 const presetNote = ref('');
+const lastRecalcNumDocs = ref(0);
 
 async function loadExistingPreset() {
   try {
@@ -1014,6 +1015,8 @@ async function savePreset() {
       sort_entries: sortEntries.map((e) => ({ name: e.name, label: e.label, direction: e.direction })),
       boost_rules: boostRules.map((r) => ({ field: r.field, condition: r.condition, value: r.value, boost: r.boost })),
       ranking_factors: rankingFactors.map((f) => ({ field: f.field, label: f.label, weight: f.weight })),
+      last_recalc_at: Date.now(),
+      last_recalc_num_docs: lastRecalcNumDocs.value,
     };
     await store.api?.upsertSearchPreset(PRESET_NAME, { value: presetValue } as any);
     await store.getSearchPresets();
@@ -1159,6 +1162,9 @@ async function runBatchUpdate() {
       }
     }
 
+    // Pass 1: Fetch min/max stats for all ranking factor fields
+    await fetchFieldStats(collectionName, factorFields);
+
     const countResult = await api.search(collectionName, { q: '*', query_by: 'name', per_page: 0, page: 1 });
     const totalDocs = countResult?.found ?? 0;
     if (totalDocs === 0) { batchRunning.value = false; batchDone.value = true; return; }
@@ -1204,6 +1210,7 @@ async function runBatchUpdate() {
       batchCurrent.value += 1;
       page += 1;
     }
+    lastRecalcNumDocs.value = totalDocs;
   } catch (err: any) {
     batchError.value = `Unexpected error: ${err.message ?? err}`;
   } finally {
