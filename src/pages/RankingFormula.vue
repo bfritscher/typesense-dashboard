@@ -499,6 +499,14 @@ interface SelectOption {
   type?: string;
 }
 
+interface FieldStats {
+  min: number;
+  max: number;
+  useLog: boolean;
+}
+
+const fieldStats = ref<Record<string, FieldStats>>({});
+
 const SORTABLE_TYPES = new Set(['int32', 'int64', 'float', 'bool']);
 const NUMERIC_TYPES = new Set(['int32', 'int64', 'float']);
 const SCORE_FIELD = 'weighted_score';
@@ -769,12 +777,14 @@ function computeScore(doc: Record<string, unknown>): { score: number; breakdown:
   let score = 0;
   const breakdown: string[] = [];
   for (const f of activeFactors.value) {
-    const val = Number(doc[f.field] ?? 0);
-    const contribution = val * f.weight;
+    const raw = Number(doc[f.field] ?? 0);
+    const stats = fieldStats.value[f.field];
+    const normalized = stats ? normalizeValue(raw, stats) : 0;
+    const contribution = Math.round(normalized * f.weight);
     score += contribution;
-    breakdown.push(`${f.field}(${formatCompact(val)}\u00D7${f.weight})`);
+    breakdown.push(`${friendlyFactorLabel(f.field)} ${contribution}/${f.weight}`);
   }
-  return { score, breakdown };
+  return { score: Math.round(score * 10), breakdown };
 }
 
 function computeBoostScore(doc: Record<string, unknown>): number {
@@ -811,9 +821,46 @@ function formatNumber(n: number): string {
   return Math.round(n).toLocaleString();
 }
 
-function formatCompact(n: number): string {
-  if (Number.isInteger(n)) return n.toLocaleString();
-  return n.toFixed(1);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+async function fetchFieldStats(collectionName: string, fields: string[]) {
+  const api = store.api as Api;
+  const stats: Record<string, FieldStats> = {};
+
+  for (const fieldName of fields) {
+    try {
+      const [minRes, maxRes] = await Promise.all([
+        api.search(collectionName, {
+          q: '*', query_by: 'name',
+          sort_by: `${fieldName}:asc`, per_page: 1, page: 1,
+          include_fields: fieldName,
+        } as any),
+        api.search(collectionName, {
+          q: '*', query_by: 'name',
+          sort_by: `${fieldName}:desc`, per_page: 1, page: 1,
+          include_fields: fieldName,
+        } as any),
+      ]);
+
+      const minVal = Number((minRes?.hits?.[0]?.document as Record<string, unknown>)?.[fieldName] ?? 0);
+      const maxVal = Number((maxRes?.hits?.[0]?.document as Record<string, unknown>)?.[fieldName] ?? 0);
+      const useLog = maxVal / (minVal + 1) > 100;
+
+      stats[fieldName] = { min: minVal, max: maxVal, useLog };
+    } catch {
+      stats[fieldName] = { min: 0, max: 0, useLog: false };
+    }
+  }
+
+  fieldStats.value = { ...fieldStats.value, ...stats };
+}
+
+function normalizeValue(value: number, stats: FieldStats): number {
+  if (stats.min === stats.max) return 0;
+  const clamped = Math.max(stats.min, Math.min(stats.max, value));
+  if (stats.useLog) {
+    return Math.log(1 + clamped - stats.min) / Math.log(1 + stats.max - stats.min);
+  }
+  return (clamped - stats.min) / (stats.max - stats.min);
 }
 
 // ---------------------------------------------------------------------------
