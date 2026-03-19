@@ -50,7 +50,7 @@ weighted_score = round(10 × Σ(normalized_field_i × weight_i))
 
 ### Preview recomputation
 
-- On collection load, fetch min/max stats (same 2 queries per field)
+- On collection load (and when a new ranking factor field is added), fetch min/max stats (same 2 queries per field)
 - Client-side normalization uses the same formulas
 - Recomputes instantly when weights change — no API calls needed
 - Preview sorts by: highest matching tier first, then score within tier
@@ -114,6 +114,7 @@ Promotion rules still generate `_eval` expressions in `sort_by`. The UI change m
 ### Tier badge
 
 - Only shown if the product matched at least one promotion rule
+- At most one badge per product (Typesense `_eval` is first-match-wins — only the first matching rule fires)
 - Shows rule name + priority level
 - Amber colored (consistent with promotion rules section)
 - Products with no matching rule: no badge, just score
@@ -145,7 +146,7 @@ Old scores (hundreds of thousands) are overwritten on next "Recalculate All Scor
 
 ### Stale score indicator
 
-Store recalculation timestamp + `num_documents` in the preset. On page load, compare against current `num_documents`. If changed, show info chip:
+Store recalculation timestamp + `num_documents` in the preset. On page load, compare against current `num_documents`. If changed, show info chip (note: document updates without count changes won't trigger this — intentional simplification to avoid full-collection scanning):
 
 > "12 products added since last calculation — scores may be outdated" [Recalculate]
 
