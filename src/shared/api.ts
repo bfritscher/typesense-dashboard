@@ -32,8 +32,8 @@ export class Api {
         },
       ],
       apiKey,
-      connectionTimeoutSeconds: 3600,
-      timeoutSeconds: 360
+      connectionTimeoutSeconds: 7200,
+      timeoutSeconds: 720
     });
   }
 
