@@ -1,117 +1,111 @@
-# Implementation Tasks: Unified Search Page
+# Implementation Tasks: Sidebar Navigation Redesign
 
 Source spec: .planning/specs/behavior.md
 Test strategy: no test plan
-Generated at: 2026-03-19T16:15:00Z
+Generated at: 2026-03-19T19:47:00Z
 
 ## Context Management
 - Clear AI context between task groups (after each `## Group` section).
 - Each task group is designed to be self-contained — include the spec section and relevant file paths when starting a new context.
 
-## Group 1: Preview Mode Component
+## Foundation
 
-> Spec ref: User Journey 2 in behavior.md
-> Parallelizable-with: Group 3
-> Context-include:
->   - specs/behavior.md ## Field Detection Heuristics
->   - specs/behavior.md ## User Journey 2: Business Collection Search (with Preview Mode)
->   - specs/behavior.md ## Functional Requirements → FR-005, FR-006, FR-007, FR-008, FR-009, FR-010
->   - specs/behavior.md ## Edge Cases
+- [x] **T-001**: Remove the old Overrides route and page
+  - Files: `src/router/routes.ts` (modify), `src/pages/Overrides.vue` (delete)
+  - Files-write: `src/router/routes.ts`, `src/pages/Overrides.vue`
+  - Spec ref: FR-008, UJ4
+  - Done when: `/collection/:name/curations` route no longer exists in routes.ts and `src/pages/Overrides.vue` is deleted
 
-- [x] **T-001**: Create `SearchPreviewMode.vue` component with the two-column layout (left facet panel, right search/controls/results). Migrate the template from `SearchPreview.vue` but remove the `ensureCollection()` logic — this component assumes `store.currentCollection` is already set by the parent page. Remove the page title header (`<div class="text-h5">`). Keep the `<q-page padding>` wrapper or adapt to work within a tab panel.
-  - Files: `src/components/search/SearchPreviewMode.vue` (create), reference `src/pages/SearchPreview.vue` (read-only)
-  - Files-write: `src/components/search/SearchPreviewMode.vue`
-  - Spec ref: UJ2 Scenario "Preview Mode layout"
-  - Done when: Component file exists with the two-column template structure, search input, and results list
-
-- [x] **T-002**: Implement field detection computed properties in `SearchPreviewMode.vue`. Inspect `store.currentCollection.fields` to determine which controls to show. Implement: `hasVendorIds`, `hasFeaturedVendorIds`, `hasDeliveryMethods`, `hasMinPrice`, `hasAvgRating`, `hasPopularity`, `hasDefaultRankWithPin`, `hasDefaultRank`, `hasIsAvailable`, `hasPinPriority`.
-  - Files: `src/components/search/SearchPreviewMode.vue` (modify)
-  - Files-write: `src/components/search/SearchPreviewMode.vue`
-  - Spec ref: Field Detection Heuristics table, FR-001
-  - Done when: Computed properties exist and derive from `store.currentCollection.fields`
-
-- [x] **T-003**: Make the sort mode dropdown dynamic — only show presets whose backing fields exist. "Default" always shown; "Price" if `hasMinPrice`; "Rating" if `hasAvgRating`; "Popularity" if `hasPopularity`. Update `getSortBy()` to handle the pin toggle: when "Default" + "With pins" → `is_available:desc,default_rank_with_pin:desc`; "Without pins" → `is_available:desc,default_rank:desc`; if neither rank field exists, fall back to no explicit sort. Conditionally show/hide the pin toggle based on `hasDefaultRankWithPin`.
-  - Files: `src/components/search/SearchPreviewMode.vue` (modify)
-  - Files-write: `src/components/search/SearchPreviewMode.vue`
-  - Spec ref: UJ2 Scenarios "Sort mode dropdown", "Pin-aware ranking toggle", "Pin toggle hidden"; FR-005, FR-006; Edge case (pin without default_rank)
-  - Done when: Sort options are computed from field presence; pin toggle conditionally renders; `getSortBy()` handles all combinations
-
-- [x] **T-004**: Make the filter context dropdown dynamic — show "All vendors"/"Specific vendor" only if `hasVendorIds`; "Featured vendors" only if `hasFeaturedVendorIds`; "Delivery method" only if `hasDeliveryMethods`. Hide the entire dropdown if no filter fields exist. Keep the conditional vendor ID and delivery method text inputs.
-  - Files: `src/components/search/SearchPreviewMode.vue` (modify)
-  - Files-write: `src/components/search/SearchPreviewMode.vue`
-  - Spec ref: UJ2 Scenarios "Filter context — *", "Filter context options are dynamic"; FR-007
-  - Done when: Filter context dropdown options are computed from field presence; dropdown hidden when no filter fields exist
-
-- [x] **T-005**: Make result item badges conditional — show availability badge only if `hasIsAvailable`; price only if `hasMinPrice`; rating only if `hasAvgRating`; popularity only if `hasPopularity`; pin priority only if `hasPinPriority`.
-  - Files: `src/components/search/SearchPreviewMode.vue` (modify)
-  - Files-write: `src/components/search/SearchPreviewMode.vue`
-  - Spec ref: UJ2 Scenario "Preview Mode result items"; FR-009
-  - Done when: Each result badge is wrapped in a `v-if` checking the corresponding field detection computed
-
-## Group 2: Unified Search Page (Third Tab)
-
-> Spec ref: User Journey 1, User Journey 2 (tab visibility), User Journey 3 in behavior.md
-> Parallelizable-with: —
-> Context-include:
->   - specs/behavior.md ## Field Detection Heuristics → Composite rule
->   - specs/behavior.md ## User Journey 1: Standard Collection Search
->   - specs/behavior.md ## User Journey 3: Switching Between Tabs
->   - specs/behavior.md ## Functional Requirements → FR-001, FR-002, FR-003, FR-004, FR-014
->   - specs/behavior.md ## Edge Cases
-
-- [x] **T-006**: Update `Search.vue` to import `SearchPreviewMode` and add a third tab. Add a computed property `showPreviewMode` that checks if the current collection has at least one of: `vendor_ids`, `featured_vendor_ids`, `delivery_methods`, `default_rank_with_pin`, `default_rank`. Conditionally render the "Preview Mode" tab based on this computed. Ensure `keep-alive` is used on tab panels (the existing `q-tab-panels` already supports this via the `keep-alive` prop — verify it is set).
-  - Files: `src/pages/Search.vue` (modify)
-  - Files-write: `src/pages/Search.vue`
-  - Spec ref: UJ1 Scenario "Page loads for generic collection"; UJ2 Scenario "Page loads with business fields detected"; FR-001, FR-002, FR-014
-  - Done when: Third tab appears when collection has business fields; hidden when it doesn't; `keep-alive` is active on tab panels
-
-- [x] **T-007**: Handle the edge case where the user is on Preview Mode tab and switches to a collection without business fields. Watch the collection change and if `showPreviewMode` becomes false while `tab === 'preview'`, reset `tab` to `'form'` (InstantSearch).
-  - Files: `src/pages/Search.vue` (modify)
-  - Files-write: `src/pages/Search.vue`
-  - Spec ref: UJ3 Scenario "Collection change resets all tabs"; Edge case (collection switch hides Preview tab)
-  - Done when: Switching to a non-business collection while on Preview tab auto-switches to InstantSearch tab
-
-## Group 3: Cleanup (Route & Nav Removal)
-
-> Spec ref: User Journey 4 in behavior.md
-> Parallelizable-with: Group 1
-> Context-include:
->   - specs/behavior.md ## User Journey 4: Search Preview Route Removal
->   - specs/behavior.md ## Functional Requirements → FR-011, FR-012, FR-013
-
-- [x] **T-008**: Remove the `/search/preview` route from `src/router/routes.ts`. Delete the line: `{ path: 'search/preview', name: 'SearchPreview', component: () => import('pages/SearchPreview.vue') }`.
+- [x] **T-002**: Rename `/analyticsrules` route to `/analytics/rules`
   - Files: `src/router/routes.ts` (modify)
   - Files-write: `src/router/routes.ts`
-  - Spec ref: UJ4 Scenario "Route removed"; FR-011
-  - Done when: No route definition for `search/preview` exists in routes.ts
+  - Spec ref: FR-009
+  - Done when: Route path is `analytics/rules` with `name: 'AnalyticsRules'` and old `analyticsrules` path no longer exists
 
-- [x] **T-009**: Remove the "Preview" navigation link from `NavMenu.vue`. Delete the `<q-item>` block that links to `/search/preview` (around lines 51-56). Keep "Query Debugger" and "Autocomplete Preview" links intact.
+## Group 1: Sidebar Structure Redesign
+
+> Spec ref: User Journey 1 in behavior.md
+> Parallelizable-with: — (depends on Foundation)
+> Context-include:
+>   - specs/behavior.md ## User Journey 1: Browsing the Sidebar
+>   - specs/behavior.md ## Functional Requirements → FR-001, FR-002, FR-003, FR-006, FR-007, FR-011
+>   - specs/behavior.md ## Navigation Groups Reference
+>   - specs/behavior.md ## Edge Cases
+
+- [x] **T-003**: Move collection selector to the top of the sidebar
   - Files: `src/components/NavMenu.vue` (modify)
   - Files-write: `src/components/NavMenu.vue`
-  - Spec ref: UJ4 Scenario "Navigation updated"; FR-013
-  - Done when: No `q-item` linking to `/search/preview` in NavMenu.vue; debugger and autocomplete links remain
+  - Spec ref: FR-001, UJ1 Scenario "Initial sidebar load"
+  - Done when: The `q-select` for collection selection is the first element inside `q-list`, wrapped with a "Collection" label, with distinct styling (padding/background)
 
-- [x] **T-010**: Delete `src/pages/SearchPreview.vue`.
-  - Files: `src/pages/SearchPreview.vue` (delete)
-  - Files-write: `src/pages/SearchPreview.vue`
-  - Spec ref: FR-012
-  - Done when: File no longer exists on disk
+- [x] **T-004**: Create Server expansion group with Server Status and Cluster Status
+  - Files: `src/components/NavMenu.vue` (modify)
+  - Files-write: `src/components/NavMenu.vue`
+  - Spec ref: FR-002, Navigation Groups Reference (Server)
+  - Done when: Server Status and Cluster Status are inside a `q-expansion-item` labeled "Server" with `dense` and bold header. Cluster Status retains `v-if="!!store.currentClusterTag"` gating. `sections` reactive object has a `server` key.
+
+- [x] **T-005**: Relocate Search item into the Search expansion group
+  - Files: `src/components/NavMenu.vue` (modify)
+  - Files-write: `src/components/NavMenu.vue`
+  - Spec ref: FR-011, FR-006, Navigation Groups Reference (Search)
+  - Done when: The Search item (linking to `/collection/:name/search`) is inside the Search expansion group as the first child, with `:disable="!currentCollection"` and `dense`. The old flat Search item below the collection selector is removed.
+
+- [x] **T-006**: Create Configuration expansion group
+  - Files: `src/components/NavMenu.vue` (modify)
+  - Files-write: `src/components/NavMenu.vue`
+  - Spec ref: FR-002, Navigation Groups Reference (Configuration)
+  - Done when: Collections, Aliases, API Keys, Search Presets, Stemming, Schema, and Add Document are inside a `q-expansion-item` labeled "Configuration" with `dense` and bold header. Each item retains its existing gating. Schema and Add Document use `:disable="!currentCollection"`. `sections` reactive object has a `configuration` key. The old flat items and separators are removed.
+
+- [x] **T-007**: Remove old flat Curations item and apply uniform `dense` sizing
+  - Files: `src/components/NavMenu.vue` (modify)
+  - Files-write: `src/components/NavMenu.vue`
+  - Spec ref: FR-002, FR-003, FR-008
+  - Done when: The old flat "Curations" item (linking to `/collection/:name/curations`) is removed. All `q-expansion-item` headers and all `q-item` children use `dense`. No non-dense items remain. Both `q-separator` elements are removed.
+
+- [x] **T-008**: Update Analytics Rules NavMenu link to `/analytics/rules`
+  - Files: `src/components/NavMenu.vue` (modify)
+  - Files-write: `src/components/NavMenu.vue`
+  - Spec ref: FR-009
+  - Done when: The Analytics Rules `q-item` `to` attribute points to `/analytics/rules` instead of `/analyticsrules`
+
+## Group 2: Auto-expand and Active Item Styling
+
+> Spec ref: User Journey 3, User Journey 5 in behavior.md
+> Parallelizable-with: — (depends on Group 1)
+> Context-include:
+>   - specs/behavior.md ## User Journey 3: Navigating to a Grouped Item
+>   - specs/behavior.md ## User Journey 5: Active Item Visibility
+>   - specs/behavior.md ## Functional Requirements → FR-004, FR-005, FR-010
+>   - specs/behavior.md ## Edge Cases
+
+- [x] **T-009**: Implement route-watching auto-expand logic
+  - Files: `src/components/NavMenu.vue` (modify)
+  - Files-write: `src/components/NavMenu.vue`
+  - Spec ref: FR-004, FR-005, UJ3
+  - Done when: A `watch` on `$route` (or `route.path`/`route.name`) expands the correct parent group when navigating. Static routes match by path prefix (e.g., `/curations/` → curations). Dynamic routes match by path suffix (`/search` → search, `/synonyms` → curations, `/schema` and `/document` → configuration). Multiple groups can be open simultaneously. Manually collapsed groups re-expand on child navigation.
+
+- [x] **T-010**: Fix light-mode active-item text color
+  - Files: `src/components/NavMenu.vue` (modify)
+  - Files-write: `src/components/NavMenu.vue`
+  - Spec ref: FR-010, UJ5
+  - Done when: The scoped CSS for `.q-item.q-router-link--active` in light mode includes a dark text color (e.g., `color: var(--q-primary)`) so active items are readable against the white background
 
 ## Summary
 
 - Total tasks: 10
-- Foundation tasks: 0
-- Journey groups: 3
-- Estimated context sessions: 3 (one per group)
+- Foundation tasks: 2
+- Journey groups: 2
+- Estimated context sessions: 3 (Foundation + Group 1 + Group 2)
 
 ## Parallelism Analysis
 
 | Group | Files-write (unique) | Can run with |
 |-------|---------------------|--------------|
-| Group 1 | `src/components/search/SearchPreviewMode.vue` | Group 3 |
-| Group 2 | `src/pages/Search.vue` | — (depends on Group 1 component) |
-| Group 3 | `src/router/routes.ts`, `src/components/NavMenu.vue`, `src/pages/SearchPreview.vue` | Group 1 |
+| Foundation | `src/router/routes.ts`, `src/pages/Overrides.vue` | — (must run first) |
+| Group 1 | `src/components/NavMenu.vue` | — (depends on Foundation) |
+| Group 2 | `src/components/NavMenu.vue` | — (depends on Group 1) |
 
 Dispatch waves:
-1. Group 1 + Group 3 (parallel)
-2. Group 2
+1. Foundation
+2. Group 1
+3. Group 2

@@ -8,7 +8,7 @@ const routes: RouteRecordRaw[] = [
       { path: '', component: () => import('pages/ServerStatus.vue') },
       { path: 'aliases', component: () => import('pages/Aliases.vue') },
       { path: 'apikeys', component: () => import('pages/ApiKeys.vue') },
-      { path: 'analyticsrules', component: () => import('pages/AnalyticsRules.vue') },
+      { path: 'analytics/rules', name: 'AnalyticsRules', component: () => import('pages/AnalyticsRules.vue') },
       { path: 'searchpresets', component: () => import('pages/SearchPresets.vue') },
       { path: 'stopwords', component: () => import('pages/Stopwords.vue') },
       { path: 'stemming', component: () => import('pages/Stemming.vue') },
@@ -17,7 +17,6 @@ const routes: RouteRecordRaw[] = [
       { path: 'collection/:name/search', component: () => import('pages/Search.vue') },
       { path: 'collection/:name/schema', component: () => import('pages/Schema.vue') },
       { path: 'collection/:name/synonyms', component: () => import('pages/Synonyms.vue') },
-      { path: 'collection/:name/curations', component: () => import('pages/Overrides.vue') },
       { path: 'clusters', name: 'Clusters', component: () => import('pages/ClusterStatus.vue') },
 
       // Merchandising
