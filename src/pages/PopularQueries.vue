@@ -83,7 +83,7 @@
           <template #body-cell-q="props">
             <q-td :props="props">
               <router-link
-                :to="`/search/preview?q=${encodeURIComponent(props.row.q)}`"
+                :to="`/collection/${store.currentCollection?.name}/search?q=${encodeURIComponent(props.row.q)}`"
                 class="text-primary"
                 style="text-decoration: none"
               >

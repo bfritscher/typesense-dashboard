@@ -3,6 +3,7 @@
     <q-tabs v-model="tab" dense class="bg-primary text-white" align="justify" narrow-indicator>
       <q-tab name="form" label="InstantSearch Mode" />
       <q-tab name="json" label="JSON Mode" />
+      <q-tab v-if="showPreviewMode" name="preview" label="Preview Mode" />
     </q-tabs>
 
     <q-separator />
@@ -14,16 +15,37 @@
       <q-tab-panel name="json" class="q-pa-none">
         <search-json />
       </q-tab-panel>
+      <q-tab-panel v-if="showPreviewMode" name="preview">
+        <search-preview-mode />
+      </q-tab-panel>
     </q-tab-panels>
   </q-page>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed, watch } from 'vue';
+import { useNodeStore } from 'src/stores/node';
 import SearchJson from 'src/components/search/SearchJson.vue';
 import SearchInstantSearch from 'src/components/search/SearchInstantSearch.vue';
+import SearchPreviewMode from 'src/components/search/SearchPreviewMode.vue';
 
+const store = useNodeStore();
 const tab = ref('form');
+
+const PREVIEW_TRIGGER_FIELDS = ['vendor_ids', 'featured_vendor_ids', 'delivery_methods', 'default_rank_with_pin', 'default_rank'];
+
+const showPreviewMode = computed(() => {
+  const fields = store.currentCollection?.fields;
+  if (!fields) return false;
+  return (fields as any[]).some((f: any) => PREVIEW_TRIGGER_FIELDS.includes(f.name));
+});
+
+// If the user is on Preview tab and switches to a collection without business fields, fall back to InstantSearch
+watch(showPreviewMode, (show) => {
+  if (!show && tab.value === 'preview') {
+    tab.value = 'form';
+  }
+});
 </script>
 <style>
 .ais-Hits-item,
