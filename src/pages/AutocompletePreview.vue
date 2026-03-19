@@ -62,11 +62,28 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { useNodeStore } from 'src/stores/node';
 import type { Api } from 'src/shared/api';
 
 const store = useNodeStore();
+
+async function ensureCollection() {
+  if (store.currentCollection) return;
+  if (store.data.collections.length === 0) {
+    await store.getCollections();
+  }
+  const candidate = store.data.collections.find(
+    (c) => c.name !== 'popular_queries' && c.name !== 'nohits_queries',
+  );
+  if (candidate) {
+    store.loadCurrentCollectionByName(candidate.name);
+  }
+}
+
+onMounted(() => {
+  void ensureCollection();
+});
 
 const inputText = ref('');
 const loading = ref(false);
@@ -159,7 +176,6 @@ async function fetchSuggestions(prefix: string) {
     if (result?.hits) {
       suggestions.value = result.hits.map((hit: any) => ({
         text: (hit.document.name || hit.document.title || hit.document.id) as string,
-        count: undefined,
       }));
     } else {
       suggestions.value = [];

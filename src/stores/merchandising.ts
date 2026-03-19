@@ -1,7 +1,7 @@
 import { defineStore, acceptHMRUpdate } from 'pinia';
 import { Notify } from 'quasar';
 import { useNodeStore } from './node';
-import { Api } from 'src/shared/api';
+import type { Api } from 'src/shared/api';
 import type { MerchandisingEdit, BatchUpdateResult, ProductMerchandisingFields } from 'src/shared/types';
 import { calculateDefaultRank, calculateDefaultRankWithPin } from 'src/shared/types';
 
@@ -36,7 +36,7 @@ export const useMerchandisingStore = defineStore('merchandising', {
     addEdit(docId: string, field: keyof ProductMerchandisingFields, value: any, originalDoc?: Partial<ProductMerchandisingFields>) {
       const existing = this.pendingEdits.get(docId);
       if (existing) {
-        existing.changes[field] = value;
+        (existing.changes as any)[field] = value;
         this.pendingEdits.set(docId, { ...existing });
       } else {
         const edit: MerchandisingEdit = {

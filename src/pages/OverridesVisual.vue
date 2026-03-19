@@ -195,7 +195,7 @@
         </q-card>
 
         <!-- Pinned products -->
-        <q-card flat bordered class="q-mb-md" v-if="overrideForm.includes.length > 0">
+        <q-card v-if="overrideForm.includes.length > 0" flat bordered class="q-mb-md">
           <q-card-section>
             <div class="text-subtitle1 q-mb-sm">Pinned Products (includes)</div>
             <q-list separator>
@@ -218,7 +218,7 @@
         </q-card>
 
         <!-- Hidden products -->
-        <q-card flat bordered class="q-mb-md" v-if="overrideForm.excludes.length > 0">
+        <q-card v-if="overrideForm.excludes.length > 0" flat bordered class="q-mb-md">
           <q-card-section>
             <div class="text-subtitle1 q-mb-sm">Hidden Products (excludes)</div>
             <q-list separator>
@@ -243,12 +243,12 @@
         <!-- Save button -->
         <div class="row q-gutter-sm q-mb-md">
           <q-btn
+            :loading="saving"
             unelevated
             color="primary"
             label="Save Override"
             :disable="!canSave"
             @click="saveOverride"
-            :loading="saving"
           />
           <q-btn
             flat
@@ -260,17 +260,17 @@
         </div>
 
         <!-- Preview panel (T-052) -->
-        <q-card flat bordered class="q-mb-md" v-if="showPreviewPanel">
+        <q-card v-if="showPreviewPanel" flat bordered class="q-mb-md">
           <q-card-section>
             <div class="text-subtitle1 q-mb-sm">Preview: With Override vs Without Override</div>
             <q-btn
+              :loading="previewLoading"
               dense
               flat
               label="Run Preview"
               color="primary"
-              @click="runPreview"
-              :loading="previewLoading"
               class="q-mb-sm"
+              @click="runPreview"
             />
           </q-card-section>
           <q-card-section v-if="previewWithResults.length > 0 || previewWithoutResults.length > 0">
@@ -327,12 +327,12 @@
         </q-banner>
         <div class="row q-gutter-sm q-mb-md">
           <q-btn
+            :loading="saving"
             unelevated
             color="primary"
             label="Save Override"
             :disable="!!jsonError || !canSave"
             @click="saveOverride"
-            :loading="saving"
           />
           <q-btn flat label="Reset" @click="resetForm" />
         </div>
@@ -396,7 +396,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useQuasar } from 'quasar';
 import { nanoid } from 'nanoid';
@@ -565,9 +565,6 @@ const showPreviewPanel = ref(false);
 const previewLoading = ref(false);
 const previewWithResults = ref<any[]>([]);
 const previewWithoutResults = ref<any[]>([]);
-
-// Track IDs in "without" results for diff highlighting
-const previewWithoutIds = computed(() => new Set(previewWithoutResults.value.map((d) => getDocId(d))));
 
 function previewDiffClass(doc: any, idx: number): string {
   const id = getDocId(doc);
@@ -831,7 +828,7 @@ onMounted(() => {
   if (queryParam && typeof queryParam === 'string') {
     overrideForm.rule.query = queryParam;
     searchQuery.value = queryParam;
-    doSearch();
+    void doSearch();
   }
 });
 </script>

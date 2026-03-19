@@ -200,7 +200,7 @@ import { useQuasar } from 'quasar';
 import type { QTableProps } from 'quasar';
 import { useNodeStore } from 'src/stores/node';
 import { useMerchandisingStore } from 'src/stores/merchandising';
-import { Api } from 'src/shared/api';
+import type { Api } from 'src/shared/api';
 
 const COLLECTION_NAME = 'products';
 
@@ -414,34 +414,36 @@ function boostVendor(vendorId: string) {
     },
     cancel: true,
     persistent: true,
-  }).onOk(async (query: string) => {
-    const api = store.api as Api | undefined;
-    if (!api) {
-      $q.notify({ type: 'negative', message: 'Not connected to TypeSense' });
-      return;
-    }
+  }).onOk((query: string) => {
+    void (async () => {
+      const api = store.api as Api | undefined;
+      if (!api) {
+        $q.notify({ type: 'negative', message: 'Not connected to TypeSense' });
+        return;
+      }
 
-    const overrideId = `vendor-boost-${vendorId}`;
-    const override: any = {
-      rule: {
-        query: query || '*',
-        match: query === '*' ? 'exact' : 'contains',
-      },
-      sort_by: `_eval(vendor_ids:${vendorId}):desc,_text_match:desc`,
-    };
+      const overrideId = `vendor-boost-${vendorId}`;
+      const override: any = {
+        rule: {
+          query: query || '*',
+          match: query === '*' ? 'exact' : 'contains',
+        },
+        sort_by: `_eval(vendor_ids:${vendorId}):desc,_text_match:desc`,
+      };
 
-    try {
-      await api.upsertOverride(COLLECTION_NAME, overrideId, override);
-      $q.notify({
-        type: 'positive',
-        message: `Vendor "${vendorId}" boosted for query "${query}"`,
-      });
-    } catch (err) {
-      $q.notify({
-        type: 'negative',
-        message: `Failed to boost vendor: ${(err as Error).message}`,
-      });
-    }
+      try {
+        await api.upsertOverride(COLLECTION_NAME, overrideId, override);
+        $q.notify({
+          type: 'positive',
+          message: `Vendor "${vendorId}" boosted for query "${query}"`,
+        });
+      } catch (err) {
+        $q.notify({
+          type: 'negative',
+          message: `Failed to boost vendor: ${(err as Error).message}`,
+        });
+      }
+    })();
   });
 }
 
@@ -455,39 +457,41 @@ function suppressVendor(vendorId: string) {
     },
     cancel: true,
     persistent: true,
-  }).onOk(async (query: string) => {
-    if (!query) {
-      $q.notify({ type: 'warning', message: 'Query is required for suppression' });
-      return;
-    }
+  }).onOk((query: string) => {
+    void (async () => {
+      if (!query) {
+        $q.notify({ type: 'warning', message: 'Query is required for suppression' });
+        return;
+      }
 
-    const api = store.api as Api | undefined;
-    if (!api) {
-      $q.notify({ type: 'negative', message: 'Not connected to TypeSense' });
-      return;
-    }
+      const api = store.api as Api | undefined;
+      if (!api) {
+        $q.notify({ type: 'negative', message: 'Not connected to TypeSense' });
+        return;
+      }
 
-    const overrideId = `vendor-suppress-${vendorId}-${Date.now()}`;
-    const override: any = {
-      rule: {
-        query,
-        match: 'contains',
-      },
-      filter_by: `vendor_ids:!=[${vendorId}]`,
-    };
+      const overrideId = `vendor-suppress-${vendorId}-${Date.now()}`;
+      const override: any = {
+        rule: {
+          query,
+          match: 'contains',
+        },
+        filter_by: `vendor_ids:!=[${vendorId}]`,
+      };
 
-    try {
-      await api.upsertOverride(COLLECTION_NAME, overrideId, override);
-      $q.notify({
-        type: 'positive',
-        message: `Vendor "${vendorId}" suppressed for query "${query}"`,
-      });
-    } catch (err) {
-      $q.notify({
-        type: 'negative',
-        message: `Failed to suppress vendor: ${(err as Error).message}`,
-      });
-    }
+      try {
+        await api.upsertOverride(COLLECTION_NAME, overrideId, override);
+        $q.notify({
+          type: 'positive',
+          message: `Vendor "${vendorId}" suppressed for query "${query}"`,
+        });
+      } catch (err) {
+        $q.notify({
+          type: 'negative',
+          message: `Failed to suppress vendor: ${(err as Error).message}`,
+        });
+      }
+    })();
   });
 }
 

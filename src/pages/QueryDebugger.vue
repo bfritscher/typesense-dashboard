@@ -253,7 +253,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import { useNodeStore } from 'src/stores/node';
 import type { Api } from 'src/shared/api';
 import type { OverrideSchema } from 'typesense/lib/Typesense/Override';
@@ -394,7 +394,7 @@ async function runDebug() {
       q: searchQuery.value.trim(),
       query_by: 'name',
       per_page: perPage.value,
-      sort_by: 'is_available:desc,default_rank_with_pin:desc,kind_sort:asc',
+      sort_by: 'is_available:desc,default_rank_with_pin:desc',
     });
 
     const hits = result?.hits || [];
@@ -405,7 +405,7 @@ async function runDebug() {
     let foundHit: any = null;
 
     for (let i = 0; i < hits.length; i++) {
-      const doc = hits[i].document || {};
+      const doc = (hits[i] as any)?.document || {};
       const docId = String(doc.id || '').toLowerCase();
       const docName = String(doc.name || '').toLowerCase();
 
@@ -430,7 +430,7 @@ async function runDebug() {
       }
 
       // Extract from text_match_info if available
-      if (foundHit.text_match_info?.fields_matched) {
+      if (Array.isArray(foundHit.text_match_info?.fields_matched)) {
         for (const fm of foundHit.text_match_info.fields_matched) {
           if (!matchedFields.find((mf) => mf.name === fm.field_name)) {
             matchedFields.push({

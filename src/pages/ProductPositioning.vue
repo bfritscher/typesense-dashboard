@@ -185,7 +185,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useQuasar, Notify } from 'quasar';
 import { useNodeStore } from 'src/stores/node';
 import { useMerchandisingStore } from 'src/stores/merchandising';
-import { Api } from 'src/shared/api';
+import type { Api } from 'src/shared/api';
 import type { ProductMerchandisingFields } from 'src/shared/types';
 import ProductCard from 'src/components/merchandising/ProductCard.vue';
 import type { ProductDoc } from 'src/components/merchandising/ProductCard.vue';
@@ -318,7 +318,7 @@ async function fetchProducts() {
 
 function onCategoryChange() {
   currentPage.value = 1;
-  fetchProducts();
+  void fetchProducts();
 }
 
 function onFieldChange(docId: string, field: keyof ProductMerchandisingFields, value: any) {
@@ -394,15 +394,17 @@ async function retryFailed() {
   await fetchProducts();
 }
 
-async function onResetToDb(docId: string) {
+function onResetToDb(docId: string) {
   $q.dialog({
     title: 'Reset to DB Values',
     message: 'This will clear the "Dashboard-managed" flag. Continue?',
     cancel: true,
     persistent: true,
-  }).onOk(async () => {
-    await merchandisingStore.resetToDbValues(COLLECTION_NAME, docId);
-    await fetchProducts();
+  }).onOk(() => {
+    void (async () => {
+      await merchandisingStore.resetToDbValues(COLLECTION_NAME, docId);
+      await fetchProducts();
+    })();
   });
 }
 
@@ -455,7 +457,7 @@ function onDrop(event: DragEvent) {
 
   // Reorder in the local array for immediate visual feedback
   const [moved] = products.value.splice(fromIndex, 1);
-  products.value.splice(toIndex, 0, moved);
+  if (moved) products.value.splice(toIndex, 0, moved);
 
   dragIndex.value = null;
 }
@@ -473,8 +475,8 @@ watch(
   () => nodeStore.data.collections,
   () => {
     if (productsCollectionExists.value && products.value.length === 0) {
-      fetchCategories();
-      fetchProducts();
+      void fetchCategories();
+      void fetchProducts();
     }
   },
 );

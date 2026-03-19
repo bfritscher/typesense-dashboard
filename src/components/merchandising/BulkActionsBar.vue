@@ -6,34 +6,34 @@
 
     <q-btn-dropdown flat label="Bulk Actions" icon="sym_s_edit_note" no-caps>
       <q-list>
-        <q-item clickable v-close-popup @click="confirmAction('Set Featured', 'is_featured', true)">
+        <q-item v-close-popup clickable @click="confirmAction('Set Featured', 'is_featured', true)">
           <q-item-section>Set Featured</q-item-section>
         </q-item>
-        <q-item clickable v-close-popup @click="confirmAction('Remove Featured', 'is_featured', false)">
+        <q-item v-close-popup clickable @click="confirmAction('Remove Featured', 'is_featured', false)">
           <q-item-section>Remove Featured</q-item-section>
         </q-item>
         <q-separator />
-        <q-item clickable v-close-popup @click="confirmAction('Set Promoted', 'is_promoted', true)">
+        <q-item v-close-popup clickable @click="confirmAction('Set Promoted', 'is_promoted', true)">
           <q-item-section>Set Promoted</q-item-section>
         </q-item>
-        <q-item clickable v-close-popup @click="confirmAction('Remove Promoted', 'is_promoted', false)">
+        <q-item v-close-popup clickable @click="confirmAction('Remove Promoted', 'is_promoted', false)">
           <q-item-section>Remove Promoted</q-item-section>
         </q-item>
         <q-separator />
-        <q-item clickable v-close-popup @click="confirmAction('Set Exclusive', 'is_exclusive', true)">
+        <q-item v-close-popup clickable @click="confirmAction('Set Exclusive', 'is_exclusive', true)">
           <q-item-section>Set Exclusive</q-item-section>
         </q-item>
-        <q-item clickable v-close-popup @click="confirmAction('Remove Exclusive', 'is_exclusive', false)">
+        <q-item v-close-popup clickable @click="confirmAction('Remove Exclusive', 'is_exclusive', false)">
           <q-item-section>Remove Exclusive</q-item-section>
         </q-item>
         <q-separator />
-        <q-item clickable v-close-popup @click="confirmAction('Set Pin #1', 'pin_priority', 1)">
+        <q-item v-close-popup clickable @click="confirmAction('Set Pin #1', 'pin_priority', 1)">
           <q-item-section>Set Pin #1</q-item-section>
         </q-item>
-        <q-item clickable v-close-popup @click="confirmAction('Set Pin #2', 'pin_priority', 2)">
+        <q-item v-close-popup clickable @click="confirmAction('Set Pin #2', 'pin_priority', 2)">
           <q-item-section>Set Pin #2</q-item-section>
         </q-item>
-        <q-item clickable v-close-popup @click="confirmAction('Remove Pin', 'pin_priority', 0)">
+        <q-item v-close-popup clickable @click="confirmAction('Remove Pin', 'pin_priority', 0)">
           <q-item-section>Remove Pin</q-item-section>
         </q-item>
       </q-list>

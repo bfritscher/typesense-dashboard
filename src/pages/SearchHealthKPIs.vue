@@ -136,7 +136,7 @@
     </q-card>
 
     <!-- Stats Details -->
-    <q-card flat bordered v-if="!statsAvailable">
+    <q-card v-if="!statsAvailable" flat bordered>
       <q-card-section>
         <q-banner class="bg-warning text-white rounded-borders">
           <template #avatar>
@@ -290,7 +290,8 @@ async function fetchProductsInfo() {
       });
 
       if (result?.hits && result.hits.length > 0) {
-        const doc = result.hits[0].document as Record<string, any>;
+        const doc = result.hits[0]?.document as Record<string, any> | undefined;
+        if (!doc) return;
         const createdAt = doc.created_at;
         if (typeof createdAt === 'number') {
           // Unix timestamp (seconds)

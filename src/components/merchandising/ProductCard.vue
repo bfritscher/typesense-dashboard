@@ -11,7 +11,7 @@
     <q-card-section horizontal class="items-center">
       <!-- Drag handle -->
       <div
-        v-if="product.pin_priority > 0"
+        v-if="(product.pin_priority ?? 0) > 0"
         class="product-card__drag-handle cursor-move q-pa-sm"
         draggable="true"
         @dragstart="$emit('dragstart', $event)"

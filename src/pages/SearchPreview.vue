@@ -12,59 +12,16 @@
           <q-card-section>
             <div class="text-subtitle1 q-mb-sm">Facets</div>
 
-            <!-- Category -->
-            <div v-if="facetResults.category_id && facetResults.category_id.length > 0" class="q-mb-md">
-              <div class="text-caption text-weight-bold q-mb-xs">Category</div>
-              <q-option-group
-                v-model="selectedFacets.category_id"
-                :options="facetResults.category_id.map(f => ({ label: `${f.value} (${f.count})`, value: f.value }))"
-                type="checkbox"
-                dense
-              />
-            </div>
-
-            <!-- Rating -->
-            <div v-if="facetResults.avg_rating && facetResults.avg_rating.length > 0" class="q-mb-md">
-              <div class="text-caption text-weight-bold q-mb-xs">Rating</div>
-              <q-option-group
-                v-model="selectedFacets.avg_rating"
-                :options="facetResults.avg_rating.map(f => ({ label: `${f.value} (${f.count})`, value: f.value }))"
-                type="checkbox"
-                dense
-              />
-            </div>
-
-            <!-- Price Range -->
-            <div v-if="facetResults.price_range && facetResults.price_range.length > 0" class="q-mb-md">
-              <div class="text-caption text-weight-bold q-mb-xs">Price Range</div>
-              <q-option-group
-                v-model="selectedFacets.price_range"
-                :options="facetResults.price_range.map(f => ({ label: `${f.value} (${f.count})`, value: f.value }))"
-                type="checkbox"
-                dense
-              />
-            </div>
-
-            <!-- Kind -->
-            <div v-if="facetResults.kind && facetResults.kind.length > 0" class="q-mb-md">
-              <div class="text-caption text-weight-bold q-mb-xs">Kind</div>
-              <q-option-group
-                v-model="selectedFacets.kind"
-                :options="facetResults.kind.map(f => ({ label: `${f.value} (${f.count})`, value: f.value }))"
-                type="checkbox"
-                dense
-              />
-            </div>
-
-            <!-- Effects -->
-            <div v-if="facetResults.effects && facetResults.effects.length > 0" class="q-mb-md">
-              <div class="text-caption text-weight-bold q-mb-xs">Effects</div>
-              <q-option-group
-                v-model="selectedFacets.effects"
-                :options="facetResults.effects.map(f => ({ label: `${f.value} (${f.count})`, value: f.value }))"
-                type="checkbox"
-                dense
-              />
+            <div v-for="field in facetFields" :key="field" class="q-mb-md">
+              <template v-if="facetResults[field] && facetResults[field].length > 0">
+                <div class="text-caption text-weight-bold q-mb-xs">{{ field }}</div>
+                <q-option-group
+                  v-model="selectedFacets[field]"
+                  :options="facetResults[field].map(f => ({ label: `${f.value} (${f.count})`, value: f.value }))"
+                  type="checkbox"
+                  dense
+                />
+              </template>
             </div>
 
             <div v-if="noFacets" class="text-grey-6 text-caption">
@@ -163,7 +120,7 @@
         </div>
 
         <!-- Results summary -->
-        <div class="q-mt-md q-mb-sm text-subtitle2" v-if="searchResult">
+        <div v-if="searchResult" class="q-mt-md q-mb-sm text-subtitle2">
           {{ searchResult.found }} results found
           <span v-if="searchResult.search_time_ms !== undefined">
             in {{ searchResult.search_time_ms }}ms
@@ -185,7 +142,7 @@
         <q-list v-if="searchResult && searchResult.hits" separator bordered class="q-mt-sm rounded-borders">
           <q-item v-for="(hit, index) in searchResult.hits" :key="hit.document?.id || index">
             <q-item-section side>
-              <q-badge color="primary" :label="String(index + 1)" />
+              <q-badge color="primary" :label="String((index as number) + 1)" />
             </q-item-section>
             <q-item-section>
               <q-item-label>
@@ -256,47 +213,25 @@ interface FacetValue {
   count: number;
 }
 
-interface FacetResults {
-  category_id: FacetValue[];
-  avg_rating: FacetValue[];
-  price_range: FacetValue[];
-  kind: FacetValue[];
-  effects: FacetValue[];
-}
+const facetResults = ref<Record<string, FacetValue[]>>({});
 
-const facetResults = ref<FacetResults>({
-  category_id: [],
-  avg_rating: [],
-  price_range: [],
-  kind: [],
-  effects: [],
-});
-
-const selectedFacets = ref<Record<string, string[]>>({
-  category_id: [],
-  avg_rating: [],
-  price_range: [],
-  kind: [],
-  effects: [],
-});
+const selectedFacets = ref<Record<string, string[]>>({});
 
 const noFacets = computed(() => {
-  return (
-    facetResults.value.category_id.length === 0 &&
-    facetResults.value.avg_rating.length === 0 &&
-    facetResults.value.price_range.length === 0 &&
-    facetResults.value.kind.length === 0 &&
-    facetResults.value.effects.length === 0
-  );
+  return Object.values(facetResults.value).every((arr) => arr.length === 0);
+});
+
+const facetFields = computed(() => {
+  const col = store.currentCollection;
+  if (!col || !col.fields) return [];
+  return (col.fields as any[]).filter((f: any) => f.facet === true).map((f: any) => f.name);
 });
 
 const sortModeOptions = [
   { label: 'Default', value: 'default' },
   { label: 'Price', value: 'price' },
   { label: 'Rating', value: 'rating' },
-  { label: 'THC', value: 'thc' },
   { label: 'Popularity', value: 'popularity' },
-  { label: 'Distance', value: 'distance' },
 ];
 
 const filterContextOptions = [
@@ -312,16 +247,12 @@ function getSortBy(): string {
       return 'min_price:asc';
     case 'rating':
       return 'avg_rating:desc';
-    case 'thc':
-      return 'max_thc:desc';
     case 'popularity':
       return 'popularity:desc';
-    case 'distance':
-      return '_geo_dist_meters:asc';
     default:
       return withPins.value
-        ? 'is_available:desc,default_rank_with_pin:desc,kind_sort:asc'
-        : 'is_available:desc,default_rank:desc,kind_sort:asc';
+        ? 'is_available:desc,default_rank_with_pin:desc'
+        : 'is_available:desc,default_rank:desc';
   }
 }
 
@@ -378,8 +309,11 @@ async function performSearch() {
       query_by: 'name',
       sort_by: getSortBy(),
       per_page: 50,
-      facet_by: 'category_id,avg_rating,price_range,kind,effects',
     };
+
+    if (facetFields.value.length > 0) {
+      params.facet_by = facetFields.value.join(',');
+    }
 
     const filterBy = getFilterBy();
     if (filterBy) {
@@ -391,20 +325,15 @@ async function performSearch() {
 
     // Extract facets
     if (result?.facet_counts) {
-      const newFacets: FacetResults = {
-        category_id: [],
-        avg_rating: [],
-        price_range: [],
-        kind: [],
-        effects: [],
-      };
+      const newFacets: Record<string, FacetValue[]> = {};
       for (const facet of result.facet_counts) {
-        const field = facet.field_name as keyof FacetResults;
-        if (field in newFacets) {
-          newFacets[field] = (facet.counts || []).map((c: any) => ({
-            value: String(c.value),
-            count: c.count,
-          }));
+        newFacets[facet.field_name] = (facet.counts || []).map((c: any) => ({
+          value: String(c.value),
+          count: c.count,
+        }));
+        // Ensure selectedFacets has an entry for this field
+        if (!selectedFacets.value[facet.field_name]) {
+          selectedFacets.value[facet.field_name] = [];
         }
       }
       facetResults.value = newFacets;
@@ -417,17 +346,37 @@ async function performSearch() {
 }
 
 function onFilterContextChange() {
-  performSearch();
+  void performSearch();
 }
 
 // Watch facet selections to re-search
 watch(selectedFacets, () => {
-  performSearch();
+  void performSearch();
 }, { deep: true });
 
-onMounted(() => {
+async function ensureCollection(): Promise<boolean> {
+  if (store.currentCollection) return true;
+
+  // If collections aren't loaded yet, fetch them
+  if (store.data.collections.length === 0) {
+    await store.getCollections();
+  }
+
+  // Auto-select the first non-analytics collection
+  const candidate = store.data.collections.find(
+    (c) => c.name !== 'popular_queries' && c.name !== 'nohits_queries',
+  );
+  if (candidate) {
+    store.loadCurrentCollectionByName(candidate.name);
+    return true;
+  }
+  return false;
+}
+
+onMounted(async () => {
+  await ensureCollection();
   if (searchQuery.value) {
-    performSearch();
+    void performSearch();
   }
 });
 </script>

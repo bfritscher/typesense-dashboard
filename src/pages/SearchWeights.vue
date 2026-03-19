@@ -307,7 +307,7 @@ function onDragOver(index: number) {
 function onDrop(targetIndex: number) {
   if (dragIndex.value === null || dragIndex.value === targetIndex) return;
   const item = fields.splice(dragIndex.value, 1)[0];
-  fields.splice(targetIndex, 0, item);
+  if (item) fields.splice(targetIndex, 0, item);
   dragIndex.value = null;
   dragOverIndex.value = null;
 }
@@ -355,7 +355,7 @@ async function loadExistingPreset() {
       (p: any) => p.name === PRESET_NAME,
     );
     if (existing?.value) {
-      const val = existing.value;
+      const val = existing.value as any;
       if (val.query_by && val.query_by_weights) {
         const names = val.query_by.split(',').map((s: string) => s.trim());
         const weights = val.query_by_weights

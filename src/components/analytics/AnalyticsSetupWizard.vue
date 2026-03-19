@@ -127,7 +127,7 @@ const collectionOptions = computed(() =>
     .sort(),
 );
 
-async function checkSetup() {
+function checkSetup() {
   loading.value = true;
   try {
     const collectionNames = store.data.collections.map((c) => c.name);
@@ -180,7 +180,6 @@ async function setupAnalytics() {
     // Create popular_queries analytics rule if missing
     if (!hasPopularQueriesRule.value) {
       await api.upsertAnalyticsRule('popular_queries_rule', {
-        name: 'popular_queries_rule',
         type: 'popular_queries',
         params: {
           source: { collections: [sourceCollection.value] },
@@ -193,7 +192,6 @@ async function setupAnalytics() {
     // Create nohits_queries analytics rule if missing
     if (!hasNohitsQueriesRule.value) {
       await api.upsertAnalyticsRule('nohits_queries_rule', {
-        name: 'nohits_queries_rule',
         type: 'nohits_queries',
         params: {
           source: { collections: [sourceCollection.value] },
@@ -206,7 +204,7 @@ async function setupAnalytics() {
     // Refresh store data
     await store.getCollections();
     await store.getAnalyticsRules();
-    await checkSetup();
+    checkSetup();
 
     Notify.create({
       position: 'top',
