@@ -24,8 +24,7 @@ const routes: RouteRecordRaw[] = [
       { path: 'merchandising/products', name: 'ProductPositioning', component: () => import('pages/ProductPositioning.vue') },
       { path: 'merchandising/vendors', name: 'VendorControls', component: () => import('pages/VendorControls.vue') },
 
-      // Search Preview & Debugging
-      { path: 'search/preview', name: 'SearchPreview', component: () => import('pages/SearchPreview.vue') },
+      // Search Debugging
       { path: 'search/debugger', name: 'QueryDebugger', component: () => import('pages/QueryDebugger.vue') },
       { path: 'search/autocomplete', name: 'AutocompletePreview', component: () => import('pages/AutocompletePreview.vue') },
 

@@ -48,13 +48,6 @@
         header-class="text-weight-bold"
         dense
       >
-        <q-item v-ripple clickable to="/search/preview" exact :disable="!store.isConnected" dense>
-          <q-item-section avatar>
-            <q-icon name="sym_s_preview" />
-          </q-item-section>
-          <q-item-section>Preview</q-item-section>
-        </q-item>
-
         <q-item v-ripple clickable to="/search/debugger" exact :disable="!store.isConnected" dense>
           <q-item-section avatar>
             <q-icon name="sym_s_bug_report" />
