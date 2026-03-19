@@ -6,9 +6,9 @@
         <!-- Header -->
         <q-card flat bordered class="q-mb-md">
           <q-card-section>
-            <div class="text-h6">Ranking</div>
+            <div class="text-h6">Product Ranking</div>
             <div class="text-caption text-grey-7 q-mt-xs">
-              Define how products are ordered. Drag to reorder priority.
+              Configure how products are ranked in search results.
             </div>
           </q-card-section>
           <q-separator />
@@ -26,12 +26,12 @@
         </q-card>
 
         <template v-if="selectedCollection">
-          <!-- ===================== SORT ORDER ===================== -->
+          <!-- ===================== PRIORITY TIERS ===================== -->
           <q-card flat bordered class="q-mb-md">
             <q-card-section>
-              <div class="text-subtitle1 text-weight-bold">Sort Order</div>
+              <div class="text-subtitle1 text-weight-bold">Priority Tiers</div>
               <div class="text-caption text-grey-7">
-                Primary sort field. Products matching this are always ranked first.
+                Products matching these conditions are always shown first, regardless of score.
               </div>
             </q-card-section>
 
@@ -91,13 +91,13 @@
             </q-card-section>
           </q-card>
 
-          <!-- ===================== BOOST RULES ===================== -->
+          <!-- ===================== PROMOTION RULES ===================== -->
           <q-card flat bordered class="q-mb-md">
             <q-card-section>
-              <div class="text-subtitle1 text-weight-bold">Boost Rules</div>
+              <div class="text-subtitle1 text-weight-bold">Promotion Rules</div>
               <div class="text-caption text-grey-7">
-                Conditional boosts applied at search time. Products matching
-                a rule get the boost added to their ranking score.
+                Automatically promote products that match these conditions.
+                Higher priority = shown first.
               </div>
             </q-card-section>
 
@@ -143,14 +143,14 @@
                     />
                   </div>
                   <div class="row items-center q-gutter-sm">
-                    <span class="text-grey-7 text-weight-medium">then boost by</span>
+                    <span class="text-grey-7 text-weight-medium">Priority level</span>
                     <q-slider
                       v-model="rule.boost"
-                      :min="0"
-                      :max="10000"
-                      :step="100"
+                      :min="1"
+                      :max="10"
+                      :step="1"
                       label
-                      :label-value="formatNumber(rule.boost)"
+                      :label-value="rule.boost"
                       style="min-width: 160px; max-width: 200px"
                       class="col-auto"
                       color="amber-8"
@@ -160,7 +160,7 @@
                       type="number"
                       dense
                       outlined
-                      style="width: 80px"
+                      style="width: 60px"
                       class="col-auto"
                     />
                   </div>
@@ -179,14 +179,13 @@
             </q-card-section>
           </q-card>
 
-          <!-- ===================== CUSTOM RANKING ===================== -->
+          <!-- ===================== WHAT MATTERS MOST ===================== -->
           <q-card flat bordered class="q-mb-md">
             <q-card-section>
-              <div class="text-subtitle1 text-weight-bold">Custom Ranking</div>
+              <div class="text-subtitle1 text-weight-bold">What Matters Most</div>
               <div class="text-caption text-grey-7">
-                Numeric fields that influence product ranking. Higher weight
-                means stronger influence on the final score.
-                Requires "Apply" to take effect.
+                Choose which product attributes influence ranking and how much each one matters.
+                Requires "Recalculate" to take effect.
               </div>
             </q-card-section>
 
@@ -274,14 +273,13 @@
           <!-- ===================== FORMULA & ACTIONS ===================== -->
           <q-card flat bordered class="q-mb-md">
             <q-card-section v-if="rankingFactors.length > 0">
-              <div class="text-subtitle2 text-grey-8 q-mb-sm">Score Formula</div>
+              <div class="text-subtitle2 text-grey-8 q-mb-sm">How your score is calculated</div>
               <div class="q-pa-sm bg-grey-2 rounded-borders formula-box">
-                <span class="text-weight-bold">weighted_score</span> =
+                <span class="text-weight-bold">Score</span> =
                 <template v-for="(factor, idx) in activeFactors" :key="factor.id">
                   <span v-if="idx > 0" class="text-grey-6"> + </span>
-                  <span>{{ factor.field }}</span>
-                  <span class="text-grey-6"> &times; </span>
-                  <span class="text-weight-bold text-primary">{{ factor.weight }}</span>
+                  <span class="text-weight-bold text-primary">{{ factorPercent(factor) }}%</span>
+                  <span class="q-ml-xs">{{ factor.label }}</span>
                 </template>
               </div>
             </q-card-section>
@@ -302,7 +300,7 @@
                 />
                 <q-btn
                   unelevated
-                  label="Apply to All Products"
+                  label="Recalculate All Scores"
                   color="negative"
                   icon="sym_s_published_with_changes"
                   :disable="rankingFactors.length === 0"
@@ -314,6 +312,14 @@
             <q-banner v-if="presetNote" class="bg-blue-1 text-blue-9 q-mx-md q-mb-md" rounded>
               <template #avatar><q-icon name="sym_s_info" color="blue" /></template>
               {{ presetNote }}
+            </q-banner>
+
+            <q-banner v-if="staleScoreCount > 0" class="bg-amber-1 text-amber-9 q-mx-md q-mb-md" rounded>
+              <template #avatar><q-icon name="sym_s_warning" color="amber-8" /></template>
+              {{ staleScoreCount }} products added since last calculation — scores may be outdated.
+              <template #action>
+                <q-btn flat color="amber-9" label="Recalculate" @click="confirmApply" />
+              </template>
             </q-banner>
 
             <q-card-section v-if="batchRunning">
@@ -363,7 +369,7 @@
           <q-card-section class="q-pb-sm">
             <div class="text-h6">Preview</div>
             <div class="text-caption text-grey-7">
-              Simulated ranking with current settings.
+              Live ranking simulation with your current settings.
             </div>
           </q-card-section>
 
@@ -398,16 +404,29 @@
                   <q-item-label class="text-weight-medium ellipsis" style="font-size: 0.85rem">
                     {{ p.title }}
                   </q-item-label>
+                  <q-item-label v-if="p.tierLevel > 0" caption>
+                    <q-badge color="amber-8" text-color="white" class="q-mr-xs">
+                      ★ {{ p.tierLabel }} (priority {{ p.tierLevel }})
+                    </q-badge>
+                  </q-item-label>
                   <q-item-label caption>
-                    <span class="text-primary text-weight-bold">{{ formatNumber(p.score) }}</span>
-                    <span v-if="p.boostScore > 0" class="text-amber-8 text-weight-bold q-ml-xs">
-                      +{{ formatNumber(p.boostScore) }} boost
-                    </span>
-                    <div class="text-grey-6" style="font-size: 0.7rem">
+                    <span class="text-primary text-weight-bold">Score: {{ p.score }} / {{ maxPossibleScore }}</span>
+                  </q-item-label>
+                  <q-linear-progress
+                    :value="maxPossibleScore > 0 ? p.score / maxPossibleScore : 0"
+                    size="6px"
+                    color="primary"
+                    track-color="grey-3"
+                    rounded
+                    class="q-my-xs"
+                    style="max-width: 200px"
+                  />
+                  <q-item-label caption>
+                    <span class="text-grey-6" style="font-size: 0.7rem">
                       <template v-for="(part, i) in p.breakdown" :key="i">
-                        <span v-if="i > 0"> + </span>{{ part }}
+                        <span v-if="i > 0"> · </span>{{ part }}
                       </template>
-                    </div>
+                    </span>
                   </q-item-label>
                 </q-item-section>
               </q-item>
@@ -425,19 +444,21 @@
     <q-dialog v-model="showConfirmDialog" persistent>
       <q-card style="min-width: 400px;">
         <q-card-section>
-          <div class="text-h6">Apply Ranking Formula</div>
+          <div class="text-h6">Recalculate All Scores</div>
         </q-card-section>
         <q-card-section>
-          This will recalculate <strong>weighted_score</strong> for every product
+          This will recalculate the ranking score for every product
           in <strong>{{ selectedCollection }}</strong>.
           <div class="q-mt-sm formula-box q-pa-sm bg-grey-2 rounded-borders">
+            <span class="text-weight-bold">Score</span> =
             <template v-for="(factor, idx) in activeFactors" :key="factor.id">
-              <span v-if="idx > 0"> + </span>
-              {{ factor.field }} &times; {{ factor.weight }}
+              <span v-if="idx > 0" class="text-grey-6"> + </span>
+              <span class="text-weight-bold text-primary">{{ factorPercent(factor) }}%</span>
+              <span class="q-ml-xs">{{ factor.label }}</span>
             </template>
           </div>
           <p v-if="activeBoostRules.length > 0" class="q-mt-sm q-mb-none">
-            Boost rules ({{ activeBoostRules.length }}) are applied at search time and don't need batch processing.
+            Promotion rules ({{ activeBoostRules.length }}) are applied at search time and don't need recalculation.
           </p>
           <p class="text-negative q-mt-sm q-mb-none">This cannot be undone automatically.</p>
         </q-card-section>
@@ -489,7 +510,8 @@ interface PreviewProduct {
   id: string;
   title: string;
   score: number;
-  boostScore: number;
+  tierLevel: number;
+  tierLabel: string;
   breakdown: string[];
 }
 
@@ -619,13 +641,13 @@ function valueLabel(fieldName: string, condition: string): string {
 function ruleDescription(rule: BoostRule): string {
   const fieldLabel = friendlyFactorLabel(rule.field);
   switch (rule.condition) {
-    case 'is_true': return `Products where ${fieldLabel} is true get +${formatNumber(rule.boost)}`;
-    case 'is_false': return `Products where ${fieldLabel} is false get +${formatNumber(rule.boost)}`;
-    case 'newer_than_days': return `Products created in the last ${rule.value} days get +${formatNumber(rule.boost)}`;
-    case 'older_than_days': return `Products older than ${rule.value} days get +${formatNumber(rule.boost)}`;
-    case 'above': return `Products where ${fieldLabel} > ${rule.value} get +${formatNumber(rule.boost)}`;
-    case 'below': return `Products where ${fieldLabel} < ${rule.value} get +${formatNumber(rule.boost)}`;
-    case 'equals': return `Products where ${fieldLabel} = ${rule.value} get +${formatNumber(rule.boost)}`;
+    case 'is_true': return `${fieldLabel} products get priority level ${rule.boost}`;
+    case 'is_false': return `Non-${fieldLabel.toLowerCase()} products get priority level ${rule.boost}`;
+    case 'newer_than_days': return `Products added in the last ${rule.value} days get priority level ${rule.boost}`;
+    case 'older_than_days': return `Products older than ${rule.value} days get priority level ${rule.boost}`;
+    case 'above': return `Products where ${fieldLabel} > ${rule.value} get priority level ${rule.boost}`;
+    case 'below': return `Products where ${fieldLabel} < ${rule.value} get priority level ${rule.boost}`;
+    case 'equals': return `Products where ${fieldLabel} = ${rule.value} get priority level ${rule.boost}`;
     default: return '';
   }
 }
@@ -682,7 +704,7 @@ function addBoostRule() {
     field: defaultField,
     condition,
     value: defaultValueForCondition(condition),
-    boost: 1000,
+    boost: 5,
   });
 }
 
@@ -765,6 +787,13 @@ function onFactorDrop(target: number) {
 
 const activeFactors = computed(() => rankingFactors.filter((f) => f.weight > 0));
 
+function factorPercent(factor: RankingFactor): number {
+  const total = activeFactors.value.reduce((sum, f) => sum + f.weight, 0);
+  return total > 0 ? Math.round((factor.weight / total) * 100) : 0;
+}
+
+const maxPossibleScore = computed(() => activeFactors.value.reduce((sum, f) => sum + f.weight, 0) * 10);
+
 // ---------------------------------------------------------------------------
 // Generated sort_by (3 slots: primary sort, _eval, weighted_score)
 // ---------------------------------------------------------------------------
@@ -797,12 +826,13 @@ function computeScore(doc: Record<string, unknown>): { score: number; breakdown:
   return { score: Math.round(score * 10), breakdown };
 }
 
-function computeBoostScore(doc: Record<string, unknown>): number {
-  let total = 0;
+function computeBoostTier(doc: Record<string, unknown>): { level: number; label: string } {
   for (const rule of activeBoostRules.value) {
-    if (ruleMatches(rule, doc)) total += rule.boost;
+    if (ruleMatches(rule, doc)) {
+      return { level: rule.boost, label: friendlyFactorLabel(rule.field) };
+    }
   }
-  return total;
+  return { level: 0, label: '' };
 }
 
 function ruleMatches(rule: BoostRule, doc: Record<string, unknown>): boolean {
@@ -825,10 +855,6 @@ function ruleMatches(rule: BoostRule, doc: Record<string, unknown>): boolean {
     case 'equals': return String(val) === rule.value;
     default: return false;
   }
-}
-
-function formatNumber(n: number): string {
-  return Math.round(n).toLocaleString();
 }
 
 async function fetchFieldStats(collectionName: string, fields: string[]) {
@@ -902,6 +928,7 @@ async function onCollectionChange(name: string | null) {
 
   loadSchemaFields(name);
   await loadExistingPreset();
+  await checkStaleScores();
 
   // Defaults if no preset loaded
   if (sortEntries.length === 0 && boostRules.length === 0 && rankingFactors.length === 0) {
@@ -912,11 +939,11 @@ async function onCollectionChange(name: string | null) {
     // Default boost rules
     const featured = boolFields.value.find((b) => b.name === 'is_featured');
     if (featured) {
-      boostRules.push({ id: `r${++ruleIdSeq}`, field: 'is_featured', condition: 'is_true', value: '', boost: 5000 });
+      boostRules.push({ id: `r${++ruleIdSeq}`, field: 'is_featured', condition: 'is_true', value: '', boost: 7 });
     }
     const createdAt = schemaFields.value.find((f) => f.name === 'created_at');
     if (createdAt) {
-      boostRules.push({ id: `r${++ruleIdSeq}`, field: 'created_at', condition: 'newer_than_days', value: '30', boost: 2000 });
+      boostRules.push({ id: `r${++ruleIdSeq}`, field: 'created_at', condition: 'newer_than_days', value: '30', boost: 3 });
     }
 
     // Default ranking factors
@@ -961,6 +988,31 @@ const saving = ref(false);
 const presetNote = ref('');
 const lastRecalcNumDocs = ref(0);
 
+const staleScoreCount = ref(0);
+
+async function checkStaleScores() {
+  if (!selectedCollection.value || lastRecalcNumDocs.value === 0) {
+    staleScoreCount.value = 0;
+    return;
+  }
+  try {
+    const api = store.api as Api;
+    const result = await api.search(selectedCollection.value, {
+      q: '*', query_by: 'name', per_page: 0, page: 1,
+    } as any);
+    const currentCount = result?.found ?? 0;
+    const diff = currentCount - lastRecalcNumDocs.value;
+    staleScoreCount.value = diff > 0 ? diff : 0;
+  } catch {
+    staleScoreCount.value = 0;
+  }
+}
+
+function migrateBoostValue(boost: number): number {
+  if (boost <= 10) return boost;
+  return Math.min(10, Math.max(1, Math.round(boost / 1000)));
+}
+
 async function loadExistingPreset() {
   try {
     await store.getSearchPresets();
@@ -985,7 +1037,7 @@ async function loadExistingPreset() {
           field: r.field ?? '',
           condition: r.condition ?? 'is_true',
           value: r.value ?? '',
-          boost: Number(r.boost ?? 1000),
+          boost: migrateBoostValue(Number(r.boost ?? 5)),
         });
       }
     }
@@ -999,6 +1051,10 @@ async function loadExistingPreset() {
           weight: Number(f.weight ?? 50),
         });
       }
+    }
+
+    if (val.last_recalc_num_docs != null) {
+      lastRecalcNumDocs.value = Number(val.last_recalc_num_docs);
     }
 
     if (sortEntries.length > 0 || boostRules.length > 0 || rankingFactors.length > 0) {
@@ -1066,14 +1122,17 @@ async function fetchPreview() {
 function recomputePreview() {
   if (rawDocs.length === 0) { previewProducts.value = []; return; }
 
+  const maxScore = activeFactors.value.reduce((sum, f) => sum + f.weight, 0) * 10;
+
   const scored = rawDocs.map((doc) => {
     const { score, breakdown } = computeScore(doc);
-    const boostScore = computeBoostScore(doc);
+    const tier = computeBoostTier(doc);
     return {
       id: typeof doc.id === 'string' ? doc.id : JSON.stringify(doc.id ?? ''),
       title: typeof doc.name === 'string' ? doc.name : typeof doc.title === 'string' ? doc.title : JSON.stringify(doc.id ?? 'Untitled'),
-      score: score + boostScore,
-      boostScore,
+      score: Math.min(score, maxScore),
+      tierLevel: tier.level,
+      tierLabel: tier.label,
       breakdown,
       doc,
     };
@@ -1087,6 +1146,7 @@ function recomputePreview() {
       const dir = sortEntries.find((e) => e.name === key)?.direction === 'asc' ? 1 : -1;
       if (av !== bv) return (bv - av) * dir;
     }
+    if (a.tierLevel !== b.tierLevel) return b.tierLevel - a.tierLevel;
     return b.score - a.score;
   });
 
@@ -1216,6 +1276,7 @@ async function runBatchUpdate() {
   } finally {
     batchRunning.value = false;
     batchDone.value = true;
+    staleScoreCount.value = 0;
   }
 }
 </script>
