@@ -735,11 +735,21 @@ function addRankingFactor() {
     label: factorToAdd.value.label,
     weight: 50,
   });
+  const newField = factorToAdd.value.value;
   factorToAdd.value = null;
+  if (selectedCollection.value) {
+    void fetchFieldStats(selectedCollection.value, [newField]).then(() => recomputePreview());
+  }
 }
 
 function removeRankingFactor(idx: number) {
+  const removed = rankingFactors[idx];
   rankingFactors.splice(idx, 1);
+  if (removed) {
+    const next = { ...fieldStats.value };
+    delete next[removed.field];
+    fieldStats.value = next;
+  }
 }
 
 function onFactorDragStart(idx: number, e: DragEvent) {
@@ -821,7 +831,6 @@ function formatNumber(n: number): string {
   return Math.round(n).toLocaleString();
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function fetchFieldStats(collectionName: string, fields: string[]) {
   const api = store.api as Api;
   const stats: Record<string, FieldStats> = {};
@@ -887,6 +896,7 @@ async function onCollectionChange(name: string | null) {
   presetNote.value = '';
   batchDone.value = false;
   batchError.value = null;
+  fieldStats.value = {};
 
   if (!name) return;
 
@@ -927,6 +937,10 @@ async function onCollectionChange(name: string | null) {
     }
   }
 
+  const factorFields = rankingFactors.map((f) => f.field);
+  if (factorFields.length > 0) {
+    await fetchFieldStats(name, factorFields);
+  }
   void fetchPreview();
 }
 
