@@ -1,5 +1,5 @@
 <template>
-  <div class="fullscreen row bg-primary text-center q-pa-md flex flex-center">
+  <div class="fullscreen row bg-primary text-center q-pa-md flex flex-center" style="overflow-y: auto">
     <div class="col col-md-4">
       <div>
         <h5 class="text-h5 text-white q-my-md">Typesense Dashboard</h5>
@@ -59,7 +59,7 @@
               </div>
             </q-form>
           </q-card-section>
-          <q-card-section v-if="store.error">
+          <q-card-section v-if="store.error" ref="errorSection">
             <p class="text-red">{{ store.error }}</p>
           </q-card-section>
           <q-card-actions class="q-px-md row">
@@ -86,7 +86,7 @@
 <script setup lang="ts">
 import ServerHistory from 'components/ServerHistory.vue';
 import { useNodeStore } from 'src/stores/node';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch, nextTick } from 'vue';
 
 const store = useNodeStore();
 
@@ -95,6 +95,18 @@ const apiKey = ref('');
 const showAdvancedSettings = ref(false);
 const connectionTimeoutSeconds = ref<number | null>(
   store.loginData?.connectionTimeoutSeconds ?? null,
+);
+
+const errorSection = ref<any>(null);
+
+watch(
+  () => store.error,
+  async (newError) => {
+    if (newError) {
+      await nextTick();
+      errorSection.value?.$el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
 );
 
 onMounted(() => {
