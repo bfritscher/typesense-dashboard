@@ -16,6 +16,7 @@
       <div class="col-3 q-pr-sm">
         <ais-hits-per-page
           :items="[
+            { label: '4 hits per page', value: 4 },
             { label: '12 hits per page', value: 12, default: true },
             { label: '48 hits per page', value: 48 },
             { label: '100 hits per page', value: 100 },
