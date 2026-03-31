@@ -7,7 +7,7 @@
     "path": "",
     "tls": false
   },
-  "connectionTimeoutSeconds": 10,
+  "connectionTimeoutSeconds": 50,
   "ui": {
     "hideProjectInfo": true
   },
