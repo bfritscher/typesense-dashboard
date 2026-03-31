@@ -4,7 +4,10 @@ import * as Typesense from 'typesense';
 import type { CollectionAliasSchema } from 'typesense/lib/Typesense/Aliases';
 import type { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections';
 import type { CollectionUpdateSchema } from 'typesense/lib/Typesense/Collection';
-import type { NodeConfiguration } from 'typesense/lib/Typesense/Configuration';
+import type {
+  ConfigurationOptions,
+  NodeConfiguration,
+} from 'typesense/lib/Typesense/Configuration';
 import type { SearchParams } from 'typesense/lib/Typesense/Documents';
 import type { KeyCreateSchema } from 'typesense/lib/Typesense/Key';
 import type { OverrideSchema } from 'typesense/lib/Typesense/Override';
@@ -19,22 +22,27 @@ export class Api {
   public axiosClient?: AxiosInstance;
   private typesenseClient?: Typesense.Client;
 
-  public init({ node, apiKey }: { node: NodeConfiguration; apiKey: string }): void {
+  public init({
+    node,
+    apiKey,
+    connectionTimeoutSeconds,
+  }: {
+    node: NodeConfiguration;
+    apiKey: string;
+    connectionTimeoutSeconds?: number;
+  }): void {
     this.axiosClient = axios.create({
       baseURL: `${node.protocol}://${node.host}:${node.port}${node.path || ''}`,
       headers: { 'x-typesense-api-key': apiKey },
-      timeout: 6000
+      timeout: 120000
     });
-    this.typesenseClient = new Typesense.Client({
-      nodes: [
-        {
-          ...node,
-        },
-      ],
+    const clientConfig: ConfigurationOptions = {
+      nodes: [{ ...node }],
       apiKey,
-      connectionTimeoutSeconds: 7200,
+      connectionTimeoutSeconds: connectionTimeoutSeconds ?? 7200,
       timeoutSeconds: 720
-    });
+    };
+    this.typesenseClient = new Typesense.Client(clientConfig);
   }
 
   public getDebug() {
