@@ -53,6 +53,8 @@ export interface NodeDataInterface {
     apiKeys: boolean;
     debug: boolean;
     health: boolean;
+    overrides: boolean;
+    synonyms: boolean;
   };
 }
 
@@ -164,6 +166,8 @@ function state(): NodeStateInterface {
         apiKeys: false,
         debug: false,
         health: false,
+        overrides: false,
+        synonyms: false,
       },
     },
   };
@@ -180,7 +184,7 @@ export const useNodeStore = defineStore('node', {
           api = electron;
           (electron as any).rejectTLS(Number(state.loginData.node.tls));
         }
-        const initConfig: Parameters<typeof api.init>[0] = {
+        const initConfig: { node: NodeConfiguration; apiKey: string; connectionTimeoutSeconds?: number } = {
           node: { ...state.loginData.node },
           apiKey: state.loginData.apiKey,
         };
@@ -467,6 +471,19 @@ export const useNodeStore = defineStore('node', {
           this.setData({
             synonyms: response.synonyms,
           });
+          this.setFeature({
+            key: 'synonyms',
+            value: true,
+          });
+        })
+        .catch(() => {
+          this.setData({
+            synonyms: [],
+          });
+          this.setFeature({
+            key: 'synonyms',
+            value: false,
+          });
         });
     },
     getOverrides(collectionName: string) {
@@ -475,6 +492,19 @@ export const useNodeStore = defineStore('node', {
         ?.then((response: { overrides: OverrideSchema[] }) => {
           this.setData({
             overrides: response.overrides,
+          });
+          this.setFeature({
+            key: 'overrides',
+            value: true,
+          });
+        })
+        .catch(() => {
+          this.setData({
+            overrides: [],
+          });
+          this.setFeature({
+            key: 'overrides',
+            value: false,
           });
         });
     },

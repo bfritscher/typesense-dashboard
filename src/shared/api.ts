@@ -34,13 +34,13 @@ export class Api {
     this.axiosClient = axios.create({
       baseURL: `${node.protocol}://${node.host}:${node.port}${node.path || ''}`,
       headers: { 'x-typesense-api-key': apiKey },
-      timeout: 120000
+      timeout: 50000
     });
     const clientConfig: ConfigurationOptions = {
       nodes: [{ ...node }],
       apiKey,
-      connectionTimeoutSeconds: connectionTimeoutSeconds ?? 7200,
-      timeoutSeconds: 720
+      connectionTimeoutSeconds: connectionTimeoutSeconds || 50,
+      timeoutSeconds: connectionTimeoutSeconds || 50
     };
     this.typesenseClient = new Typesense.Client(clientConfig);
   }
