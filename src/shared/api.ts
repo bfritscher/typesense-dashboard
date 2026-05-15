@@ -13,10 +13,9 @@ import type { KeyCreateSchema } from 'typesense/lib/Typesense/Key';
 import type { OverrideSchema } from 'typesense/lib/Typesense/Override';
 import type { SynonymSchema } from 'typesense/lib/Typesense/Synonym';
 import type { PresetCreateSchema } from 'typesense/lib/Typesense/Presets';
-import type { AnalyticsRuleCreateSchema } from 'typesense/lib/Typesense/AnalyticsRule';
-import type AnalyticsRule from 'typesense/lib/Typesense/AnalyticsRule';
-import type AnalyticsRules from 'typesense/lib/Typesense/AnalyticsRules';
 import type { StopwordCreateSchema } from 'typesense/lib/Typesense/Stopwords';
+import type { SynonymSetCreateSchema } from 'typesense/lib/Typesense/SynonymSets';
+import type { CurationSetUpsertSchema } from 'typesense/lib/Typesense/CurationSets';
 
 export class Api {
   public axiosClient?: AxiosInstance;
@@ -101,12 +100,12 @@ export class Api {
     return this.typesenseClient?.analytics.rules().retrieve();
   }
 
-  public upsertAnalyticsRule(name: string, rule: AnalyticsRuleCreateSchema) {
-    return (this.typesenseClient?.analytics.rules() as AnalyticsRules).upsert(name, rule);
+  public upsertAnalyticsRule(name: string, rule: any) {
+    return this.typesenseClient?.analytics.rules().upsert(name, rule);
   }
 
   public deleteAnalyticsRule(name: string) {
-    return (this.typesenseClient?.analytics.rules(name) as AnalyticsRule).delete();
+    return this.typesenseClient?.analytics.rules(name).delete();
   }
 
   public getSearchPresets() {
@@ -213,6 +212,17 @@ export class Api {
       });
   }
 
+  public put(url: string, body?: any): Promise<any> | void {
+    return this.axiosClient
+      ?.put(url, body)
+      .then((r) => {
+        return { data: r.data };
+      })
+      .catch((err) => {
+        throw Error(err.response?.data?.message || err.message);
+      });
+  }
+
   public delete(url: string): Promise<any> | void {
     return this.axiosClient
       ?.delete(url)
@@ -222,6 +232,32 @@ export class Api {
       .catch((err) => {
         throw Error(err.response?.data?.message || err.message);
       });
+  }
+
+  // V30: Synonym Sets API
+  public getSynonymSets() {
+    return this.typesenseClient?.synonymSets().retrieve();
+  }
+
+  public upsertSynonymSet(name: string, data: SynonymSetCreateSchema) {
+    return this.typesenseClient?.synonymSets(name).upsert(data);
+  }
+
+  public deleteSynonymSet(name: string) {
+    return this.typesenseClient?.synonymSets(name).delete();
+  }
+
+  // V30: Curation Sets API
+  public getCurationSets() {
+    return this.typesenseClient?.curationSets().retrieve();
+  }
+
+  public upsertCurationSet(name: string, data: CurationSetUpsertSchema) {
+    return this.typesenseClient?.curationSets(name).upsert(data);
+  }
+
+  public deleteCurationSet(name: string) {
+    return this.typesenseClient?.curationSets(name).delete();
   }
 
   public createSnapshot(snapshotPath: string) {

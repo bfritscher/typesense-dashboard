@@ -110,6 +110,13 @@
         <q-td class="text-right">
           <q-btn flat icon="sym_s_edit" title="Edit" @click="editSynonym(props.row)"></q-btn>
           <q-btn
+            v-if="store.isV30Plus && !route.params.name"
+            flat
+            icon="sym_s_add_link"
+            title="Link to collection"
+            @click="openLinkDialog(props.row._setName || props.row.id)"
+          ></q-btn>
+          <q-btn
             flat
             color="negative"
             icon="sym_s_delete_forever"
@@ -119,12 +126,66 @@
         </q-td>
       </template>
     </q-table>
+
+    <q-dialog v-model="linkDialog.open">
+      <q-card style="min-width: 350px">
+        <q-card-section>
+          <div class="text-h6">Link to collection</div>
+          <div class="text-caption q-mt-xs">Set: {{ linkDialog.setName }}</div>
+        </q-card-section>
+        <q-card-section>
+          <q-select
+            v-model="linkDialog.selectedCollection"
+            :options="availableCollectionsForSet(linkDialog.setName)"
+            option-label="name"
+            option-value="name"
+            emit-value
+            map-options
+            outlined
+            label="Collection"
+          />
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn v-close-popup flat label="Cancel" />
+          <q-btn
+            unelevated
+            color="primary"
+            label="Link"
+            :disable="!linkDialog.selectedCollection"
+            @click="confirmLink"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <q-card v-if="store.isV30Plus && route.params.name" class="q-mt-md" flat bordered>
+      <q-card-section class="row items-center q-gutter-md">
+        <div class="text-subtitle2">Link existing global set to this collection</div>
+        <q-select
+          v-model="selectedSetToLink"
+          :options="unlinkedSets"
+          dense
+          outlined
+          clearable
+          label="Global synonym set"
+          style="min-width: 250px"
+        />
+        <q-btn
+          unelevated
+          color="primary"
+          :disable="!selectedSetToLink"
+          @click="linkSet"
+          >Link to collection</q-btn
+        >
+      </q-card-section>
+    </q-card>
   </q-page>
 </template>
 
 <script setup lang="ts">
 import { useNodeStore } from 'src/stores/node';
-import { computed, onMounted, reactive } from 'vue';
+import { computed, onMounted, reactive, ref } from 'vue';
+import { useRoute } from 'vue-router';
 import { useQuasar } from 'quasar';
 import { nanoid } from 'nanoid';
 import type { SynonymCreateSchema } from 'typesense/lib/Typesense/Synonyms';
@@ -133,6 +194,7 @@ import type { QTableProps } from 'quasar';
 
 const $q = useQuasar();
 const store = useNodeStore();
+const route = useRoute();
 
 enum RootTypes {
   ONE_WAY = 'one-way',
@@ -247,8 +309,12 @@ async function createSynonym() {
 }
 
 function editSynonym(synonym: SynonymSchema) {
-  state.id = synonym.id || nanoid();
-  state.synonym = JSON.parse(JSON.stringify(synonym));
+  const copy = JSON.parse(JSON.stringify(synonym));
+  const id = copy.id;
+  delete copy.id;
+  delete copy._setName;
+  state.id = id || nanoid();
+  state.synonym = copy;
   state.type = state.synonym.root ? RootTypes.ONE_WAY : RootTypes.MULTI_WAY;
   state.synonym.locale = state.synonym.locale || '';
   state.synonym.symbols_to_index = state.synonym.symbols_to_index || [];
@@ -266,9 +332,49 @@ function deleteSynonym(id: string) {
   });
 }
 
-onMounted(() => {
-  if (store.currentCollection) {
-    void store.getSynonyms(store.currentCollection.name);
+const allGlobalSets = ref<string[]>([]);
+const selectedSetToLink = ref<string | null>(null);
+
+const unlinkedSets = computed(() => {
+  const linked = store.currentCollection?.synonym_sets ?? [];
+  return allGlobalSets.value.filter((s) => !linked.includes(s));
+});
+
+async function linkSet() {
+  if (!selectedSetToLink.value) return;
+  await store.linkSynonymSetToCollection(selectedSetToLink.value);
+  selectedSetToLink.value = null;
+  const sets = await store.fetchAllSynonymSets();
+  allGlobalSets.value = sets.map((s) => s.name);
+}
+
+const linkDialog = reactive({ open: false, setName: '', selectedCollection: '' });
+
+function openLinkDialog(setName: string) {
+  linkDialog.setName = setName;
+  linkDialog.selectedCollection = '';
+  linkDialog.open = true;
+}
+
+function availableCollectionsForSet(setName: string) {
+  return store.data.collections.filter((c) => !(c.synonym_sets ?? []).includes(setName));
+}
+
+async function confirmLink() {
+  await store.linkSynonymSetToCollection(linkDialog.setName, linkDialog.selectedCollection);
+  linkDialog.open = false;
+}
+
+onMounted(async () => {
+  const collectionName = (route.params.name as string) || '';
+  if (store.isV30Plus) {
+    void store.getSynonyms(collectionName);
+    if (collectionName) {
+      const sets = await store.fetchAllSynonymSets();
+      allGlobalSets.value = sets.map((s) => s.name);
+    }
+  } else if (collectionName) {
+    void store.getSynonyms(collectionName);
   }
 });
 </script>
