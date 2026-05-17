@@ -1,5 +1,10 @@
 <template>
   <q-page padding>
+    <q-banner v-if="!route.params.name && !store.isV30Plus" inline-actions class="bg-warning">
+      Global curation sets require Typesense v30 or newer. Use a collection-scoped curation page
+      on older servers.
+    </q-banner>
+    <template v-else>
     <q-expansion-item
       v-model="state.expanded"
       expand-separator
@@ -12,6 +17,20 @@
       <q-card style="height: 60vh" class="bg-surface column">
         <q-card-section>
           <q-input v-model="state.id" dense filled label="ID"></q-input>
+        </q-card-section>
+        <q-card-section v-if="store.supportsCurationRuleTags" class="q-pt-none">
+          <q-select
+            v-model="ruleTags"
+            filled
+            multiple
+            use-chips
+            use-input
+            new-value-mode="add"
+            stack-label
+            hide-dropdown-icon
+            label="Rule Tags"
+            hint="Available in Typesense 26+ and matched via curation_tags at search time"
+          />
         </q-card-section>
         <monaco-editor v-model="overrideJson"></monaco-editor>
         <q-banner v-if="state.jsonError" inline-actions class="text-white bg-red">
@@ -41,7 +60,7 @@
       :rows="store.data.overrides"
       :columns="state.columns"
       row-key="id"
-      :visible-columns="['query', 'match', 'includes', 'excludes', 'actions']"
+      :visible-columns="visibleColumns"
     >
       <template #top-left>
         <div class="text-h6"><q-icon size="md" name="sym_s_low_priority" /> Curations</div>
@@ -57,32 +76,97 @@
         <q-td class="text-right">
           <q-btn flat icon="sym_s_edit" title="Edit" @click="editOverride(props.row)"></q-btn>
           <q-btn
+            v-if="store.isV30Plus && !route.params.name && props.row._setName"
+            flat
+            icon="sym_s_add_link"
+            title="Link to collection"
+            @click="openLinkDialog(props.row._setName)"
+          ></q-btn>
+          <q-btn
             flat
             color="negative"
             icon="sym_s_delete_forever"
             title="Delete"
-            @click="deleteOverride(props.row.id)"
+            @click="deleteOverride(props.row)"
           ></q-btn>
         </q-td>
       </template>
     </q-table>
+
+    <q-dialog v-model="linkDialog.open">
+      <q-card style="min-width: 350px">
+        <q-card-section>
+          <div class="text-h6">Link to collection</div>
+          <div class="text-caption q-mt-xs">Set: {{ linkDialog.setName }}</div>
+        </q-card-section>
+        <q-card-section>
+          <q-select
+            v-model="linkDialog.selectedCollection"
+            :options="availableCollectionsForSet(linkDialog.setName)"
+            option-label="name"
+            option-value="name"
+            emit-value
+            map-options
+            outlined
+            label="Collection"
+          />
+        </q-card-section>
+        <q-card-actions align="right">
+          <q-btn v-close-popup flat label="Cancel" />
+          <q-btn
+            unelevated
+            color="primary"
+            label="Link"
+            :disable="!linkDialog.selectedCollection"
+            @click="confirmLink"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <q-card v-if="store.isV30Plus && route.params.name" class="q-mt-md" flat bordered>
+      <q-card-section class="row items-center q-gutter-md">
+        <div class="text-subtitle2">Link existing global set to this collection</div>
+        <q-select
+          v-model="selectedSetToLink"
+          :options="unlinkedSets"
+          dense
+          outlined
+          clearable
+          label="Global curation set"
+          style="min-width: 250px"
+        />
+        <q-btn
+          unelevated
+          color="primary"
+          :disable="!selectedSetToLink"
+          @click="linkSet"
+          >Link to collection</q-btn
+        >
+      </q-card-section>
+    </q-card>
+    </template>
   </q-page>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useQuasar } from 'quasar';
+import { useRoute } from 'vue-router';
 import { nanoid } from 'nanoid';
 import MonacoEditor from 'src/components/MonacoEditor.vue';
 import { useNodeStore } from 'src/stores/node';
 import type { OverrideSchema } from 'typesense/lib/Typesense/Override';
 import type { OverrideCreateSchema } from 'typesense/lib/Typesense/Overrides';
+import type { CurationObjectSchema } from 'typesense/lib/Typesense/CurationSets';
 import type { QTableProps } from 'quasar';
+import type { OverrideRow } from 'src/stores/node';
 
 const $q = useQuasar();
 const store = useNodeStore();
+const route = useRoute();
 
-const initialData: OverrideCreateSchema = {
+const initialData: OverrideCreateSchema | Omit<CurationObjectSchema, 'id'> = {
   rule: {
     query: 'apple',
     match: 'exact',
@@ -96,7 +180,8 @@ const initialData: OverrideCreateSchema = {
 
 const state = reactive({
   id: nanoid(),
-  override: initialData as OverrideSchema | OverrideCreateSchema,
+  override: initialData as OverrideSchema | OverrideCreateSchema | Omit<CurationObjectSchema, 'id'>,
+  setName: null as string | null,
   jsonError: null as string | null,
   expanded: store.data.overrides.length === 0,
   filter: '',
@@ -109,14 +194,21 @@ const state = reactive({
     {
       label: 'Query',
       name: 'query',
-      field: (row: any) => row.rule.query,
+      field: (row: OverrideRow) => ('query' in row.rule ? row.rule.query : ''),
       sortable: true,
       align: 'left',
     },
     {
       label: 'Match',
       name: 'match',
-      field: (row: any) => row.rule.match,
+      field: (row: OverrideRow) => ('match' in row.rule ? row.rule.match : ''),
+      sortable: true,
+      align: 'left',
+    },
+    {
+      label: 'Tags',
+      name: 'tags',
+      field: (row: OverrideRow) => row.rule.tags?.join(', ') || '',
       sortable: true,
       align: 'left',
     },
@@ -140,6 +232,21 @@ const state = reactive({
 
 const isValid = computed(() => state.id.length > 0 && !state.jsonError);
 const isUpdate = computed(() => store.data.overrides.map((o) => o.id).includes(state.id));
+const visibleColumns = computed(() =>
+  store.supportsCurationRuleTags
+    ? ['query', 'match', 'tags', 'includes', 'excludes', 'actions']
+    : ['query', 'match', 'includes', 'excludes', 'actions'],
+);
+const ruleTags = computed({
+  get: () => state.override.rule.tags || [],
+  set: (tags: string[]) => {
+    if (tags.length > 0) {
+      state.override.rule.tags = tags;
+    } else {
+      delete state.override.rule.tags;
+    }
+  },
+});
 
 const overrideJson = computed({
   get: () => JSON.stringify(state.override, null, 2),
@@ -157,32 +264,97 @@ async function createOverride() {
   await store.createOverride({
     id: state.id,
     override: JSON.parse(JSON.stringify(state.override)),
+    ...(state.setName ? { setName: state.setName } : {}),
   });
   state.id = nanoid();
-  state.override = initialData;
+  state.override = JSON.parse(JSON.stringify(initialData));
+  state.setName = null;
   state.expanded = false;
 }
 
-function editOverride(override: OverrideSchema) {
-  state.override = JSON.parse(JSON.stringify(override));
-  state.id = override.id || nanoid();
+function editOverride(override: OverrideRow) {
+  const copy = JSON.parse(JSON.stringify(override));
+  const id = copy.id;
+  state.setName = copy._setName ?? null;
+  delete copy.id;
+  delete copy._setName;
+  state.override = copy;
+  state.id = id || nanoid();
   state.expanded = true;
 }
 
-function deleteOverride(id: string) {
+function deleteOverride(row: OverrideRow) {
   $q.dialog({
     title: 'Confirm',
-    message: `Delete curation with id: ${id}?`,
+    message: `Delete curation with id: ${row.id}?`,
     cancel: true,
     persistent: true,
   }).onOk(() => {
-    void store.deleteOverride(id);
+    void store.deleteOverride({
+      id: row.id,
+      ...(row._setName ? { setName: row._setName } : {}),
+    });
   });
 }
 
-onMounted(() => {
-  if (store.currentCollection) {
-    void store.getOverrides(store.currentCollection.name);
-  }
+const allGlobalSets = ref<string[]>([]);
+const selectedSetToLink = ref<string | null>(null);
+
+const unlinkedSets = computed(() => {
+  const linked = store.currentCollection?.curation_sets ?? [];
+  return allGlobalSets.value.filter((s) => !linked.includes(s));
 });
+
+async function linkSet() {
+  if (!selectedSetToLink.value) return;
+  await store.linkCurationSetToCollection(selectedSetToLink.value);
+  selectedSetToLink.value = null;
+  const sets = await store.fetchAllCurationSets();
+  allGlobalSets.value = sets.map((s) => s.name);
+}
+
+const linkDialog = reactive({ open: false, setName: '', selectedCollection: '' });
+
+function openLinkDialog(setName: string) {
+  linkDialog.setName = setName;
+  linkDialog.selectedCollection = '';
+  linkDialog.open = true;
+}
+
+function availableCollectionsForSet(setName: string) {
+  return store.data.collections.filter((c) => !(c.curation_sets ?? []).includes(setName));
+}
+
+async function confirmLink() {
+  await store.linkCurationSetToCollection(linkDialog.setName, linkDialog.selectedCollection);
+  linkDialog.open = false;
+}
+
+async function refreshPageData() {
+  const collectionName = (route.params.name as string) || '';
+  if (store.isV30Plus) {
+    void store.getOverrides(collectionName);
+    if (collectionName) {
+      const sets = await store.fetchAllCurationSets();
+      allGlobalSets.value = sets.map((s) => s.name);
+    } else {
+      allGlobalSets.value = [];
+    }
+  } else if (collectionName) {
+    void store.getOverrides(collectionName);
+  } else {
+    allGlobalSets.value = [];
+  }
+}
+
+onMounted(() => {
+  void refreshPageData();
+});
+
+watch(
+  () => route.params.name,
+  () => {
+    void refreshPageData();
+  },
+);
 </script>

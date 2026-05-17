@@ -71,6 +71,22 @@
         <q-item-section> Search Presets </q-item-section>
       </q-item>
 
+      <q-item v-if="store.isV30Plus" v-ripple clickable to="/synonyms" exact>
+        <q-item-section avatar>
+          <q-icon name="sym_s_dataset_linked" />
+        </q-item-section>
+
+        <q-item-section> Synonyms </q-item-section>
+      </q-item>
+
+      <q-item v-if="store.isV30Plus" v-ripple clickable to="/curations" exact>
+        <q-item-section avatar>
+          <q-icon name="sym_s_low_priority" />
+        </q-item-section>
+
+        <q-item-section> Curations </q-item-section>
+      </q-item>
+
       <q-item v-ripple clickable to="/stopwords" exact :disable="!store.data.features.stopwords">
         <q-item-section avatar>
           <q-icon name="sym_s_playlist_remove" />
@@ -224,7 +240,7 @@ const currentCollection = computed({
     return store.currentCollection;
   },
   set(value: CollectionSchema | null) {
-    store.loadCurrentCollection(value);
+    void store.loadCurrentCollection(value);
   },
 });
 </script>

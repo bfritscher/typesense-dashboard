@@ -10,13 +10,16 @@ import type {
 } from 'typesense/lib/Typesense/Configuration';
 import type { SearchParams } from 'typesense/lib/Typesense/Documents';
 import type { KeyCreateSchema } from 'typesense/lib/Typesense/Key';
-import type { OverrideSchema } from 'typesense/lib/Typesense/Override';
+import type { OverrideCreateSchema } from 'typesense/lib/Typesense/Overrides';
 import type { SynonymSchema } from 'typesense/lib/Typesense/Synonym';
 import type { PresetCreateSchema } from 'typesense/lib/Typesense/Presets';
-import type { AnalyticsRuleCreateSchema } from 'typesense/lib/Typesense/AnalyticsRule';
-import type AnalyticsRule from 'typesense/lib/Typesense/AnalyticsRule';
-import type AnalyticsRules from 'typesense/lib/Typesense/AnalyticsRules';
 import type { StopwordCreateSchema } from 'typesense/lib/Typesense/Stopwords';
+import type { AnalyticsRuleUpsertSchema } from 'typesense/lib/Typesense/AnalyticsRule';
+import type { SynonymItemSchema, SynonymSetCreateSchema } from 'typesense/lib/Typesense/SynonymSets';
+import type {
+  CurationObjectSchema,
+  CurationSetUpsertSchema,
+} from 'typesense/lib/Typesense/CurationSets';
 
 export class Api {
   public axiosClient?: AxiosInstance;
@@ -101,12 +104,12 @@ export class Api {
     return this.typesenseClient?.analytics.rules().retrieve();
   }
 
-  public upsertAnalyticsRule(name: string, rule: AnalyticsRuleCreateSchema) {
-    return (this.typesenseClient?.analytics.rules() as AnalyticsRules).upsert(name, rule);
+  public upsertAnalyticsRule(name: string, rule: AnalyticsRuleUpsertSchema) {
+    return this.typesenseClient?.analytics.rules().upsert(name, rule);
   }
 
   public deleteAnalyticsRule(name: string) {
-    return (this.typesenseClient?.analytics.rules(name) as AnalyticsRule).delete();
+    return this.typesenseClient?.analytics.rules(name).delete();
   }
 
   public getSearchPresets() {
@@ -161,7 +164,7 @@ export class Api {
     return this.typesenseClient?.collections(collectionName).overrides().retrieve();
   }
 
-  public upsertOverride(collectionName: string, id: string, override: OverrideSchema) {
+  public upsertOverride(collectionName: string, id: string, override: OverrideCreateSchema) {
     return this.typesenseClient?.collections(collectionName).overrides().upsert(id, override);
   }
 
@@ -222,6 +225,60 @@ export class Api {
       .catch((err) => {
         throw Error(err.response?.data?.message || err.message);
       });
+  }
+
+  // V30: Synonym Sets API
+  public getSynonymSets() {
+    return this.typesenseClient?.synonymSets().retrieve();
+  }
+
+  public getSynonymSet(name: string) {
+    return this.typesenseClient?.synonymSets(name).retrieve();
+  }
+
+  public upsertSynonymSet(name: string, data: SynonymSetCreateSchema) {
+    return this.typesenseClient?.synonymSets(name).upsert(data);
+  }
+
+  public upsertSynonymSetItem(
+    setName: string,
+    itemId: string,
+    item: Omit<SynonymItemSchema, 'id'>,
+  ) {
+    return this.typesenseClient?.synonymSets(setName).items().upsert(itemId, item);
+  }
+
+  public deleteSynonymSetItem(setName: string, itemId: string) {
+    return this.typesenseClient?.synonymSets(setName).items(itemId).delete();
+  }
+
+  public deleteSynonymSet(name: string) {
+    return this.typesenseClient?.synonymSets(name).delete();
+  }
+
+  // V30: Curation Sets API
+  public getCurationSets() {
+    return this.typesenseClient?.curationSets().retrieve();
+  }
+
+  public getCurationSet(name: string) {
+    return this.typesenseClient?.curationSets(name).retrieve();
+  }
+
+  public upsertCurationSet(name: string, data: CurationSetUpsertSchema) {
+    return this.typesenseClient?.curationSets(name).upsert(data);
+  }
+
+  public upsertCurationSetItem(setName: string, item: CurationObjectSchema) {
+    return this.typesenseClient?.curationSets(setName).items(item.id).upsert(item);
+  }
+
+  public deleteCurationSetItem(setName: string, itemId: string) {
+    return this.typesenseClient?.curationSets(setName).items(itemId).delete();
+  }
+
+  public deleteCurationSet(name: string) {
+    return this.typesenseClient?.curationSets(name).delete();
   }
 
   public createSnapshot(snapshotPath: string) {

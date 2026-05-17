@@ -42,7 +42,7 @@ export default defineRouter(function ({ store }) {
     } else if (to.params.name) {
       if (!nodeStore.currentCollection || nodeStore.currentCollection.name !== to.params.name) {
         // TODO check await needed?
-        nodeStore.loadCurrentCollectionByName(to.params.name as string);
+        void nodeStore.loadCurrentCollectionByName(to.params.name as string);
       }
       next();
     } else next();

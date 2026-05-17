@@ -5,14 +5,23 @@ import type { KeySchema } from 'typesense/lib/Typesense/Key';
 import type { SynonymSchema } from 'typesense/lib/Typesense/Synonym';
 import type { SynonymCreateSchema } from 'typesense/lib/Typesense/Synonyms';
 import type { OverrideSchema } from 'typesense/lib/Typesense/Override';
+import type { OverrideCreateSchema } from 'typesense/lib/Typesense/Overrides';
 import type { SearchParams } from 'typesense/lib/Typesense/Documents';
 import type { DebugResponseSchema } from 'typesense/lib/Typesense/Debug';
-import type { AnalyticsRuleSchema } from 'typesense/lib/Typesense/AnalyticsRule';
+import type {
+  AnalyticsRuleCreateSchema,
+  AnalyticsRuleSchema,
+} from 'typesense/lib/Typesense/AnalyticsRule';
 import type { PresetSchema } from 'typesense/lib/Typesense/Preset';
 import type { StopwordSchema } from 'typesense/lib/Typesense/Stopword';
 import type { StemmingDictionariesRetrieveSchema } from 'typesense/lib/Typesense/StemmingDictionaries';
 import type { StemmingDictionarySchema } from 'typesense/lib/Typesense/StemmingDictionary';
 import type { NodeConfiguration } from 'typesense/lib/Typesense/Configuration';
+import type {
+  CurationObjectSchema,
+  CurationSetsListEntrySchema,
+} from 'typesense/lib/Typesense/CurationSets';
+import type { SynonymSetSchema } from 'typesense/lib/Typesense/SynonymSets';
 import type { RouteLocationNormalized } from 'vue-router';
 
 import FileSaver from 'file-saver';
@@ -40,8 +49,8 @@ export interface NodeDataInterface {
   searchPresets: PresetSchema<any>[];
   stopwords: StopwordSchema[];
   stemmingDictionaries: string[];
-  overrides: OverrideSchema[];
-  synonyms: SynonymSchema[];
+  overrides: OverrideRow[];
+  synonyms: SynonymRow[];
   defaultDocVersion: string;
   features: {
     stopwords: boolean;
@@ -89,6 +98,19 @@ export interface NodeStateInterface {
 
   documentsToEdit: any[] | null;
 }
+
+type CollectionSetLinkSchema = CollectionUpdateSchema & {
+  curation_sets?: string[];
+  synonym_sets?: string[];
+};
+
+export type SynonymRow = SynonymSchema & {
+  _setName?: string;
+};
+
+export type OverrideRow = OverrideSchema & {
+  _setName?: string;
+};
 
 export const STORAGE_KEY_LOGIN = 'typesense-logindata';
 export const STORAGE_KEY_LOGIN_HISTORY = 'typesense-loginhistory';
@@ -172,6 +194,18 @@ function state(): NodeStateInterface {
 export const useNodeStore = defineStore('node', {
   state,
   getters: {
+    typesenseMajorVersion(): number {
+      const version = this.data.debug?.version;
+      if (!version || typeof version !== 'string') return 0;
+      const major = parseInt(version.split('.')[0] ?? '0', 10);
+      return Number.isNaN(major) ? 0 : major;
+    },
+    supportsCurationRuleTags(): boolean {
+      return this.typesenseMajorVersion >= 26;
+    },
+    isV30Plus(): boolean {
+      return this.typesenseMajorVersion >= 30;
+    },
     api(state): Api | void {
       if (state.loginData && state.loginData.apiKey) {
         const electron: Api | null = (window as any).electron;
@@ -376,17 +410,26 @@ export const useNodeStore = defineStore('node', {
       });
     },
     async getAnalyticsRules() {
-      await this.api?.getAnalyticsRules()?.then((response: any) => {
-        this.setData({
-          analyticsRules: response.rules,
+      await this.api
+        ?.getAnalyticsRules()
+        ?.then((response: AnalyticsRuleSchema[] | { rules: AnalyticsRuleSchema[] }) => {
+          const analyticsRules = Array.isArray(response) ? response : (response?.rules ?? []);
+          this.setData({
+            analyticsRules,
+          });
+        })
+        .catch((error) => {
+          this.setError((error as Error).message);
+          this.setData({
+            analyticsRules: [],
+          });
         });
-      });
     },
     async deleteAnalyticsRule(name: string) {
       await this.api?.deleteAnalyticsRule(name);
       void this.getAnalyticsRules();
     },
-    async createAnalyticsRule(rule: AnalyticsRuleSchema) {
+    async createAnalyticsRule(rule: AnalyticsRuleCreateSchema) {
       try {
         this.setError(null);
         await this.api?.upsertAnalyticsRule(rule.name, rule);
@@ -461,22 +504,94 @@ export const useNodeStore = defineStore('node', {
       void this.getStemmingDictionaries();
     },
     getSynonyms(collectionName: string) {
-      void this.api
-        ?.getSynonyms(collectionName)
-        ?.then((response: { synonyms: SynonymSchema[] }) => {
-          this.setData({
-            synonyms: response.synonyms,
-          });
+      const loadV30Synonyms = () => {
+        void this.api?.getSynonymSets()?.then((sets: SynonymSetSchema[]) => {
+          const collection = collectionName
+            ? this.currentCollection?.name === collectionName
+              ? this.currentCollection
+              : this.data.collections.find((c) => c.name === collectionName)
+            : null;
+          const allowedSets = collection?.synonym_sets;
+          const filteredSets =
+            allowedSets !== undefined
+              ? sets.filter((set) => allowedSets.includes(set.name))
+              : sets;
+          const synonyms: SynonymRow[] = filteredSets.flatMap((set) =>
+            set.items.map((item) => ({ ...item, _setName: set.name })),
+          );
+          this.setData({ synonyms });
         });
+      };
+      if (!this.data.debug?.version) {
+        void this.getDebug()
+          .then(() => {
+            this.getSynonyms(collectionName);
+          })
+          .catch(() => {
+            if (collectionName) {
+              void this.api
+                ?.getSynonyms(collectionName)
+                ?.then((response: { synonyms: SynonymSchema[] }) => {
+                  this.setData({ synonyms: response.synonyms });
+                });
+            }
+          });
+        return;
+      }
+      if (this.isV30Plus) {
+        loadV30Synonyms();
+      } else if (collectionName) {
+        void this.api
+          ?.getSynonyms(collectionName)
+          ?.then((response: { synonyms: SynonymSchema[] }) => {
+            this.setData({ synonyms: response.synonyms });
+          });
+      }
     },
     getOverrides(collectionName: string) {
-      void this.api
-        ?.getOverrides(collectionName)
-        ?.then((response: { overrides: OverrideSchema[] }) => {
-          this.setData({
-            overrides: response.overrides,
-          });
+      const loadV30Overrides = () => {
+        void this.api?.getCurationSets()?.then((sets: CurationSetsListEntrySchema[]) => {
+          const collection = collectionName
+            ? this.currentCollection?.name === collectionName
+              ? this.currentCollection
+              : this.data.collections.find((c) => c.name === collectionName)
+            : null;
+          const allowedSets = collection?.curation_sets;
+          const filteredSets =
+            allowedSets !== undefined
+              ? sets.filter((set) => allowedSets.includes(set.name))
+              : sets;
+          const overrides: OverrideRow[] = filteredSets.flatMap((set) =>
+            set.items.map((item) => ({ ...item, _setName: set.name })),
+          );
+          this.setData({ overrides });
         });
+      };
+      if (!this.data.debug?.version) {
+        void this.getDebug()
+          .then(() => {
+            this.getOverrides(collectionName);
+          })
+          .catch(() => {
+            if (collectionName) {
+              void this.api
+                ?.getOverrides(collectionName)
+                ?.then((response: { overrides: OverrideSchema[] }) => {
+                  this.setData({ overrides: response.overrides });
+                });
+            }
+          });
+        return;
+      }
+      if (this.isV30Plus) {
+        loadV30Overrides();
+      } else if (collectionName) {
+        void this.api
+          ?.getOverrides(collectionName)
+          ?.then((response: { overrides: OverrideSchema[] }) => {
+            this.setData({ overrides: response.overrides });
+          });
+      }
     },
     login(loginData: NodeLoginPayloadInterface) {
       const { apiKey, node, forceHomeRedirect = false, connectionTimeoutSeconds } = loginData;
@@ -625,46 +740,221 @@ export const useNodeStore = defineStore('node', {
       await this.api?.deleteApiKey(id);
       void this.getApiKeys();
     },
-    async createSynonym(payload: { id: string; synonym: SynonymCreateSchema }) {
+    async fetchAllSynonymSets(): Promise<SynonymSetSchema[]> {
+      const response = await this.api?.getSynonymSets();
+      return Array.isArray(response) ? response : [];
+    },
+    async fetchAllCurationSets(): Promise<CurationSetsListEntrySchema[]> {
+      const response = await this.api?.getCurationSets();
+      return Array.isArray(response) ? response : [];
+    },
+    async linkSynonymSetToCollection(setName: string, collectionName?: string) {
+      if (!this.isV30Plus) return;
+      const col = collectionName
+        ? this.data.collections.find((c) => c.name === collectionName)
+        : this.currentCollection;
+      if (!col) return;
+      const existingSets = col.synonym_sets ?? [];
+      if (!existingSets.includes(setName)) {
+        const newSets = [...existingSets, setName];
+        await this.api?.updateCollection(col.name, { synonym_sets: newSets });
+        if (this.currentCollection?.name === col.name) {
+          this.setCurrentCollection({ ...this.currentCollection, synonym_sets: newSets });
+          void this.getSynonyms(col.name);
+        }
+        void this.getCollections();
+      }
+    },
+    async linkCurationSetToCollection(setName: string, collectionName?: string) {
+      if (!this.isV30Plus) return;
+      const col = collectionName
+        ? this.data.collections.find((c) => c.name === collectionName)
+        : this.currentCollection;
+      if (!col) return;
+      const existingSets = col.curation_sets ?? [];
+      if (!existingSets.includes(setName)) {
+        const newSets = [...existingSets, setName];
+        await this.api?.updateCollection(col.name, {
+          curation_sets: newSets,
+        } as CollectionSetLinkSchema);
+        if (this.currentCollection?.name === col.name) {
+          this.setCurrentCollection({ ...this.currentCollection, curation_sets: newSets });
+          void this.getOverrides(col.name);
+        }
+        void this.getCollections();
+      }
+    },
+    async createSynonym(payload: {
+      id: string;
+      synonym: SynonymCreateSchema;
+      setName?: string;
+    }) {
       try {
         this.setError(null);
-        if (!this.currentCollection) {
-          throw new Error('No collection selected');
+        if (this.isV30Plus) {
+          const setName = payload.setName || payload.id;
+          if (payload.setName) {
+            await this.api?.upsertSynonymSetItem(setName, payload.id, payload.synonym);
+          } else {
+            await this.api?.upsertSynonymSet(setName, {
+              items: [{ id: payload.id, ...payload.synonym }],
+            });
+          }
+          if (this.currentCollection) {
+            const existingSets = this.currentCollection.synonym_sets ?? [];
+            if (!existingSets.includes(setName)) {
+              await this.api?.updateCollection(this.currentCollection.name, {
+                synonym_sets: [...existingSets, setName],
+              });
+              this.setCurrentCollection({
+                ...this.currentCollection,
+                synonym_sets: [...existingSets, setName],
+              });
+              void this.getCollections();
+            }
+            void this.getSynonyms(this.currentCollection.name);
+          } else {
+            void this.getSynonyms('');
+          }
+        } else {
+          if (!this.currentCollection) {
+            throw new Error('No collection selected');
+          }
+          await this.api?.upsertSynonym(this.currentCollection.name, payload.id, {
+            id: payload.id,
+            ...payload.synonym,
+          });
+          void this.getSynonyms(this.currentCollection.name);
         }
-        await this.api?.upsertSynonym(this.currentCollection.name, payload.id, {
-          id: payload.id,
-          ...payload.synonym,
-        });
-        void this.getSynonyms(this.currentCollection?.name);
       } catch (error) {
         this.setError((error as Error).message);
       }
     },
-    async deleteSynonym(id: string) {
-      if (!this.currentCollection) {
-        throw new Error('No collection selected');
-      }
-      await this.api?.deleteSynonym(this.currentCollection.name, id);
-      void this.getSynonyms(this.currentCollection?.name);
-    },
-    async createOverride(payload: { id: string; override: OverrideSchema }) {
+    async deleteSynonym(payload: { id: string; setName?: string }) {
       try {
         this.setError(null);
-        if (!this.currentCollection) {
-          throw new Error('No collection selected');
+        if (this.isV30Plus) {
+          if (!payload.setName) {
+            throw new Error('Cannot delete a V30 synonym item without its parent set name');
+          }
+          const set = await this.api?.getSynonymSet(payload.setName);
+          if (!set) {
+            throw new Error(`Synonym set ${payload.setName} not found`);
+          }
+          if (set.items.length <= 1) {
+            await this.api?.deleteSynonymSet(payload.setName);
+          } else {
+            await this.api?.deleteSynonymSetItem(payload.setName, payload.id);
+          }
+          if (this.currentCollection) {
+            const existingSets = this.currentCollection.synonym_sets ?? [];
+            if (set.items.length <= 1 && existingSets.includes(payload.setName)) {
+              const synonym_sets = existingSets.filter((setName) => setName !== payload.setName);
+              await this.api?.updateCollection(this.currentCollection.name, { synonym_sets });
+              this.setCurrentCollection({ ...this.currentCollection, synonym_sets });
+            }
+            void this.getCollections();
+            void this.getSynonyms(this.currentCollection.name);
+          } else {
+            void this.getSynonyms('');
+          }
+        } else {
+          if (!this.currentCollection) {
+            throw new Error('No collection selected');
+          }
+          await this.api?.deleteSynonym(this.currentCollection.name, payload.id);
+          void this.getSynonyms(this.currentCollection.name);
         }
-        await this.api?.upsertOverride(this.currentCollection.name, payload.id, payload.override);
-        void this.getOverrides(this.currentCollection?.name);
       } catch (error) {
         this.setError((error as Error).message);
       }
     },
-    async deleteOverride(id: string) {
-      if (!this.currentCollection) {
-        throw new Error('No collection selected');
+    async createOverride(payload: {
+      id: string;
+      override: OverrideCreateSchema;
+      setName?: string;
+    }) {
+      try {
+        this.setError(null);
+        const overridePayload = JSON.parse(JSON.stringify(payload.override)) as OverrideCreateSchema;
+        if (!this.supportsCurationRuleTags && overridePayload.rule) {
+          delete overridePayload.rule.tags;
+        }
+        if (this.isV30Plus) {
+          const setName = payload.setName || payload.id;
+          const curationItem = { ...overridePayload, id: payload.id } as CurationObjectSchema;
+          if (payload.setName) {
+            await this.api?.upsertCurationSetItem(setName, curationItem);
+          } else {
+            await this.api?.upsertCurationSet(setName, {
+              items: [curationItem],
+            });
+          }
+          if (this.currentCollection) {
+            const existingSets = this.currentCollection.curation_sets ?? [];
+            if (!existingSets.includes(setName)) {
+              const curation_sets = [...existingSets, setName];
+              await this.api?.updateCollection(this.currentCollection.name, {
+                curation_sets,
+              } as CollectionSetLinkSchema);
+              this.setCurrentCollection({ ...this.currentCollection, curation_sets });
+              void this.getCollections();
+            }
+            void this.getOverrides(this.currentCollection.name);
+          } else {
+            void this.getOverrides('');
+          }
+        } else {
+          if (!this.currentCollection) {
+            throw new Error('No collection selected');
+          }
+          await this.api?.upsertOverride(this.currentCollection.name, payload.id, overridePayload);
+          void this.getOverrides(this.currentCollection.name);
+        }
+      } catch (error) {
+        this.setError((error as Error).message);
       }
-      await this.api?.deleteOverride(this.currentCollection.name, id);
-      void this.getOverrides(this.currentCollection.name);
+    },
+    async deleteOverride(payload: { id: string; setName?: string }) {
+      try {
+        this.setError(null);
+        if (this.isV30Plus) {
+          if (!payload.setName) {
+            throw new Error('Cannot delete a V30 curation item without its parent set name');
+          }
+          const set = await this.api?.getCurationSet(payload.setName);
+          if (!set) {
+            throw new Error(`Curation set ${payload.setName} not found`);
+          }
+          if ((set.items ?? []).length <= 1) {
+            await this.api?.deleteCurationSet(payload.setName);
+          } else {
+            await this.api?.deleteCurationSetItem(payload.setName, payload.id);
+          }
+          if (this.currentCollection) {
+            const existingSets = this.currentCollection.curation_sets ?? [];
+            if ((set.items ?? []).length <= 1 && existingSets.includes(payload.setName)) {
+              const curation_sets = existingSets.filter((setName) => setName !== payload.setName);
+              await this.api?.updateCollection(this.currentCollection.name, {
+                curation_sets,
+              } as CollectionSetLinkSchema);
+              this.setCurrentCollection({ ...this.currentCollection, curation_sets });
+            }
+            void this.getCollections();
+            void this.getOverrides(this.currentCollection.name);
+          } else {
+            void this.getOverrides('');
+          }
+        } else {
+          if (!this.currentCollection) {
+            throw new Error('No collection selected');
+          }
+          await this.api?.deleteOverride(this.currentCollection.name, payload.id);
+          void this.getOverrides(this.currentCollection.name);
+        }
+      } catch (error) {
+        this.setError((error as Error).message);
+      }
     },
     deleteDocumentById(id: string) {
       if (!this.currentCollection) {
