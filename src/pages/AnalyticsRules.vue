@@ -177,7 +177,10 @@
 
 <script setup lang="ts">
 import { useNodeStore } from 'src/stores/node';
-import type { AnalyticsRuleSchema } from 'typesense/lib/Typesense/AnalyticsRule';
+import type {
+  AnalyticsRuleCreateSchema,
+  AnalyticsRuleSchema,
+} from 'typesense/lib/Typesense/AnalyticsRule';
 import { computed, onMounted, reactive, ref } from 'vue';
 import type { QTableProps } from 'quasar';
 import { useQuasar } from 'quasar';
@@ -186,7 +189,7 @@ import MonacoEditor from 'src/components/MonacoEditor.vue';
 const $q = useQuasar();
 const store = useNodeStore();
 
-function initialData(): AnalyticsRuleSchema {
+function initialData(): AnalyticsRuleCreateSchema {
   return {
     name: '',
     type: 'popular_queries',
@@ -222,28 +225,28 @@ const state = reactive({
     {
       label: 'Event Type',
       name: 'event_type',
-      field: (r: any) => r.event_type || '',
+      field: (r: AnalyticsRuleSchema) => r.event_type || '',
       align: 'left',
       sortable: true,
     },
     {
       label: 'Source Collection',
       name: 'source',
-      field: (r: any) => r.collection || '',
+      field: (r: AnalyticsRuleSchema) => r.collection || '',
       align: 'left',
       sortable: true,
     },
     {
       label: 'Destination Collection',
       name: 'destination',
-      field: (r: any) => r.params?.destination_collection || '',
+      field: (r: AnalyticsRuleSchema) => r.params?.destination_collection || '',
       align: 'left',
       sortable: true,
     },
     {
       label: 'Limit',
       name: 'limit',
-      field: (r: any) => r.params?.limit,
+      field: (r: AnalyticsRuleSchema) => r.params?.limit,
       align: 'right',
       sortable: true,
     },
@@ -292,7 +295,7 @@ async function createRule() {
   state.rule = initialData();
 }
 
-function editRule(rule: any) {
+function editRule(rule: AnalyticsRuleSchema) {
   state.rule = JSON.parse(JSON.stringify(rule));
   state.expanded = true;
 }

@@ -1,5 +1,10 @@
 <template>
   <q-page padding>
+    <q-banner v-if="!route.params.name && !store.isV30Plus" inline-actions class="bg-warning">
+      Global curation sets require Typesense v30 or newer. Use a collection-scoped curation page
+      on older servers.
+    </q-banner>
+    <template v-else>
     <q-expansion-item
       v-model="state.expanded"
       expand-separator
@@ -57,18 +62,18 @@
         <q-td class="text-right">
           <q-btn flat icon="sym_s_edit" title="Edit" @click="editOverride(props.row)"></q-btn>
           <q-btn
-            v-if="store.isV30Plus && !route.params.name"
+            v-if="store.isV30Plus && !route.params.name && props.row._setName"
             flat
             icon="sym_s_add_link"
             title="Link to collection"
-            @click="openLinkDialog(props.row._setName || props.row.id)"
+            @click="openLinkDialog(props.row._setName)"
           ></q-btn>
           <q-btn
             flat
             color="negative"
             icon="sym_s_delete_forever"
             title="Delete"
-            @click="deleteOverride(props.row.id)"
+            @click="deleteOverride(props.row)"
           ></q-btn>
         </q-td>
       </template>
@@ -126,6 +131,7 @@
         >
       </q-card-section>
     </q-card>
+    </template>
   </q-page>
 </template>
 
@@ -140,6 +146,7 @@ import type { OverrideSchema } from 'typesense/lib/Typesense/Override';
 import type { OverrideCreateSchema } from 'typesense/lib/Typesense/Overrides';
 import type { CurationObjectSchema } from 'typesense/lib/Typesense/CurationSets';
 import type { QTableProps } from 'quasar';
+import type { OverrideRow } from 'src/stores/node';
 
 const $q = useQuasar();
 const store = useNodeStore();
@@ -160,6 +167,7 @@ const initialData: OverrideCreateSchema | Omit<CurationObjectSchema, 'id'> = {
 const state = reactive({
   id: nanoid(),
   override: initialData as OverrideSchema | OverrideCreateSchema | Omit<CurationObjectSchema, 'id'>,
+  setName: null as string | null,
   jsonError: null as string | null,
   expanded: store.data.overrides.length === 0,
   filter: '',
@@ -172,14 +180,14 @@ const state = reactive({
     {
       label: 'Query',
       name: 'query',
-      field: (row: any) => row.rule.query,
+      field: (row: OverrideRow) => ('query' in row.rule ? row.rule.query : ''),
       sortable: true,
       align: 'left',
     },
     {
       label: 'Match',
       name: 'match',
-      field: (row: any) => row.rule.match,
+      field: (row: OverrideRow) => ('match' in row.rule ? row.rule.match : ''),
       sortable: true,
       align: 'left',
     },
@@ -220,15 +228,18 @@ async function createOverride() {
   await store.createOverride({
     id: state.id,
     override: JSON.parse(JSON.stringify(state.override)),
+    ...(state.setName ? { setName: state.setName } : {}),
   });
   state.id = nanoid();
-  state.override = initialData;
+  state.override = JSON.parse(JSON.stringify(initialData));
+  state.setName = null;
   state.expanded = false;
 }
 
-function editOverride(override: OverrideSchema) {
+function editOverride(override: OverrideRow) {
   const copy = JSON.parse(JSON.stringify(override));
   const id = copy.id;
+  state.setName = copy._setName ?? null;
   delete copy.id;
   delete copy._setName;
   state.override = copy;
@@ -236,14 +247,17 @@ function editOverride(override: OverrideSchema) {
   state.expanded = true;
 }
 
-function deleteOverride(id: string) {
+function deleteOverride(row: OverrideRow) {
   $q.dialog({
     title: 'Confirm',
-    message: `Delete curation with id: ${id}?`,
+    message: `Delete curation with id: ${row.id}?`,
     cancel: true,
     persistent: true,
   }).onOk(() => {
-    void store.deleteOverride(id);
+    void store.deleteOverride({
+      id: row.id,
+      ...(row._setName ? { setName: row._setName } : {}),
+    });
   });
 }
 

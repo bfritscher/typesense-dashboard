@@ -1,5 +1,10 @@
 <template>
   <q-page padding>
+    <q-banner v-if="!route.params.name && !store.isV30Plus" inline-actions class="bg-warning">
+      Global synonym sets require Typesense v30 or newer. Use a collection-scoped synonym page on
+      older servers.
+    </q-banner>
+    <template v-else>
     <q-expansion-item
       v-model="state.expanded"
       expand-separator
@@ -110,18 +115,18 @@
         <q-td class="text-right">
           <q-btn flat icon="sym_s_edit" title="Edit" @click="editSynonym(props.row)"></q-btn>
           <q-btn
-            v-if="store.isV30Plus && !route.params.name"
+            v-if="store.isV30Plus && !route.params.name && props.row._setName"
             flat
             icon="sym_s_add_link"
             title="Link to collection"
-            @click="openLinkDialog(props.row._setName || props.row.id)"
+            @click="openLinkDialog(props.row._setName)"
           ></q-btn>
           <q-btn
             flat
             color="negative"
             icon="sym_s_delete_forever"
             title="Delete"
-            @click="deleteSynonym(props.row.id)"
+            @click="deleteSynonym(props.row)"
           ></q-btn>
         </q-td>
       </template>
@@ -179,6 +184,7 @@
         >
       </q-card-section>
     </q-card>
+    </template>
   </q-page>
 </template>
 
@@ -191,6 +197,7 @@ import { nanoid } from 'nanoid';
 import type { SynonymCreateSchema } from 'typesense/lib/Typesense/Synonyms';
 import type { SynonymSchema } from 'typesense/lib/Typesense/Synonym';
 import type { QTableProps } from 'quasar';
+import type { SynonymRow } from 'src/stores/node';
 
 const $q = useQuasar();
 const store = useNodeStore();
@@ -214,17 +221,22 @@ const typeOptions = [
   },
 ];
 
-const state = reactive({
-  expanded: store.data.synonyms.length === 0,
-  filter: '',
-  type: RootTypes.MULTI_WAY,
-  synonym: {
+function initialSynonymData(): SynonymCreateSchema {
+  return {
     root: '',
     synonyms: [],
     locale: '',
     symbols_to_index: [],
-  } as SynonymCreateSchema,
+  };
+}
+
+const state = reactive({
+  expanded: store.data.synonyms.length === 0,
+  filter: '',
+  type: RootTypes.MULTI_WAY,
+  synonym: initialSynonymData(),
   id: nanoid(),
+  setName: null as string | null,
   columns: [
     {
       label: 'ID',
@@ -236,7 +248,7 @@ const state = reactive({
       label: 'Type',
       name: 'type',
       align: 'left',
-      field: (row: SynonymSchema) => (row.root ? RootTypes.ONE_WAY : RootTypes.MULTI_WAY),
+      field: (row: SynonymRow) => (row.root ? RootTypes.ONE_WAY : RootTypes.MULTI_WAY),
       sortable: true,
     },
     {
@@ -249,7 +261,7 @@ const state = reactive({
     {
       label: 'Synonyms',
       name: 'synonyms',
-      field: (row: SynonymSchema) => row.synonyms.join(', '),
+      field: (row: SynonymRow) => row.synonyms.join(', '),
       align: 'left',
       sortable: true,
     },
@@ -295,22 +307,20 @@ async function createSynonym() {
 
   await store.createSynonym({
     id: state.id,
-    synonym: synonym,
+    synonym,
+    ...(state.setName ? { setName: state.setName } : {}),
   });
 
   state.id = nanoid();
-  state.synonym = {
-    root: '',
-    synonyms: [],
-    locale: '',
-    symbols_to_index: [],
-  };
+  state.synonym = initialSynonymData();
+  state.setName = null;
   state.expanded = false;
 }
 
-function editSynonym(synonym: SynonymSchema) {
+function editSynonym(synonym: SynonymRow) {
   const copy = JSON.parse(JSON.stringify(synonym));
   const id = copy.id;
+  state.setName = copy._setName ?? null;
   delete copy.id;
   delete copy._setName;
   state.id = id || nanoid();
@@ -321,14 +331,17 @@ function editSynonym(synonym: SynonymSchema) {
   state.expanded = true;
 }
 
-function deleteSynonym(id: string) {
+function deleteSynonym(row: SynonymRow) {
   $q.dialog({
     title: 'Confirm',
-    message: `Delete synonym with id: ${id}?`,
+    message: `Delete synonym with id: ${row.id}?`,
     cancel: true,
     persistent: true,
   }).onOk(() => {
-    void store.deleteSynonym(id);
+    void store.deleteSynonym({
+      id: row.id,
+      ...(row._setName ? { setName: row._setName } : {}),
+    });
   });
 }
 
