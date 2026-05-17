@@ -18,6 +18,20 @@
         <q-card-section>
           <q-input v-model="state.id" dense filled label="ID"></q-input>
         </q-card-section>
+        <q-card-section v-if="store.supportsCurationRuleTags" class="q-pt-none">
+          <q-select
+            v-model="ruleTags"
+            filled
+            multiple
+            use-chips
+            use-input
+            new-value-mode="add"
+            stack-label
+            hide-dropdown-icon
+            label="Rule Tags"
+            hint="Available in Typesense 26+ and matched via curation_tags at search time"
+          />
+        </q-card-section>
         <monaco-editor v-model="overrideJson"></monaco-editor>
         <q-banner v-if="state.jsonError" inline-actions class="text-white bg-red">
           Invalid Format: {{ state.jsonError }}
@@ -46,7 +60,7 @@
       :rows="store.data.overrides"
       :columns="state.columns"
       row-key="id"
-      :visible-columns="['query', 'match', 'includes', 'excludes', 'actions']"
+      :visible-columns="visibleColumns"
     >
       <template #top-left>
         <div class="text-h6"><q-icon size="md" name="sym_s_low_priority" /> Curations</div>
@@ -136,7 +150,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { useRoute } from 'vue-router';
 import { nanoid } from 'nanoid';
@@ -192,6 +206,13 @@ const state = reactive({
       align: 'left',
     },
     {
+      label: 'Tags',
+      name: 'tags',
+      field: (row: OverrideRow) => row.rule.tags?.join(', ') || '',
+      sortable: true,
+      align: 'left',
+    },
+    {
       label: 'Includes',
       name: 'includes',
       field: (row: OverrideSchema) => row.includes?.length,
@@ -211,6 +232,21 @@ const state = reactive({
 
 const isValid = computed(() => state.id.length > 0 && !state.jsonError);
 const isUpdate = computed(() => store.data.overrides.map((o) => o.id).includes(state.id));
+const visibleColumns = computed(() =>
+  store.supportsCurationRuleTags
+    ? ['query', 'match', 'tags', 'includes', 'excludes', 'actions']
+    : ['query', 'match', 'includes', 'excludes', 'actions'],
+);
+const ruleTags = computed({
+  get: () => state.override.rule.tags || [],
+  set: (tags: string[]) => {
+    if (tags.length > 0) {
+      state.override.rule.tags = tags;
+    } else {
+      delete state.override.rule.tags;
+    }
+  },
+});
 
 const overrideJson = computed({
   get: () => JSON.stringify(state.override, null, 2),
@@ -294,16 +330,31 @@ async function confirmLink() {
   linkDialog.open = false;
 }
 
-onMounted(async () => {
+async function refreshPageData() {
   const collectionName = (route.params.name as string) || '';
   if (store.isV30Plus) {
     void store.getOverrides(collectionName);
     if (collectionName) {
       const sets = await store.fetchAllCurationSets();
       allGlobalSets.value = sets.map((s) => s.name);
+    } else {
+      allGlobalSets.value = [];
     }
   } else if (collectionName) {
     void store.getOverrides(collectionName);
+  } else {
+    allGlobalSets.value = [];
   }
+}
+
+onMounted(() => {
+  void refreshPageData();
 });
+
+watch(
+  () => route.params.name,
+  () => {
+    void refreshPageData();
+  },
+);
 </script>

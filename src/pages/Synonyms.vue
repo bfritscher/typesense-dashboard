@@ -190,7 +190,7 @@
 
 <script setup lang="ts">
 import { useNodeStore } from 'src/stores/node';
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useQuasar } from 'quasar';
 import { nanoid } from 'nanoid';
@@ -378,16 +378,31 @@ async function confirmLink() {
   linkDialog.open = false;
 }
 
-onMounted(async () => {
+async function refreshPageData() {
   const collectionName = (route.params.name as string) || '';
   if (store.isV30Plus) {
     void store.getSynonyms(collectionName);
     if (collectionName) {
       const sets = await store.fetchAllSynonymSets();
       allGlobalSets.value = sets.map((s) => s.name);
+    } else {
+      allGlobalSets.value = [];
     }
   } else if (collectionName) {
     void store.getSynonyms(collectionName);
+  } else {
+    allGlobalSets.value = [];
   }
+}
+
+onMounted(() => {
+  void refreshPageData();
 });
+
+watch(
+  () => route.params.name,
+  () => {
+    void refreshPageData();
+  },
+);
 </script>
