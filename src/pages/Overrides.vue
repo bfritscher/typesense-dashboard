@@ -91,6 +91,24 @@
           ></q-btn>
         </q-td>
       </template>
+      <template #body-cell-trigger="props">
+        <q-td :props="props" class="text-left">
+          <div class="text-body2 ellipsis" :title="formatRuleSummary(props.row)">
+            {{ formatRuleSummary(props.row) }}
+          </div>
+          <div v-if="formatRuleDetails(props.row)" class="text-caption text-grey-7">
+            {{ formatRuleDetails(props.row) }}
+          </div>
+        </q-td>
+      </template>
+      <template #body-cell-result="props">
+        <q-td :props="props" class="text-left">
+          <div class="text-body2">{{ formatActionSummary(props.row) }}</div>
+          <div v-if="formatActionDetails(props.row)" class="text-caption text-grey-7">
+            {{ formatActionDetails(props.row) }}
+          </div>
+        </q-td>
+      </template>
     </q-table>
 
     <q-dialog v-model="linkDialog.open">
@@ -178,6 +196,91 @@ const initialData: OverrideCreateSchema | Omit<CurationObjectSchema, 'id'> = {
   excludes: [{ id: '287' }],
 };
 
+function ruleType(row: OverrideRow): string {
+  const hasQuery = 'query' in row.rule && !!row.rule.query;
+  const hasFilter = 'filter_by' in row.rule && !!row.rule.filter_by;
+  const hasTags = (row.rule.tags?.length ?? 0) > 0;
+
+  if (hasQuery && hasFilter && hasTags) return 'query + filter + tags';
+  if (hasQuery && hasFilter) return 'query + filter';
+  if (hasQuery && hasTags) return 'query + tags';
+  if (hasFilter && hasTags) return 'filter + tags';
+  if (hasQuery) return 'query';
+  if (hasFilter) return 'filter';
+  if (hasTags) return 'tags';
+  return 'custom';
+}
+
+function formatRuleSummary(row: OverrideRow): string {
+  const parts: string[] = [];
+  if ('query' in row.rule && row.rule.query) {
+    const match = 'match' in row.rule && row.rule.match ? ` (${row.rule.match})` : '';
+    parts.push(`Query: ${row.rule.query}${match}`);
+  }
+  if ('filter_by' in row.rule && row.rule.filter_by) {
+    parts.push(`Filter: ${row.rule.filter_by}`);
+  }
+  if ((row.rule.tags?.length ?? 0) > 0 && parts.length === 0) {
+    parts.push('Triggered by curation tags');
+  }
+  return parts.join(' • ') || 'No explicit trigger';
+}
+
+function formatRuleTags(row: OverrideRow): string {
+  return row.rule.tags?.join(', ') || '';
+}
+
+function formatRuleDetails(row: OverrideRow): string {
+  const parts: string[] = [];
+  if ((row.rule.tags?.length ?? 0) > 0) {
+    parts.push(`Tags: ${formatRuleTags(row)}`);
+  }
+  if ('synonyms' in row.rule && row.rule.synonyms) {
+    parts.push('synonyms enabled');
+  }
+  if ('stem' in row.rule && row.rule.stem) {
+    parts.push('stemming enabled');
+  }
+  return parts.join(' • ');
+}
+
+function formatActionSummary(row: OverrideRow): string {
+  const parts: string[] = [];
+  if ((row.includes?.length ?? 0) > 0) parts.push(`${row.includes?.length} include(s)`);
+  if ((row.excludes?.length ?? 0) > 0) parts.push(`${row.excludes?.length} exclude(s)`);
+  if (row.filter_by) parts.push('result filter');
+  if (row.sort_by) parts.push('custom sort');
+  if (row.replace_query) parts.push('query replacement');
+  return parts.join(' • ') || 'No direct result action';
+}
+
+function formatTimestamp(timestamp?: number): string {
+  if (!timestamp) return '';
+  return new Date(timestamp * 1000).toLocaleDateString();
+}
+
+function formatActionDetails(row: OverrideRow): string {
+  const parts: string[] = [];
+  if (row.remove_matched_tokens === false) {
+    parts.push('keeps matched tokens');
+  }
+  if (row.filter_curated_hits) {
+    parts.push('filters curated hits');
+  }
+  if (row.stop_processing === false) {
+    parts.push('continues to next rule');
+  }
+  if (row.effective_from_ts || row.effective_to_ts) {
+    const from = formatTimestamp(row.effective_from_ts);
+    const to = formatTimestamp(row.effective_to_ts);
+    parts.push(`active ${from || 'now'} -> ${to || 'open'}`);
+  }
+  if (row.metadata && Object.keys(row.metadata).length > 0) {
+    parts.push('metadata');
+  }
+  return parts.join(' • ');
+}
+
 const state = reactive({
   id: nanoid(),
   override: initialData as OverrideSchema | OverrideCreateSchema | Omit<CurationObjectSchema, 'id'>,
@@ -192,35 +295,26 @@ const state = reactive({
       field: 'id',
     },
     {
-      label: 'Query',
-      name: 'query',
-      field: (row: OverrideRow) => ('query' in row.rule ? row.rule.query : ''),
+      label: 'Rule Type',
+      name: 'rule_type',
+      field: (row: OverrideRow) => ruleType(row),
       sortable: true,
       align: 'left',
     },
     {
-      label: 'Match',
-      name: 'match',
-      field: (row: OverrideRow) => ('match' in row.rule ? row.rule.match : ''),
+      label: 'Trigger',
+      name: 'trigger',
+      field: (row: OverrideRow) => formatRuleSummary(row),
       sortable: true,
       align: 'left',
     },
     {
-      label: 'Tags',
-      name: 'tags',
-      field: (row: OverrideRow) => row.rule.tags?.join(', ') || '',
+      label: 'Result',
+      name: 'result',
+      field: (row: OverrideRow) => formatActionSummary(row),
       sortable: true,
       align: 'left',
-    },
-    {
-      label: 'Includes',
-      name: 'includes',
-      field: (row: OverrideSchema) => row.includes?.length,
-    },
-    {
-      label: 'Excludes',
-      name: 'excludes',
-      field: (row: OverrideSchema) => row.excludes?.length,
+      style: 'min-width: 180px',
     },
     {
       label: 'Actions',
@@ -232,11 +326,7 @@ const state = reactive({
 
 const isValid = computed(() => state.id.length > 0 && !state.jsonError);
 const isUpdate = computed(() => store.data.overrides.map((o) => o.id).includes(state.id));
-const visibleColumns = computed(() =>
-  store.supportsCurationRuleTags
-    ? ['query', 'match', 'tags', 'includes', 'excludes', 'actions']
-    : ['query', 'match', 'includes', 'excludes', 'actions'],
-);
+const visibleColumns = computed(() => ['rule_type', 'trigger', 'result', 'actions']);
 const ruleTags = computed({
   get: () => state.override.rule.tags || [],
   set: (tags: string[]) => {
