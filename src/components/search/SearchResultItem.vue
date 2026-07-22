@@ -41,7 +41,7 @@
 import type { CollectionSchema } from 'typesense/lib/Typesense/Collection';
 import { computed } from 'vue';
 import { useQuasar } from 'quasar';
-import { useNodeStore } from 'src/stores/node';
+import { useNodeStore } from '@/stores/node';
 import SearchResultItemNestedDisplay from './SearchResultItemNestedDisplay.vue';
 
 const props = defineProps<{

@@ -20,8 +20,8 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import SearchJson from 'src/components/search/SearchJson.vue';
-import SearchInstantSearch from 'src/components/search/SearchInstantSearch.vue';
+import SearchJson from '@/components/search/SearchJson.vue';
+import SearchInstantSearch from '@/components/search/SearchInstantSearch.vue';
 
 const tab = ref('form');
 </script>

@@ -8,8 +8,8 @@
 import * as monaco from 'monaco-editor';
 import { defineComponent, onMounted, onUnmounted, ref, watch } from 'vue';
 
-import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
-import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
+import editorWorker from 'monaco-editor/editor/editor.worker?worker';
+import jsonWorker from 'monaco-editor/language/json/json.worker?worker';
 
 (self as any).MonacoEnvironment = {
   getWorker(_: any, label: string) {

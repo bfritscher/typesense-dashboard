@@ -19,7 +19,7 @@
 
 <script setup lang="ts">
 import type { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections';
-import { useNodeStore } from 'src/stores/node';
+import { useNodeStore } from '@/stores/node';
 import CollectionUi from './CollectionUi.vue';
 
 const store = useNodeStore();

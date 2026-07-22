@@ -24,8 +24,8 @@
 </template>
 
 <script setup lang="ts">
-import { useNodeStore } from 'src/stores/node';
-import type { NodeLoginDataInterface } from 'src/stores/node';
+import { useNodeStore } from '@/stores/node';
+import type { NodeLoginDataInterface } from '@/stores/node';
 import NodeStatusCard from '../components/NodeStatusCard.vue';
 
 const store = useNodeStore();

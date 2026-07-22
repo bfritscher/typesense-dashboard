@@ -28,6 +28,10 @@
  * }
  */
 import { contextBridge, ipcRenderer } from 'electron';
+import { quasarRuntime } from '#q-app/electron/preload';
+
+contextBridge.exposeInMainWorld('quasarRuntime', quasarRuntime);
+
 const apiMethods = [
   'init',
   'getDebug',

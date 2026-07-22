@@ -89,9 +89,9 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import { useNodeStore } from 'src/stores/node';
-import SearchResultItem from 'src/components/search/SearchResultItem.vue';
-import DebouncedSearchBox from 'src/components/search/DebouncedSearchBox.vue';
+import { useNodeStore } from '@/stores/node';
+import SearchResultItem from '@/components/search/SearchResultItem.vue';
+import DebouncedSearchBox from '@/components/search/DebouncedSearchBox.vue';
 import TypesenseInstantSearchAdapter from 'typesense-instantsearch-adapter';
 import type { CollectionSchema } from 'typesense/lib/Typesense/Collection';
 import type { ConfigurationOptions } from 'typesense/lib/Typesense/Configuration';

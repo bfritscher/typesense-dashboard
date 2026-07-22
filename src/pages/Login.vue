@@ -86,8 +86,8 @@
 </template>
 
 <script setup lang="ts">
-import ServerHistory from 'components/ServerHistory.vue';
-import { useNodeStore } from 'src/stores/node';
+import ServerHistory from '@/components/ServerHistory.vue';
+import { useNodeStore } from '@/stores/node';
 import { onMounted, ref } from 'vue';
 
 const store = useNodeStore();

@@ -155,8 +155,15 @@ import type {
 import type { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections';
 import { defineComponent } from 'vue';
 import { mapState } from 'pinia';
-import { useNodeStore } from 'src/stores/node';
+import { useNodeStore } from '@/stores/node';
 import MonacoEditor from '../MonacoEditor.vue';
+
+interface CollectionUiData {
+  tab: string;
+  schema: CollectionCreateSchema;
+  types: string[];
+  jsonError: string | null;
+}
 
 export default defineComponent({
   name: 'CollectionUi',
@@ -198,7 +205,7 @@ export default defineComponent({
     },
   },
   emits: ['submit'],
-  data() {
+  data(): CollectionUiData {
     return {
       tab: 'form',
       schema: {
@@ -208,7 +215,7 @@ export default defineComponent({
         token_separators: [],
         symbols_to_index: [],
         enable_nested_fields: false,
-      } as CollectionCreateSchema,
+      },
       types: [
         'string',
         'string[]',
@@ -229,7 +236,7 @@ export default defineComponent({
         'image',
         'auto',
       ],
-      jsonError: null as string | null,
+      jsonError: null,
     };
   },
   computed: {

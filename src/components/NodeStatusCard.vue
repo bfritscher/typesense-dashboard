@@ -109,9 +109,9 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import prettyBytes from 'pretty-bytes';
-import { Api } from 'src/shared/api';
-import type { NodeLoginDataInterface, Health } from 'src/stores/node';
-import HealthTag from 'src/components/HealthTag.vue';
+import { Api } from '@/shared/api';
+import type { NodeLoginDataInterface, Health } from '@/stores/node';
+import HealthTag from '@/components/HealthTag.vue';
 
 const props = defineProps<{
   entry: NodeLoginDataInterface;
@@ -154,7 +154,7 @@ async function fetchAll() {
     const mData: any = hasDataField(m) ? m.data : (m ?? {});
     metrics.value = mData || {};
     debugInfo.value = d || {};
-    const sData: any = hasDataField(s) ? (s as { data: any }).data : (s ?? {});
+    const sData: any = hasDataField(s) ? (s).data : (s ?? {});
     stats.value = sData || {};
     health.value = h.data || null;
     lastUpdated.value = Date.now();

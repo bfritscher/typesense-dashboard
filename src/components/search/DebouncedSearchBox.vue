@@ -31,11 +31,8 @@ export default {
   },
   data() {
     return {
-      timerId: null,
+      timerId: null as ReturnType<typeof setTimeout> | null,
       localQuery: '',
-    } as {
-      timerId: any;
-      localQuery: string;
     };
   },
   computed: {

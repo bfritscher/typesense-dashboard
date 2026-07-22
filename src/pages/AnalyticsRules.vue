@@ -176,7 +176,7 @@
 </template>
 
 <script setup lang="ts">
-import { useNodeStore } from 'src/stores/node';
+import { useNodeStore } from '@/stores/node';
 import type {
   AnalyticsRuleCreateSchema,
   AnalyticsRuleSchema,
@@ -184,7 +184,7 @@ import type {
 import { computed, onMounted, reactive, ref } from 'vue';
 import type { QTableProps } from 'quasar';
 import { useQuasar } from 'quasar';
-import MonacoEditor from 'src/components/MonacoEditor.vue';
+import MonacoEditor from '@/components/MonacoEditor.vue';
 
 const $q = useQuasar();
 const store = useNodeStore();

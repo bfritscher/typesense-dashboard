@@ -259,11 +259,11 @@
 </template>
 
 <script setup lang="ts">
-import { useNodeStore } from 'src/stores/node';
-import type { NodeLoginDataInterface } from 'src/stores/node';
+import { useNodeStore } from '@/stores/node';
+import type { NodeLoginDataInterface } from '@/stores/node';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import prettyBytes from 'pretty-bytes';
-import HealthTag from 'src/components/HealthTag.vue';
+import HealthTag from '@/components/HealthTag.vue';
 
 const store = useNodeStore();
 
