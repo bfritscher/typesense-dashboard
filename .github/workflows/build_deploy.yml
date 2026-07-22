@@ -17,9 +17,12 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: '24'
-      - run: npm install
-      - run: npm install -g @quasar/cli
-      - run: quasar build
+      - name: Install app dependencies
+        run: npm ci
+      - name: Install Electron types for project-wide type checking
+        run: npm ci --prefix src-electron --ignore-scripts
+      - name: Build SPA
+        run: npm run build
 
       - name: deploy
         uses: peaceiris/actions-gh-pages@v4

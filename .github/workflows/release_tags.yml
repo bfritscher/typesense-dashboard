@@ -8,28 +8,34 @@ jobs:
   build-darwin:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Setup NodeJS Environment
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-            node-version: '22'
-      - run: npm install && npm -g install @quasar/cli
-      - run: quasar build --mode electron --target darwin
+          node-version: '24'
+      - name: Install app dependencies
+        run: npm ci
+      - name: Install Electron dependencies
+        run: npm ci --prefix src-electron
+      - run: npm exec -- quasar build --mode electron --target darwin
       - run: zip -r ./Typesense-Dashboard-darwin-x64-${{ github.ref_name }}.zip ./dist/electron/Packaged/Typesense-Dashboard-darwin-x64
       - name: Upload a Release Asset darwin
         run: gh release upload ${{ github.ref_name }} ./Typesense-Dashboard-darwin-x64-${{ github.ref_name }}.zip --clobber
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   build-linux:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Setup NodeJS Environment
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-            node-version: '22'
-      - run: npm install && npm -g install @quasar/cli
-      - run: quasar build --mode electron --target linux
+          node-version: '24'
+      - name: Install app dependencies
+        run: npm ci
+      - name: Install Electron dependencies
+        run: npm ci --prefix src-electron
+      - run: npm exec -- quasar build --mode electron --target linux
       - run: zip -r ./Typesense-Dashboard-linux-x64-${{ github.ref_name }}.zip ./dist/electron/Packaged/Typesense-Dashboard-linux-x64
       - name: Upload a Release Asset linux
         run: gh release upload ${{ github.ref_name }} ./Typesense-Dashboard-linux-x64-${{ github.ref_name }}.zip --clobber
@@ -38,13 +44,17 @@ jobs:
   build-windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Setup NodeJS Environment
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-            node-version: '22'
-      - run: npm install && npm -g install @quasar/cli electron-installer-zip
-      - run: quasar build --mode electron --target win32
+          node-version: '24'
+      - name: Install app dependencies
+        run: npm ci
+      - name: Install Electron dependencies
+        run: npm ci --prefix src-electron
+      - run: npm install -g electron-installer-zip
+      - run: npm exec -- quasar build --mode electron --target win32
       - run: electron-installer-zip ./dist/electron/Packaged/Typesense-Dashboard-win32-x64 ./Typesense-Dashboard-win32-x64-${{ github.ref_name }}.zip
       - name: Upload a Release Asset win32
         run: gh release upload ${{ github.ref_name }} ./Typesense-Dashboard-win32-x64-${{ github.ref_name }}.zip --clobber

@@ -6,15 +6,15 @@ WORKDIR /app
 RUN apk add --no-cache --virtual .gyp \
         g++ make py3-pip
 
-RUN npm install -g @quasar/cli
-
 COPY package.json package-lock.json ./
-RUN npm install --ignore-scripts
+COPY src-electron/package.json src-electron/package-lock.json ./src-electron/
+RUN npm ci --ignore-scripts
+RUN npm ci --prefix src-electron --ignore-scripts
 
 COPY . .
 
-RUN quasar prepare
-RUN quasar build
+RUN npm run postinstall
+RUN npm run build
 
 FROM caddy:2-alpine
 ARG PUBLIC_PATH
