@@ -1,8 +1,8 @@
 <template>
   <q-page padding>
-    <q-banner v-if="!route.params.name && !store.isV30Plus" inline-actions class="bg-warning">
-      Global synonym sets require Typesense v30 or newer. Use a collection-scoped synonym page on
-      older servers.
+    <q-banner v-if="!route.params.name && !store.data.features.synonymSets" inline-actions class="bg-warning">
+      Global synonym sets are not available with this server or API key. Use a collection-scoped
+      synonym page when available.
     </q-banner>
     <template v-else>
     <q-expansion-item
@@ -115,7 +115,7 @@
         <q-td class="text-right">
           <q-btn flat icon="sym_s_edit" title="Edit" @click="editSynonym(props.row)"></q-btn>
           <q-btn
-            v-if="store.isV30Plus && !route.params.name && props.row._setName"
+            v-if="store.data.features.synonymSets && !route.params.name && props.row._setName"
             flat
             icon="sym_s_add_link"
             title="Link to collection"
@@ -163,7 +163,7 @@
       </q-card>
     </q-dialog>
 
-    <q-card v-if="store.isV30Plus && route.params.name" class="q-mt-md" flat bordered>
+    <q-card v-if="store.data.features.synonymSets && route.params.name" class="q-mt-md" flat bordered>
       <q-card-section class="row items-center q-gutter-md">
         <div class="text-subtitle2">Link existing global set to this collection</div>
         <q-select
@@ -380,7 +380,7 @@ async function confirmLink() {
 
 async function refreshPageData() {
   const collectionName = (route.params.name as string) || '';
-  if (store.isV30Plus) {
+  if (store.data.features.synonymSets) {
     void store.getSynonyms(collectionName);
     if (collectionName) {
       const sets = await store.fetchAllSynonymSets();

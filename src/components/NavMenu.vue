@@ -71,7 +71,7 @@
         <q-item-section> Search Presets </q-item-section>
       </q-item>
 
-      <q-item v-if="store.isV30Plus" v-ripple clickable to="/synonyms" exact>
+      <q-item v-if="store.data.features.synonymSets" v-ripple clickable to="/synonyms" exact>
         <q-item-section avatar>
           <q-icon name="sym_s_dataset_linked" />
         </q-item-section>
@@ -79,7 +79,7 @@
         <q-item-section> Synonyms </q-item-section>
       </q-item>
 
-      <q-item v-if="store.isV30Plus" v-ripple clickable to="/curations" exact>
+      <q-item v-if="store.data.features.curationSets" v-ripple clickable to="/curations" exact>
         <q-item-section avatar>
           <q-icon name="sym_s_low_priority" />
         </q-item-section>
@@ -146,6 +146,7 @@
       </q-item>
 
       <q-item
+        v-if="!store.data.features.synonymSets"
         v-ripple
         clickable
         :to="`/collection/${currentCollection?.name}/synonyms`"
@@ -160,6 +161,7 @@
       </q-item>
 
       <q-item
+        v-if="!store.data.features.curationSets"
         v-ripple
         clickable
         :to="`/collection/${currentCollection?.name}/curations`"
