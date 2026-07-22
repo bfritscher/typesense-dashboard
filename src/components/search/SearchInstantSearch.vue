@@ -6,8 +6,8 @@
     :middlewares="middlewares"
   >
     <ais-configure :hits-per-page.camel="12" />
-    <ais-search-box index-name="instant_search" :search-client="searchClient">
-      <debounced-search-box />
+    <ais-search-box v-slot="{ currentRefinement, refine }">
+      <debounced-search-box :model-value="currentRefinement" @refine="refine" />
     </ais-search-box>
     <ais-stats></ais-stats>
     <ais-current-refinements />

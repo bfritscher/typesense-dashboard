@@ -16,51 +16,48 @@
   </q-input>
 </template>
 
-<script lang="ts">
-import { connectSearchBox } from 'instantsearch.js/es/connectors';
-import { createWidgetMixin } from 'vue-instantsearch/vue3/es';
+<script setup lang="ts">
+import { computed, onUnmounted, ref, watch } from 'vue';
 
-export default {
-  mixins: [createWidgetMixin({ connector: connectSearchBox })],
-  props: {
-    delay: {
-      type: Number,
-      default: 200,
-      required: false,
-    },
+const props = withDefaults(
+  defineProps<{
+    modelValue?: string;
+    delay?: number;
+  }>(),
+  {
+    modelValue: '',
+    delay: 200,
   },
-  data() {
-    return {
-      timerId: null as ReturnType<typeof setTimeout> | null,
-      localQuery: '',
-    };
+);
+
+const emit = defineEmits<{
+  refine: [value: string];
+}>();
+
+const localQuery = ref(props.modelValue);
+let timerId: ReturnType<typeof setTimeout> | undefined;
+
+watch(
+  () => props.modelValue,
+  (modelValue) => {
+    localQuery.value = modelValue;
   },
-  computed: {
-    query: {
-      get() {
-        return this.localQuery;
-      },
-      set(val: string) {
-        this.localQuery = val;
-        if (this.timerId) {
-          clearTimeout(this.timerId);
-        }
-        this.timerId = setTimeout(() => {
-          // @ts-expect-error mixin js
-          this.state.refine(this.localQuery);
-        }, this.delay);
-      },
-    },
+);
+
+const query = computed({
+  get: () => localQuery.value,
+  set: (value: string) => {
+    localQuery.value = value;
+    if (timerId) clearTimeout(timerId);
+    timerId = setTimeout(() => emit('refine', localQuery.value), props.delay);
   },
-  unmounted() {
-    if (this.timerId) {
-      clearTimeout(this.timerId);
-    }
-  },
-  methods: {
-    clear() {
-      this.query = '';
-    },
-  },
-};
+});
+
+function clear() {
+  query.value = '';
+}
+
+onUnmounted(() => {
+  if (timerId) clearTimeout(timerId);
+});
 </script>

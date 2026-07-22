@@ -54,7 +54,7 @@ export default defineConfig((ctx) => {
       vueRouterMode: 'hash', // available values: 'hash', 'history'
       // vueRouterBase,
       // vueDevtools,
-      // Required by the remaining Options API components in this project.
+      // Required by vue-instantsearch 4.x, whose Ais components use the Options API.
       vueOptionsAPI: true,
 
       // rebuildCache: true, // rebuilds Vite/linter/etc cache on startup
