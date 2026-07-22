@@ -86,7 +86,7 @@
 </template>
 
 <script setup lang="ts">
-import { useNodeStore } from 'src/stores/node';
+import { useNodeStore } from '@/stores/node';
 import { computed, onMounted, reactive } from 'vue';
 import { useQuasar } from 'quasar';
 import MonacoEditor from '../components/MonacoEditor.vue';

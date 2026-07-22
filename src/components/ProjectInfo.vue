@@ -78,7 +78,7 @@
 import { Platform } from 'quasar';
 import githubIcon from '../assets/github-mark.svg';
 
-const appVersion = process.env.APP_VERSION || '0.0.0';
+const appVersion = import.meta.env.APP_VERSION || '0.0.0';
 
 const openLink = (url: string) => {
   if (Platform.is.electron) {

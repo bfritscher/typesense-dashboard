@@ -16,11 +16,10 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { useQuasar } from 'quasar';
-import { useNodeStore } from 'src/stores/node';
-import CollectionUi from 'components/collection/CollectionUi.vue';
+import { useNodeStore } from '@/stores/node';
+import CollectionUi from '@/components/collection/CollectionUi.vue';
 import type { CollectionCreateSchema } from 'typesense/lib/Typesense/Collections';
 import type {
-  CollectionDropFieldSchema,
   CollectionSchema,
   CollectionUpdateSchema,
 } from 'typesense/lib/Typesense/Collection';
@@ -87,7 +86,7 @@ function update(updatedSchema: CollectionUpdateSchema) {
         return {
           name: f.name,
           drop: true,
-        } as CollectionDropFieldSchema;
+        };
       })
       .concat(JSON.parse(JSON.stringify(updatedSchema.fields))),
   } as CollectionUpdateSchema;

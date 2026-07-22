@@ -73,7 +73,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive } from 'vue';
-import { useNodeStore } from 'src/stores/node';
+import { useNodeStore } from '@/stores/node';
 import { useQuasar } from 'quasar';
 import type { CollectionAliasSchema } from 'typesense/lib/Typesense/Aliases';
 import type { QTableProps } from 'quasar';

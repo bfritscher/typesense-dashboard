@@ -11,7 +11,7 @@
   </q-chip>
 </template>
 <script lang="ts" setup>
-import type { Health } from 'src/stores/node';
+import type { Health } from '@/stores/node';
 defineProps<{
   // Allow explicitly passing undefined/null under exactOptionalPropertyTypes
   health?: Health | null | undefined;

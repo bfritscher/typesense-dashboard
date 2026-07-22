@@ -66,23 +66,32 @@
 </template>
 
 <script setup lang="ts">
-import { useNodeStore } from 'src/stores/node';
-import MonacoEditor from 'src/components/MonacoEditor.vue';
+import { useNodeStore } from '@/stores/node';
+import MonacoEditor from '@/components/MonacoEditor.vue';
 import { computed, reactive, watch } from 'vue';
 import { useQuasar } from 'quasar';
 
 const $q = useQuasar();
 const store = useNodeStore();
 
-const state = reactive({
-  jsonError: null as string | null,
-  documents: [] as any[],
-  results: [] as any[],
-  action: 'upsert' as 'create' | 'upsert' | 'update',
+type DocumentAction = 'create' | 'upsert' | 'update';
+
+interface DocumentState {
+  jsonError: string | null;
+  documents: any[];
+  results: any[];
+  action: DocumentAction;
+}
+
+const state = reactive<DocumentState>({
+  jsonError: null,
+  documents: [],
+  results: [],
+  action: 'upsert',
 });
 
-const actionOptions = ['create', 'upsert', 'update'];
-const actionDescriptions = {
+const actionOptions: DocumentAction[] = ['create', 'upsert', 'update'];
+const actionDescriptions: Record<DocumentAction, string> = {
   create: 'Create a new document. Fails if id exists.',
   upsert: 'Create a new document or update an existing document.',
   update: 'Update an existing document. Partial document allowed.',

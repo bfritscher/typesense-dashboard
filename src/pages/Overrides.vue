@@ -172,13 +172,12 @@ import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useQuasar } from 'quasar';
 import { useRoute } from 'vue-router';
 import { nanoid } from 'nanoid';
-import MonacoEditor from 'src/components/MonacoEditor.vue';
-import { useNodeStore } from 'src/stores/node';
-import type { OverrideSchema } from 'typesense/lib/Typesense/Override';
+import MonacoEditor from '@/components/MonacoEditor.vue';
+import { useNodeStore } from '@/stores/node';
 import type { OverrideCreateSchema } from 'typesense/lib/Typesense/Overrides';
 import type { CurationObjectSchema } from 'typesense/lib/Typesense/CurationSets';
 import type { QTableProps } from 'quasar';
-import type { OverrideRow } from 'src/stores/node';
+import type { OverrideRow } from '@/stores/node';
 
 const $q = useQuasar();
 const store = useNodeStore();
@@ -283,7 +282,7 @@ function formatActionDetails(row: OverrideRow): string {
 
 const state = reactive({
   id: nanoid(),
-  override: initialData as OverrideSchema | OverrideCreateSchema | Omit<CurationObjectSchema, 'id'>,
+  override: initialData,
   setName: null as string | null,
   jsonError: null as string | null,
   expanded: store.data.overrides.length === 0,

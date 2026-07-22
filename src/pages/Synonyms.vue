@@ -189,7 +189,7 @@
 </template>
 
 <script setup lang="ts">
-import { useNodeStore } from 'src/stores/node';
+import { useNodeStore } from '@/stores/node';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useQuasar } from 'quasar';
@@ -197,7 +197,7 @@ import { nanoid } from 'nanoid';
 import type { SynonymCreateSchema } from 'typesense/lib/Typesense/Synonyms';
 import type { SynonymSchema } from 'typesense/lib/Typesense/Synonym';
 import type { QTableProps } from 'quasar';
-import type { SynonymRow } from 'src/stores/node';
+import type { SynonymRow } from '@/stores/node';
 
 const $q = useQuasar();
 const store = useNodeStore();

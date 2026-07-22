@@ -1,4 +1,4 @@
-import { defineBoot } from '#q-app/wrappers';
+import { defineBoot } from '#q-app';
 import 'instantsearch.css/themes/algolia-min.css';
 
 import InstantSearch from 'vue-instantsearch/vue3/es';

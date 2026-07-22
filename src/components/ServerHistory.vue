@@ -85,8 +85,8 @@
 
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue';
-import { useNodeStore } from 'src/stores/node';
-import type { NodeLoginDataInterface } from 'src/stores/node';
+import { useNodeStore } from '@/stores/node';
+import type { NodeLoginDataInterface } from '@/stores/node';
 
 const props = defineProps({
   showLogout: {

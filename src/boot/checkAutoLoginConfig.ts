@@ -1,8 +1,8 @@
-import { defineBoot } from '#q-app/wrappers';
+import { defineBoot } from '#q-app';
 import axios from 'axios';
 import { Platform } from 'quasar';
-import { useNodeStore } from 'src/stores/node';
-import type { NodeLoginDataInterface } from 'src/stores/node';
+import { useNodeStore } from '@/stores/node';
+import type { NodeLoginDataInterface } from '@/stores/node';
 
 export default defineBoot(({ store }) => {
   if (Platform.is.electron) {

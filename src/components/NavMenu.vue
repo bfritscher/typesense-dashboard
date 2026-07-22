@@ -210,7 +210,7 @@
 <script setup lang="ts">
 import type { CollectionSchema } from 'typesense/lib/Typesense/Collection';
 import { computed, ref } from 'vue';
-import { useNodeStore } from 'src/stores/node';
+import { useNodeStore } from '@/stores/node';
 import ProjectInfo from './ProjectInfo.vue';
 
 const store = useNodeStore();

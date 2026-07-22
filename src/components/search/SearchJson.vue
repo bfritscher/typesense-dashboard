@@ -79,9 +79,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { LocalStorage } from 'quasar';
-import { useNodeStore } from 'src/stores/node';
-import MonacoEditor from 'src/components/MonacoEditor.vue';
-import SearchResultItem from 'src/components/search/SearchResultItem.vue';
+import { useNodeStore } from '@/stores/node';
+import MonacoEditor from '@/components/MonacoEditor.vue';
+import SearchResultItem from '@/components/search/SearchResultItem.vue';
 import type { SearchParams } from 'typesense/lib/Typesense/Documents';
 
 const store = useNodeStore();

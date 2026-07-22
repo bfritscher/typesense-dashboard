@@ -54,9 +54,9 @@
 </template>
 
 <script setup lang="ts">
-import NavMenu from 'components/NavMenu.vue';
-import ServerHistory from 'components/ServerHistory.vue';
-import { useNodeStore } from 'src/stores/node';
+import NavMenu from '@/components/NavMenu.vue';
+import ServerHistory from '@/components/ServerHistory.vue';
+import { useNodeStore } from '@/stores/node';
 import { ref } from 'vue';
 
 const store = useNodeStore();

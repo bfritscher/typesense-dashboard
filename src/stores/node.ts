@@ -27,7 +27,7 @@ import type { RouteLocationNormalized } from 'vue-router';
 import FileSaver from 'file-saver';
 import { LocalStorage, Notify } from 'quasar';
 import { acceptHMRUpdate, defineStore } from 'pinia';
-import { Api } from 'src/shared/api';
+import { Api } from '@/shared/api';
 
 export interface Health {
   ok: boolean;
@@ -101,11 +101,6 @@ export interface NodeStateInterface {
   documentsToEdit: any[] | null;
 }
 
-type CollectionSetLinkSchema = CollectionUpdateSchema & {
-  curation_sets?: string[];
-  synonym_sets?: string[];
-};
-
 export type SynonymRow = SynonymSchema & {
   _setName?: string;
 };
@@ -119,7 +114,7 @@ export const STORAGE_KEY_LOGIN_HISTORY = 'typesense-loginhistory';
 
 function isValidMetricsPayload(payload: unknown): payload is Record<string, unknown> {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return false;
-  const keys = Object.keys(payload as Record<string, unknown>);
+  const keys = Object.keys(payload);
   if (keys.length === 0) return false;
   // Typesense metrics generally contain system_* and/or typesense_* keys.
   return keys.some((k) => k.startsWith('system_') || k.startsWith('typesense_'));
@@ -747,7 +742,7 @@ export const useNodeStore = defineStore('node', {
         const newSets = [...existingSets, setName];
         await this.api?.updateCollection(col.name, {
           curation_sets: newSets,
-        } as CollectionSetLinkSchema);
+        });
         if (this.currentCollection?.name === col.name) {
           this.setCurrentCollection({ ...this.currentCollection, curation_sets: newSets });
           void this.getOverrides(col.name);
@@ -867,7 +862,7 @@ export const useNodeStore = defineStore('node', {
               const curation_sets = [...existingSets, setName];
               await this.api?.updateCollection(this.currentCollection.name, {
                 curation_sets,
-              } as CollectionSetLinkSchema);
+              });
               this.setCurrentCollection({ ...this.currentCollection, curation_sets });
               void this.getCollections();
             }
@@ -908,7 +903,7 @@ export const useNodeStore = defineStore('node', {
               const curation_sets = existingSets.filter((setName) => setName !== payload.setName);
               await this.api?.updateCollection(this.currentCollection.name, {
                 curation_sets,
-              } as CollectionSetLinkSchema);
+              });
               this.setCurrentCollection({ ...this.currentCollection, curation_sets });
             }
             void this.getCollections();
@@ -1049,7 +1044,7 @@ export const useNodeStore = defineStore('node', {
     },
     setCurrentNodeConfig(config: Partial<CustomNodeConfiguration>): void {
       const merged: CustomNodeConfiguration = {
-        ...(this.currentNodeConfig as CustomNodeConfiguration),
+        ...(this.currentNodeConfig),
         ...(config as CustomNodeConfiguration),
       };
 

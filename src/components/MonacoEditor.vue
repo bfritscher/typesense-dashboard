@@ -4,12 +4,12 @@
     <div ref="editorElement" class="absolute-top-left"></div>
   </div>
 </template>
-<script lang="ts">
+<script setup lang="ts">
 import * as monaco from 'monaco-editor';
-import { defineComponent, onMounted, onUnmounted, ref, watch } from 'vue';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 
-import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
-import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
+import editorWorker from 'monaco-editor/editor/editor.worker?worker';
+import jsonWorker from 'monaco-editor/language/json/json.worker?worker';
 
 (self as any).MonacoEnvironment = {
   getWorker(_: any, label: string) {
@@ -20,72 +20,65 @@ import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
   },
 };
 
-export default defineComponent({
-  name: 'MonacoEditor',
-  props: {
-    modelValue: {
-      type: String,
-      default: '',
-    },
-    options: {
-      type: Object,
-      default: () => {
-        return {};
-      },
-    },
-  },
-  emits: ['update:modelValue'],
-  setup(props, { emit }) {
-    const editorElement = ref<HTMLElement | null>(null);
-    const editorWrapper = ref<HTMLElement | null>(null);
-    let editor: monaco.editor.IStandaloneCodeEditor | undefined;
-    onMounted(() => {
-      editor = monaco.editor.create(
-        editorElement.value as HTMLElement,
-        Object.assign(
-          {
-            value: props.modelValue,
-            language: 'json',
-            theme: 'vs-dark',
-            minimap: {
-              enabled: false,
-            },
-          },
-          props.options,
-        ),
-      );
-      editor.onDidChangeModelContent(() => {
-        emit('update:modelValue', editor?.getValue());
-      });
-    });
-    onUnmounted(() => {
-      editor?.dispose();
-    });
+interface Props {
+  modelValue?: string;
+  options?: monaco.editor.IStandaloneEditorConstructionOptions;
+}
 
-    watch(
-      () => props.modelValue,
-      () => {
-        if (props.modelValue !== editor?.getValue()) {
-          editor?.getModel()?.setValue(props.modelValue);
-          editor?.setScrollPosition({ scrollTop: 0 });
-        }
-      },
-    );
-    return {
-      editorElement,
-      editorWrapper,
-      onResize() {
-        editor?.layout({ height: 0, width: 0 });
-        window.setTimeout(() => {
-          editor?.layout({
-            height: (editorWrapper.value as HTMLElement).offsetHeight,
-            width: (editorWrapper.value as HTMLElement).offsetWidth,
-          });
-        });
-      },
-    };
-  },
+const props = withDefaults(defineProps<Props>(), {
+  modelValue: '',
+  options: () => ({}),
 });
+
+const emit = defineEmits<{
+  'update:modelValue': [value: string];
+}>();
+
+const editorElement = ref<HTMLElement | null>(null);
+const editorWrapper = ref<HTMLElement | null>(null);
+let editor: monaco.editor.IStandaloneCodeEditor | undefined;
+
+onMounted(() => {
+  if (!editorElement.value) return;
+
+  editor = monaco.editor.create(editorElement.value, {
+    value: props.modelValue,
+    language: 'json',
+    theme: 'vs-dark',
+    minimap: {
+      enabled: false,
+    },
+    ...props.options,
+  });
+  editor.onDidChangeModelContent(() => {
+    if (editor) emit('update:modelValue', editor.getValue());
+  });
+});
+
+onUnmounted(() => {
+  editor?.dispose();
+});
+
+watch(
+  () => props.modelValue,
+  (modelValue) => {
+    if (modelValue !== editor?.getValue()) {
+      editor?.getModel()?.setValue(modelValue);
+      editor?.setScrollPosition({ scrollTop: 0 });
+    }
+  },
+);
+
+function onResize() {
+  editor?.layout({ height: 0, width: 0 });
+  window.setTimeout(() => {
+    if (!editorWrapper.value) return;
+    editor?.layout({
+      height: editorWrapper.value.offsetHeight,
+      width: editorWrapper.value.offsetWidth,
+    });
+  });
+}
 </script>
 
 <style scoped>

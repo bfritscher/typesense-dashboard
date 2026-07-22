@@ -1,4 +1,4 @@
-import { defineBoot } from '#q-app/wrappers';
+import { defineBoot } from '#q-app';
 import { Dark, LocalStorage } from 'quasar';
 import { watch } from 'vue';
 
