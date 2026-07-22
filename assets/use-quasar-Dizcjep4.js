@@ -1,1 +1,0 @@
-import{yn as e}from"./index-DiQOKZAs.js";function t(){return e(`_q_`)}export{t};

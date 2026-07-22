@@ -1,1 +1,0 @@
-import{Jt as e,vn as t}from"./index-DiQOKZAs.js";var n=e({name:`QSpace`,setup(){let e=t(`div`,{class:`q-space`});return()=>e}});export{n as t};
