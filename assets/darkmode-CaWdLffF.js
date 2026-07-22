@@ -1,0 +1,1 @@
+import{In as e,It as t,St as n,vt as r}from"./index-DiQOKZAs.js";var i=`typesense-dark-mode`,a=n(()=>{let n=r.getItem(i);n!==null&&t.set(n),e(()=>t.isActive,e=>{r.set(i,e)})});export{a as default};

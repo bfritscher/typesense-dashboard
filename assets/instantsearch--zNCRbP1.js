@@ -1,0 +1,1 @@
+import{St as e}from"./index-DiQOKZAs.js";import{t}from"./es-Cl1x6r5X.js";var n=e(({app:e})=>{e.use(t)});export{n as default};
