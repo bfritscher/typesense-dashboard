@@ -45,25 +45,56 @@
               </q-card-section>
               <q-card-section class="row q-col-gutter-md">
                 <q-select
-                  v-model="state.rule.params.source.collections"
+                  v-model="state.rule.event_type"
+                  :options="eventTypeOptions"
                   class="col-12 col-sm-6"
-                  label="Source Collection(s)"
+                  label="Event Type"
+                  filled
+                  :rules="[(val) => !!val || 'Field is required']"
+                  hint="Type of event this rule tracks"
+                />
+              </q-card-section>
+              <q-card-section v-if="state.rule.type !== 'log'" class="row q-col-gutter-md">
+                <q-select
+                  v-model="state.rule.collection"
+                  class="col-12 col-sm-6"
+                  label="Source Collection"
                   filled
                   :options="sourceOptions"
-                  multiple
-                  hint="Track searches sent to these collections or aliases"
+                  hint="Track searches sent to this collection or alias"
                 ></q-select>
                 <q-select
-                  v-model="state.rule.params.destination!.collection"
+                  v-model="state.rule.params!.destination_collection"
                   class="col-12 col-sm-6"
                   label="Destination Collection"
                   filled
                   :options="sourceOptions"
                 ></q-select>
               </q-card-section>
-              <q-card-section class="row q-col-gutter-md">
+              <q-card-section v-if="state.rule.type === 'counter'" class="row q-col-gutter-md">
                 <q-input
-                  v-model="state.rule.params.limit"
+                  v-model="state.rule.params!.counter_field"
+                  class="col-12 col-sm-6"
+                  label="Counter Field"
+                  filled
+                  hint="Numeric field in destination collection to increment"
+                />
+                <q-input
+                  v-model.number="state.rule.params!.weight"
+                  class="col-12 col-sm-6"
+                  label="Weight"
+                  filled
+                  type="number"
+                  min="0"
+                  hint="Weight of this event in the counter"
+                />
+              </q-card-section>
+              <q-card-section
+                v-if="state.rule.type !== 'log' && state.rule.type !== 'counter'"
+                class="row q-col-gutter-md"
+              >
+                <q-input
+                  v-model="state.rule.params!.limit"
                   class="col-12 col-sm-6"
                   label="Limit"
                   filled
@@ -71,10 +102,21 @@
                   min="0"
                 />
                 <q-checkbox
-                  v-model="state.rule.params.expand_query"
+                  v-model="state.rule.params!.expand_query"
                   class="col-12 col-sm-6"
                   label="Expand Query"
                   filled
+                />
+              </q-card-section>
+              <q-card-section
+                v-if="state.rule.type === 'popular_queries' || state.rule.type === 'nohits_queries'"
+                class="row q-col-gutter-md"
+              >
+                <q-checkbox
+                  v-model="state.rule.params!.capture_search_requests"
+                  class="col-12 col-sm-6"
+                  label="Capture Search Requests"
+                  hint="Auto-aggregate all search requests"
                 />
               </q-card-section>
             </q-tab-panel>
@@ -103,6 +145,7 @@
       :filter="state.filter"
       :rows="store.data.analyticsRules"
       :columns="state.columns"
+      :visible-columns="['name', 'type', 'event_type', 'source', 'destination', 'limit', 'actions']"
       row-key="name"
       :pagination="{ rowsPerPage: 50, sortBy: 'name' }"
     >
@@ -134,7 +177,10 @@
 
 <script setup lang="ts">
 import { useNodeStore } from 'src/stores/node';
-import type { AnalyticsRuleSchema } from 'typesense/lib/Typesense/AnalyticsRule';
+import type {
+  AnalyticsRuleCreateSchema,
+  AnalyticsRuleSchema,
+} from 'typesense/lib/Typesense/AnalyticsRule';
 import { computed, onMounted, reactive, ref } from 'vue';
 import type { QTableProps } from 'quasar';
 import { useQuasar } from 'quasar';
@@ -143,17 +189,14 @@ import MonacoEditor from 'src/components/MonacoEditor.vue';
 const $q = useQuasar();
 const store = useNodeStore();
 
-function initialData(): AnalyticsRuleSchema {
+function initialData(): AnalyticsRuleCreateSchema {
   return {
     name: '',
     type: 'popular_queries',
+    collection: '',
+    event_type: 'search',
     params: {
-      source: {
-        collections: [],
-      },
-      destination: {
-        collection: '',
-      },
+      destination_collection: '',
       expand_query: false,
       limit: 100,
     },
@@ -180,23 +223,30 @@ const state = reactive({
       sortable: true,
     },
     {
-      label: 'Source Collection(s)',
+      label: 'Event Type',
+      name: 'event_type',
+      field: (r: AnalyticsRuleSchema) => r.event_type || '',
+      align: 'left',
+      sortable: true,
+    },
+    {
+      label: 'Source Collection',
       name: 'source',
-      field: (r: AnalyticsRuleSchema) => r.params.source.collections.join(', '),
+      field: (r: AnalyticsRuleSchema) => r.collection || '',
       align: 'left',
       sortable: true,
     },
     {
       label: 'Destination Collection',
       name: 'destination',
-      field: (r: AnalyticsRuleSchema) => r.params.destination?.collection || '',
+      field: (r: AnalyticsRuleSchema) => r.params?.destination_collection || '',
       align: 'left',
       sortable: true,
     },
     {
       label: 'Limit',
       name: 'limit',
-      field: (r: AnalyticsRuleSchema) => r.params.limit,
+      field: (r: AnalyticsRuleSchema) => r.params?.limit,
       align: 'right',
       sortable: true,
     },
@@ -216,7 +266,8 @@ const sourceOptions = computed(() => {
   return options.sort();
 });
 
-const typeOptions = ref(['popular_queries', 'nohits_queries', 'counter']);
+const typeOptions = ref(['popular_queries', 'nohits_queries', 'counter', 'log']);
+const eventTypeOptions = ref(['search', 'click', 'conversion', 'visit']);
 
 const isUpdate = computed(() =>
   store.data.analyticsRules.map((a) => a.name).includes(state.rule.name),

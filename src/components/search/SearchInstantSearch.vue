@@ -208,7 +208,7 @@ watch(
 
       try {
         const serverConfig: ConfigurationOptions = {
-          nodes: [{...store.loginData.node}],
+          nodes: [{ ...store.loginData.node }],
           apiKey: store.loginData.apiKey,
         };
         if (store.loginData.connectionTimeoutSeconds !== undefined) {
