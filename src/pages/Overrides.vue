@@ -15,8 +15,32 @@
       header-class="bg-primary text-white"
     >
       <q-card style="height: 60vh" class="bg-surface column">
-        <q-card-section>
-          <q-input v-model="state.id" dense filled label="ID"></q-input>
+        <q-card-section class="q-gutter-sm">
+          <q-select
+            v-if="store.data.features.curationSets"
+            v-model="state.setName"
+            :options="filteredSetOptions"
+            dense
+            filled
+            use-input
+            hide-selected
+            fill-input
+            input-debounce="0"
+            new-value-mode="add-unique"
+            label="Curation set"
+            :hint="setHint"
+            :disable="state.editing"
+            @filter="filterSets"
+            @input-value="onSetInput"
+          ></q-select>
+          <q-input
+            v-model="state.id"
+            dense
+            filled
+            label="Item ID"
+            :hint="idHint"
+            :disable="state.editing"
+          ></q-input>
         </q-card-section>
         <q-card-section v-if="store.supportsCurationRuleTags" class="q-pt-none">
           <q-select
@@ -39,17 +63,34 @@
 
         <q-card-actions align="right" class="bg-primary">
           <q-btn
+            v-if="state.editing"
+            size="md"
+            padding="sm lg"
+            flat
+            color="white"
+            @click="resetForm()"
+            >Cancel edit</q-btn
+          >
+          <q-btn
             size="md"
             padding="sm lg"
             unelevated
             color="primary"
             :disable="!isValid"
             @click="createOverride()"
-            >{{ isUpdate ? 'Update' : 'Add' }} Curation</q-btn
+            >{{ submitLabel }}</q-btn
           >
         </q-card-actions>
       </q-card>
     </q-expansion-item>
+
+    <set-manager
+      v-if="store.data.features.curationSets && !route.params.name"
+      kind="curation"
+      :sets="allSets"
+      @changed="refreshPageData"
+      @add-item="startAddToSet"
+    />
 
     <q-table
       class="q-mt-md"
@@ -59,7 +100,7 @@
       :filter="state.filter"
       :rows="store.data.overrides"
       :columns="state.columns"
-      row-key="id"
+      :row-key="rowKey"
       :visible-columns="visibleColumns"
     >
       <template #top-left>
@@ -173,9 +214,13 @@ import { useQuasar } from 'quasar';
 import { useRoute } from 'vue-router';
 import { nanoid } from 'nanoid';
 import MonacoEditor from '@/components/MonacoEditor.vue';
+import SetManager from '@/components/SetManager.vue';
 import { useNodeStore } from '@/stores/node';
 import type { OverrideCreateSchema } from 'typesense/lib/Typesense/Overrides';
-import type { CurationObjectSchema } from 'typesense/lib/Typesense/CurationSets';
+import type {
+  CurationObjectSchema,
+  CurationSetsListEntrySchema,
+} from 'typesense/lib/Typesense/CurationSets';
 import type { QTableProps } from 'quasar';
 import type { OverrideRow } from '@/stores/node';
 
@@ -284,10 +329,18 @@ const state = reactive({
   id: nanoid(),
   override: initialData,
   setName: null as string | null,
+  editing: false,
   jsonError: null as string | null,
   expanded: store.data.overrides.length === 0,
   filter: '',
   columns: [
+    {
+      label: 'Set',
+      name: 'set',
+      field: '_setName',
+      sortable: true,
+      align: 'left',
+    },
     {
       label: 'ID',
       name: 'id',
@@ -323,9 +376,91 @@ const state = reactive({
   ] as QTableProps['columns'],
 });
 
-const isValid = computed(() => state.id.length > 0 && !state.jsonError);
-const isUpdate = computed(() => store.data.overrides.map((o) => o.id).includes(state.id));
-const visibleColumns = computed(() => ['rule_type', 'trigger', 'result', 'actions']);
+const allSets = ref<CurationSetsListEntrySchema[]>([]);
+const setNames = computed(() => allSets.value.map((s) => s.name));
+const filteredSetOptions = ref<string[]>([]);
+const collectionName = computed(() => (route.params.name as string) || '');
+
+function rowKey(row: OverrideRow) {
+  return `${row._setName ?? ''}/${row.id}`;
+}
+
+function filterSets(val: string, update: (fn: () => void) => void) {
+  update(() => {
+    const needle = val.toLowerCase();
+    filteredSetOptions.value = setNames.value.filter((n) => n.toLowerCase().includes(needle));
+  });
+}
+
+// Keep the typed text as the set name so users don't have to press enter.
+function onSetInput(val: string) {
+  state.setName = val || null;
+}
+
+const setExists = computed(() => !!state.setName && setNames.value.includes(state.setName));
+const itemExistsInSet = computed(() => {
+  if (!state.setName) return false;
+  const set = allSets.value.find((s) => s.name === state.setName);
+  return !!set?.items.some((i) => i.id === state.id);
+});
+
+const setHint = computed(() => {
+  if (!state.setName) return 'Pick an existing set or type a name for a new one';
+  if (state.editing) return 'Editing an item in this set';
+  if (setExists.value) return 'The curation will be added to this set';
+  return collectionName.value
+    ? `A new set will be created and linked to ${collectionName.value}`
+    : 'A new set will be created. Link it to collections from the sets table';
+});
+
+const idHint = computed(() =>
+  itemExistsInSet.value && !state.editing
+    ? 'A curation with this ID already exists in the set and will be replaced'
+    : 'Unique within the set',
+);
+
+const isValid = computed(
+  () =>
+    state.id.length > 0 &&
+    !state.jsonError &&
+    (!store.data.features.curationSets || !!state.setName),
+);
+const isUpdate = computed(() =>
+  store.data.features.curationSets
+    ? itemExistsInSet.value
+    : store.data.overrides.map((o) => o.id).includes(state.id),
+);
+const submitLabel = computed(() => {
+  if (state.editing) return 'Save changes';
+  if (isUpdate.value) return 'Replace curation';
+  return store.data.features.curationSets && !setExists.value ? 'Create set' : 'Add curation';
+});
+const visibleColumns = computed(() =>
+  store.data.features.curationSets
+    ? ['set', 'id', 'rule_type', 'trigger', 'result', 'actions']
+    : ['rule_type', 'trigger', 'result', 'actions'],
+);
+
+function defaultSetName(): string | null {
+  const linked = store.currentCollection?.curation_sets ?? [];
+  return collectionName.value && linked.length === 1 ? (linked[0] ?? null) : null;
+}
+
+// Open the form pre-filled with an existing set, from the sets table.
+function startAddToSet(setName: string) {
+  resetForm();
+  state.setName = setName;
+  state.expanded = true;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function resetForm() {
+  state.id = nanoid();
+  state.override = JSON.parse(JSON.stringify(initialData));
+  state.setName = defaultSetName();
+  state.editing = false;
+  state.jsonError = null;
+}
 const ruleTags = computed({
   get: () => state.override.rule.tags || [],
   set: (tags: string[]) => {
@@ -354,11 +489,11 @@ async function createOverride() {
     id: state.id,
     override: JSON.parse(JSON.stringify(state.override)),
     ...(state.setName ? { setName: state.setName } : {}),
+    ...(collectionName.value ? { collectionName: collectionName.value } : {}),
   });
-  state.id = nanoid();
-  state.override = JSON.parse(JSON.stringify(initialData));
-  state.setName = null;
+  resetForm();
   state.expanded = false;
+  await refreshSets();
 }
 
 function editOverride(override: OverrideRow) {
@@ -369,24 +504,34 @@ function editOverride(override: OverrideRow) {
   delete copy._setName;
   state.override = copy;
   state.id = id || nanoid();
+  state.editing = true;
   state.expanded = true;
 }
 
 function deleteOverride(row: OverrideRow) {
+  const set = allSets.value.find((s) => s.name === row._setName);
+  const isLast = !!set && set.items.length <= 1;
+  const message = isLast
+    ? `${row.id} is the last item in ${row._setName}, so the set will be deleted and unlinked from all collections. Continue?`
+    : `Delete curation ${row.id}${row._setName ? ` from ${row._setName}` : ''}?`;
   $q.dialog({
     title: 'Confirm',
-    message: `Delete curation with id: ${row.id}?`,
+    message,
     cancel: true,
     persistent: true,
   }).onOk(() => {
-    void store.deleteOverride({
-      id: row.id,
-      ...(row._setName ? { setName: row._setName } : {}),
-    });
+    void (async () => {
+      await store.deleteOverride({
+        id: row.id,
+        ...(row._setName ? { setName: row._setName } : {}),
+        ...(collectionName.value ? { collectionName: collectionName.value } : {}),
+      });
+      await refreshSets();
+    })();
   });
 }
 
-const allGlobalSets = ref<string[]>([]);
+const allGlobalSets = computed(() => setNames.value);
 const selectedSetToLink = ref<string | null>(null);
 
 const unlinkedSets = computed(() => {
@@ -398,8 +543,7 @@ async function linkSet() {
   if (!selectedSetToLink.value) return;
   await store.linkCurationSetToCollection(selectedSetToLink.value);
   selectedSetToLink.value = null;
-  const sets = await store.fetchAllCurationSets();
-  allGlobalSets.value = sets.map((s) => s.name);
+  await refreshSets();
 }
 
 const linkDialog = reactive({ open: false, setName: '', selectedCollection: '' });
@@ -419,21 +563,16 @@ async function confirmLink() {
   linkDialog.open = false;
 }
 
+async function refreshSets() {
+  allSets.value = store.data.features.curationSets ? await store.fetchAllCurationSets() : [];
+}
+
 async function refreshPageData() {
-  const collectionName = (route.params.name as string) || '';
-  if (store.data.features.curationSets) {
-    void store.getOverrides(collectionName);
-    if (collectionName) {
-      const sets = await store.fetchAllCurationSets();
-      allGlobalSets.value = sets.map((s) => s.name);
-    } else {
-      allGlobalSets.value = [];
-    }
-  } else if (collectionName) {
-    void store.getOverrides(collectionName);
-  } else {
-    allGlobalSets.value = [];
+  if (store.data.features.curationSets || collectionName.value) {
+    void store.getOverrides(collectionName.value);
   }
+  await refreshSets();
+  if (!state.editing && !state.setName) state.setName = defaultSetName();
 }
 
 onMounted(() => {
@@ -441,7 +580,7 @@ onMounted(() => {
 });
 
 watch(
-  () => route.params.name,
+  () => [route.params.name, store.data.features.curationSets],
   () => {
     void refreshPageData();
   },

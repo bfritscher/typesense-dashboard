@@ -21,7 +21,7 @@ import type {
   CurationObjectSchema,
   CurationSetsListEntrySchema,
 } from 'typesense/lib/Typesense/CurationSets';
-import type { SynonymSetSchema } from 'typesense/lib/Typesense/SynonymSets';
+import type { SynonymItemSchema, SynonymSetSchema } from 'typesense/lib/Typesense/SynonymSets';
 import type { RouteLocationNormalized } from 'vue-router';
 
 import FileSaver from 'file-saver';
@@ -750,38 +750,128 @@ export const useNodeStore = defineStore('node', {
         void this.getCollections();
       }
     },
+    // ---- V30 set helpers -------------------------------------------------
+    // Collections currently referencing a set, used to unlink a set everywhere
+    // before deleting it so no collection is left pointing at a missing set.
+    collectionsUsingSet(kind: 'synonym' | 'curation', setName: string): string[] {
+      const field = kind === 'synonym' ? 'synonym_sets' : 'curation_sets';
+      return this.data.collections
+        .filter((c) => (c[field] ?? []).includes(setName))
+        .map((c) => c.name);
+    },
+    async unlinkSetFromCollection(
+      kind: 'synonym' | 'curation',
+      setName: string,
+      collectionName: string,
+    ) {
+      const field = kind === 'synonym' ? 'synonym_sets' : 'curation_sets';
+      const col = this.data.collections.find((c) => c.name === collectionName);
+      if (!col) return;
+      const remaining = (col[field] ?? []).filter((s) => s !== setName);
+      await this.api?.updateCollection(collectionName, { [field]: remaining });
+      if (this.currentCollection?.name === collectionName) {
+        this.setCurrentCollection({ ...this.currentCollection, [field]: remaining });
+      }
+    },
+    async unlinkSetEverywhere(kind: 'synonym' | 'curation', setName: string) {
+      for (const collectionName of this.collectionsUsingSet(kind, setName)) {
+        await this.unlinkSetFromCollection(kind, setName, collectionName);
+      }
+    },
+    async unlinkSynonymSetFromCollection(setName: string, collectionName: string) {
+      try {
+        this.setError(null);
+        await this.unlinkSetFromCollection('synonym', setName, collectionName);
+        await this.getCollections();
+      } catch (error) {
+        this.setError((error as Error).message);
+      }
+    },
+    async unlinkCurationSetFromCollection(setName: string, collectionName: string) {
+      try {
+        this.setError(null);
+        await this.unlinkSetFromCollection('curation', setName, collectionName);
+        await this.getCollections();
+      } catch (error) {
+        this.setError((error as Error).message);
+      }
+    },
+    // Replace a whole synonym set (create or overwrite) with the given items.
+    async saveSynonymSet(payload: { setName: string; items: SynonymItemSchema[] }) {
+      try {
+        this.setError(null);
+        await this.api?.upsertSynonymSet(payload.setName, { items: payload.items });
+        return true;
+      } catch (error) {
+        this.setError((error as Error).message);
+        return false;
+      }
+    },
+    async saveCurationSet(payload: { setName: string; items: CurationObjectSchema[] }) {
+      try {
+        this.setError(null);
+        await this.api?.upsertCurationSet(payload.setName, { items: payload.items });
+        return true;
+      } catch (error) {
+        this.setError((error as Error).message);
+        return false;
+      }
+    },
+    // Delete a whole set and unlink it from every collection that uses it.
+    async removeSynonymSet(setName: string) {
+      try {
+        this.setError(null);
+        await this.unlinkSetEverywhere('synonym', setName);
+        await this.api?.deleteSynonymSet(setName);
+        await this.getCollections();
+        return true;
+      } catch (error) {
+        this.setError((error as Error).message);
+        return false;
+      }
+    },
+    async removeCurationSet(setName: string) {
+      try {
+        this.setError(null);
+        await this.unlinkSetEverywhere('curation', setName);
+        await this.api?.deleteCurationSet(setName);
+        await this.getCollections();
+        return true;
+      } catch (error) {
+        this.setError((error as Error).message);
+        return false;
+      }
+    },
+    // ---------------------------------------------------------------------
+    /**
+     * V30: adds or updates a single item inside `setName`.
+     * - If the set exists, only that item is upserted; other items are untouched.
+     * - If the set does not exist yet, it is created with this item.
+     * - The set is linked only to `collectionName` (the collection page being
+     *   viewed), never to a collection that happened to be opened earlier.
+     */
     async createSynonym(payload: {
       id: string;
       synonym: SynonymCreateSchema;
       setName?: string;
+      collectionName?: string;
     }) {
       try {
         this.setError(null);
         if (this.data.features.synonymSets) {
           const setName = payload.setName || payload.id;
-          if (payload.setName) {
+          const existing = await this.fetchAllSynonymSets();
+          if (existing.some((s) => s.name === setName)) {
             await this.api?.upsertSynonymSetItem(setName, payload.id, payload.synonym);
           } else {
             await this.api?.upsertSynonymSet(setName, {
               items: [{ id: payload.id, ...payload.synonym }],
             });
           }
-          if (this.currentCollection) {
-            const existingSets = this.currentCollection.synonym_sets ?? [];
-            if (!existingSets.includes(setName)) {
-              await this.api?.updateCollection(this.currentCollection.name, {
-                synonym_sets: [...existingSets, setName],
-              });
-              this.setCurrentCollection({
-                ...this.currentCollection,
-                synonym_sets: [...existingSets, setName],
-              });
-              void this.getCollections();
-            }
-            void this.getSynonyms(this.currentCollection.name);
-          } else {
-            void this.getSynonyms('');
+          if (payload.collectionName) {
+            await this.linkSynonymSetToCollection(setName, payload.collectionName);
           }
+          void this.getSynonyms(payload.collectionName ?? '');
         } else {
           if (!this.currentCollection) {
             throw new Error('No collection selected');
@@ -796,7 +886,7 @@ export const useNodeStore = defineStore('node', {
         this.setError((error as Error).message);
       }
     },
-    async deleteSynonym(payload: { id: string; setName?: string }) {
+    async deleteSynonym(payload: { id: string; setName?: string; collectionName?: string }) {
       try {
         this.setError(null);
         if (this.data.features.synonymSets) {
@@ -808,22 +898,14 @@ export const useNodeStore = defineStore('node', {
             throw new Error(`Synonym set ${payload.setName} not found`);
           }
           if (set.items.length <= 1) {
+            // Last item: the set goes away, so unlink it from every collection.
+            await this.unlinkSetEverywhere('synonym', payload.setName);
             await this.api?.deleteSynonymSet(payload.setName);
           } else {
             await this.api?.deleteSynonymSetItem(payload.setName, payload.id);
           }
-          if (this.currentCollection) {
-            const existingSets = this.currentCollection.synonym_sets ?? [];
-            if (set.items.length <= 1 && existingSets.includes(payload.setName)) {
-              const synonym_sets = existingSets.filter((setName) => setName !== payload.setName);
-              await this.api?.updateCollection(this.currentCollection.name, { synonym_sets });
-              this.setCurrentCollection({ ...this.currentCollection, synonym_sets });
-            }
-            void this.getCollections();
-            void this.getSynonyms(this.currentCollection.name);
-          } else {
-            void this.getSynonyms('');
-          }
+          void this.getCollections();
+          void this.getSynonyms(payload.collectionName ?? '');
         } else {
           if (!this.currentCollection) {
             throw new Error('No collection selected');
@@ -839,37 +921,31 @@ export const useNodeStore = defineStore('node', {
       id: string;
       override: OverrideCreateSchema;
       setName?: string;
+      collectionName?: string;
     }) {
       try {
         this.setError(null);
-        const overridePayload = JSON.parse(JSON.stringify(payload.override)) as OverrideCreateSchema;
+        const overridePayload = JSON.parse(
+          JSON.stringify(payload.override),
+        ) as OverrideCreateSchema;
         if (!this.supportsCurationRuleTags && overridePayload.rule) {
           delete overridePayload.rule.tags;
         }
         if (this.data.features.curationSets) {
           const setName = payload.setName || payload.id;
           const curationItem = { ...overridePayload, id: payload.id } as CurationObjectSchema;
-          if (payload.setName) {
+          const existing = await this.fetchAllCurationSets();
+          if (existing.some((s) => s.name === setName)) {
             await this.api?.upsertCurationSetItem(setName, curationItem);
           } else {
             await this.api?.upsertCurationSet(setName, {
               items: [curationItem],
             });
           }
-          if (this.currentCollection) {
-            const existingSets = this.currentCollection.curation_sets ?? [];
-            if (!existingSets.includes(setName)) {
-              const curation_sets = [...existingSets, setName];
-              await this.api?.updateCollection(this.currentCollection.name, {
-                curation_sets,
-              });
-              this.setCurrentCollection({ ...this.currentCollection, curation_sets });
-              void this.getCollections();
-            }
-            void this.getOverrides(this.currentCollection.name);
-          } else {
-            void this.getOverrides('');
+          if (payload.collectionName) {
+            await this.linkCurationSetToCollection(setName, payload.collectionName);
           }
+          void this.getOverrides(payload.collectionName ?? '');
         } else {
           if (!this.currentCollection) {
             throw new Error('No collection selected');
@@ -881,7 +957,7 @@ export const useNodeStore = defineStore('node', {
         this.setError((error as Error).message);
       }
     },
-    async deleteOverride(payload: { id: string; setName?: string }) {
+    async deleteOverride(payload: { id: string; setName?: string; collectionName?: string }) {
       try {
         this.setError(null);
         if (this.data.features.curationSets) {
@@ -893,24 +969,14 @@ export const useNodeStore = defineStore('node', {
             throw new Error(`Curation set ${payload.setName} not found`);
           }
           if ((set.items ?? []).length <= 1) {
+            // Last item: the set goes away, so unlink it from every collection.
+            await this.unlinkSetEverywhere('curation', payload.setName);
             await this.api?.deleteCurationSet(payload.setName);
           } else {
             await this.api?.deleteCurationSetItem(payload.setName, payload.id);
           }
-          if (this.currentCollection) {
-            const existingSets = this.currentCollection.curation_sets ?? [];
-            if ((set.items ?? []).length <= 1 && existingSets.includes(payload.setName)) {
-              const curation_sets = existingSets.filter((setName) => setName !== payload.setName);
-              await this.api?.updateCollection(this.currentCollection.name, {
-                curation_sets,
-              });
-              this.setCurrentCollection({ ...this.currentCollection, curation_sets });
-            }
-            void this.getCollections();
-            void this.getOverrides(this.currentCollection.name);
-          } else {
-            void this.getOverrides('');
-          }
+          void this.getCollections();
+          void this.getOverrides(payload.collectionName ?? '');
         } else {
           if (!this.currentCollection) {
             throw new Error('No collection selected');
