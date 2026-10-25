@@ -1,11 +1,19 @@
 <template>
   <div v-if="currentCollection" class="column no-wrap search-result-item">
-    <search-result-item-nested-display
-      v-if="item"
-      :item="item._highlightResult"
-      :include-fields="collectionFields"
-      :embed-fields="embedFields"
-    />
+    <div class="row no-wrap items-start">
+      <search-result-item-nested-display
+        v-if="item"
+        class="col result-fields"
+        :item="item._highlightResult"
+        :include-fields="collectionFields"
+        :embed-fields="embedFields"
+      />
+      <!-- the first image sits top-right, the fields wrap beside it -->
+      <div v-if="images.length" class="result-thumbnail q-pa-sm">
+        <q-img :src="images[0]" fit="contain" ratio="1" class="rounded-borders" />
+        <q-badge v-if="images.length > 1" color="grey-8" floating>+{{ images.length - 1 }}</q-badge>
+      </div>
+    </div>
     <q-space />
     <q-separator></q-separator>
     <q-item>
@@ -43,6 +51,7 @@ import { computed } from 'vue';
 import { useQuasar } from 'quasar';
 import { useNodeStore } from '@/stores/node';
 import SearchResultItemNestedDisplay from './SearchResultItemNestedDisplay.vue';
+import { collectImageUrls } from '@/shared/image';
 
 const props = defineProps<{
   item?: Record<string, any>;
@@ -64,6 +73,15 @@ const collectionFields = computed((): string[] => {
 const embedFields = computed((): string[] => {
   if (!props.item || !currentCollection.value || !currentCollection.value.fields) return [];
   return currentCollection.value.fields.filter((f) => f.embed).map((f) => f.name);
+});
+
+const images = computed((): string[] => {
+  if (!props.item) return [];
+  const document: Record<string, unknown> = {};
+  Object.entries(props.item).forEach(([key, value]) => {
+    if (!key.startsWith('_') && key !== 'objectID') document[key] = value;
+  });
+  return collectImageUrls(document);
 });
 
 const editDocument = () => {
@@ -102,5 +120,15 @@ const deleteDocumentById = (id: string) => {
 <style>
 .search-result-item {
   flex: 1;
+}
+
+.result-fields {
+  min-width: 0;
+}
+
+.result-thumbnail {
+  position: relative;
+  flex: 0 0 120px;
+  width: 120px;
 }
 </style>

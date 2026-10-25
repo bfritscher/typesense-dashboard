@@ -39,16 +39,7 @@
       @click="search()"
       >Run Query</q-btn
     >
-    <q-btn
-      size="md"
-      padding="sm lg"
-      unelevated
-      color="accent"
-      class="q-ml-sm"
-      :disable="!results || !results.hits"
-      @click="exportHits()"
-      >Export Hits</q-btn
-    >
+    <export-button class="q-ml-sm" :disable="!results || !results.hits" @export="exportHits" />
     <q-btn
       size="md"
       padding="sm lg"
@@ -82,6 +73,8 @@ import { LocalStorage } from 'quasar';
 import { useNodeStore } from '@/stores/node';
 import MonacoEditor from '@/components/MonacoEditor.vue';
 import SearchResultItem from '@/components/search/SearchResultItem.vue';
+import ExportButton from '@/components/search/ExportButton.vue';
+import type { ExportFormat } from '@/components/search/ExportButton.vue';
 import type { SearchParams } from 'typesense/lib/Typesense/Documents';
 
 const store = useNodeStore();
@@ -190,10 +183,10 @@ const exportResults = () => {
   }
 };
 
-const exportHits = () => {
+const exportHits = (format: ExportFormat) => {
   if (results.value?.hits) {
     const data = results.value.hits.map((h: any) => h.document);
-    store.exportToJson(data);
+    store.exportRows(data, format);
   }
 };
 

@@ -1,8 +1,5 @@
 <template>
   <ais-highlight attribute="a" :hit="{ _highlightResult: { a: hitForHighlight } }" />
-  <div v-if="isImage(hitValue)" class="img-preview">
-    <q-img :src="hitValue" fit="contain" class="img-preview" />
-  </div>
   <q-btn
     v-if="isUrl(hitValue)"
     class="absolute-top-right"
@@ -56,14 +53,6 @@ const isUrl = (str: string) => {
   str = String(str);
   return str.startsWith('http://') || str.startsWith('https://');
 };
-
-const isImage = (filename: string) => {
-  if (!filename) return false;
-  filename = String(filename);
-  const validImageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'svg', 'webp'];
-  const extension = filename.split('.').pop()?.toLowerCase() || '';
-  return validImageExtensions.includes(extension);
-};
 </script>
 
 <style scoped>
@@ -71,10 +60,5 @@ const isImage = (filename: string) => {
   display: block;
   text-overflow: ellipsis;
   overflow: hidden;
-}
-
-.img-preview {
-  width: 100%;
-  height: 150px;
 }
 </style>

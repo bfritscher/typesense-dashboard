@@ -25,6 +25,7 @@ import type { SynonymSetSchema } from 'typesense/lib/Typesense/SynonymSets';
 import type { RouteLocationNormalized } from 'vue-router';
 
 import FileSaver from 'file-saver';
+import { toCsv } from '@/shared/csv';
 import { LocalStorage, Notify } from 'quasar';
 import { acceptHMRUpdate, defineStore } from 'pinia';
 import { Api } from '@/shared/api';
@@ -962,6 +963,18 @@ export const useNodeStore = defineStore('node', {
         type: 'application/json;charset=utf-8',
       });
       FileSaver.saveAs(blob, 'export.json');
+    },
+    exportToCsv(rows: any[]) {
+      // The BOM makes Excel read the file as UTF-8.
+      const blob = new Blob(['\ufeff', toCsv(rows)], { type: 'text/csv;charset=utf-8' });
+      FileSaver.saveAs(blob, 'export.csv');
+    },
+    exportRows(rows: any[], format: 'json' | 'csv') {
+      if (format === 'csv') {
+        this.exportToCsv(rows);
+      } else {
+        this.exportToJson(rows);
+      }
     },
     async operationCompactDB() {
       try {
